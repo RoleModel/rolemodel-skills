@@ -1,6 +1,14 @@
 ---
 name: bem-structure
-description: Think of this skill as your BEM consultant. Refactor existing and write new CSS with Optics-aligned BEM structure.
+description: Expert guidance for writing, refactoring, and structuring CSS using BEM (Block Element Modifier) methodology. Provides proper CSS class naming conventions, component structure, and Optics design system integration for maintainable, scalable stylesheets.
+metadata:
+  triggers:
+    - css review
+    - bem structure
+    - bem methodology
+    - css best practices
+    - refactor css
+    - bem-ify
 ---
 
 ## Overview
@@ -8,6 +16,8 @@ description: Think of this skill as your BEM consultant. Refactor existing and w
 This skill guides AI in writing CSS using the BEM (Block Element Modifier) methodology for creating maintainable, scalable, and reusable stylesheets with clear naming conventions and component structure, while exercising judgment about scope, risk, and architectural impact. It also should use BEM in conjunction with Optics, our RoleModel design system, so that isn't not recreating things that already exist. If there is already an Optics component that fits the need, it should be used and/or overridden as necessary instead of creating a new BEM block.
 
 The agent should prioritize clarity, predictability, and minimal unintended side effects.
+
+Keywords: CSS review, BEM structure, BEM methodology, CSS best practices, Refactor CSS, Review CSS, Fix my CSS, Fix my BEM, BEM-ify my CSS
 
 ## What is BEM?
 
@@ -23,10 +33,18 @@ BEM stands for **Block Element Modifier** - a methodology that helps you create 
 
 ### Naming Convention
 
-As with any other development, intention revealing names are important. In BEM, the intention we are trying to find is not the styling that gets applied to the component, but rather its purpose in the user’s workflow. Specific styling typically makes for bad naming with the exception of modifiers (small, large, padded, etc.). Naming after the specific workflow can, in certain cases be acceptable. (calendar with days). Naming after the shared type of workflow tends to be the sweet spot. (form, table, card, button). Naming after the broader UI abstraction is not always necessary, but can be used for abstract cases with no context required (primary, large, etc)
+- As with any other development, intention revealing names are important.
+- In BEM, the intention we are trying to convey in naming is not based on the styling that gets applied or its appearance, but rather its purpose in the interface. 
+- Specific styling typically makes for bad naming with the exception of modifiers (small, large, padded, etc.). 
+- Naming after the specific workflow can, in certain cases be acceptable. (calendar with days). 
+- Naming after the shared type of workflow tends to be the sweet spot. (form, table, card, button). 
+- Naming after the broader UI abstraction is not always necessary, but can be used for abstract cases with no context required (primary, large, etc). 
+- Be specific enough to convey purpose clearly, but general enough to allow for reuse if applicable. Reuse won't always be possible or desirable, so don't push it too far. 
+- Try to use names that are explicit and not open to interpretation. This will need to be considered most often for modifiers.
+- Use flat BEM classes with explicit `&` usage for modifiers.
+- DOM structure does not need to follow CSS class structure.
 
-Use flat BEM classes with explicit `&` usage for modifiers.
-DOM structure does not need to follow CSS class structure.
+If you're not able to follow these guidelines due to project constraints or other reasons, please document the reasons for the deviation in the chat output.
 
 ### Basic Syntax
 
