@@ -83,7 +83,7 @@ DOM structure does not need to follow CSS class structure.
 `&` may be used to co-locate modifiers with their Block or Element while keeping selectors explicit.
 
 ✅ GOOD (Do this)
-```scss
+```css
 .card {
   &.card--featured {}
   &.card--compact {}
@@ -94,7 +94,7 @@ DOM structure does not need to follow CSS class structure.
 ```
 
 🚫 BAD (Don't do this)
-```scss
+```css
 .card {
   &--featured {}
   &__title {}
@@ -212,11 +212,10 @@ Any DOM node within a block can be an element. Within a given block, all element
   .search-form__button { }
   .search-form__label { }
 }
-
 ```
 
 🚫 BAD (Don't do this)
-``` css
+```css
 /* Don't create deeply nested element names */
 .menu {
   .menu__item { }
@@ -292,8 +291,7 @@ Modifier is an extra class name which you add to a block/element DOM node. Add m
 Suppose you have block form with modifiers `theme: "xmas"` and `simple: true` and with elements `input` and `submit`, and element `submit` with its own modifier `disabled: true` for not submitting form while it is not filled:
 
 ✅ GOOD (Do this)
-
-``` html
+```html
 <form class="form form--theme-xmas form--simple">
   <input class="form__input" type="text" />
   <input
@@ -314,22 +312,25 @@ Suppose you have block form with modifiers `theme: "xmas"` and `simple: true` an
 }
 ```
 
-### HTML Usage
-
+🚫 BAD (Don't do this)
 ```html
-<!-- Base component -->
-<div class="card">
-  <h2 class="card__title">Title</h2>
-</div>
-
-<!-- With modifier -->
-<div class="card card--elevated">
-  <h2 class="card__title">Title</h2>
-</div>
-
-<!-- Multiple modifiers -->
-<div class="card card--elevated card--primary">
-  <h2 class="card__title card__title--large">Title</h2>
-</div>
+<form class="form form-simple form--theme-xmas "> <!-- Incorrect; cannot have multiple blocks -->
+  <input class="form_input" type="text" /> <!-- Incorrect; must use `__` between Block and Element  -->
+  <input
+    class="form__submit--disabled" <!-- Incorrect; missing Element -->
+    type="submit" />
+</form>
 ```
+
+```css
+.form {
+  .form__input { }
+  .form_submit { /* Use `__` between Block and Element */
+    .form__submit--disabled { } /* Use `&` before all Modifier class names */
+  }
   
+  &.form-simple { }  /* Use `--` between Element and Modifier */
+}
+
+&.form--theme-xmas { } /* Must nest Elements and Modifiers within Block */
+```
