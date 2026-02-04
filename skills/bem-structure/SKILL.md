@@ -52,7 +52,9 @@ Use flat BEM classes with explicit `&` usage for modifiers.
 .card {
   &.card--featured {}
   &.card--compact {}
-  &.card--featured.card--compact {}
+  &.card--featured {
+    &.card--compact {}
+  }
 }
 ```
 ### Disallowed Usage
