@@ -73,7 +73,7 @@ DOM structure does not need to follow CSS class structure.
 </div>
 ```
 
-### Rule Summary
+## Rule Summary
 
 - All class names MUST be fully explicit and flat BEM
 - `&` may be used only as a textual reference to the full selector
@@ -274,7 +274,7 @@ Modifier is an extra class name which you add to a block/element DOM node. Add m
 }
 ```
 
-### Miscellaneous Rules
+## Miscellaneous Rules
 - Classes only (no IDs)
 - Flat classes and selectors only
 - No tag-based styling
@@ -314,7 +314,7 @@ Suppose you have block form with modifiers `theme: "xmas"` and `simple: true` an
 }
 ```
 
-## HTML Usage
+### HTML Usage
 
 ```html
 <!-- Base component -->
