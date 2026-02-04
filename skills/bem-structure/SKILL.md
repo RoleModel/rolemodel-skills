@@ -5,7 +5,7 @@ description: Think of this skill as your BEM consultant. Refactor existing and w
 
 ## Overview
 
-This skill guides AI in writing CSS using the BEM (Block Element Modifier) methodology for creating maintainable, scalable, and reusable stylesheets with clear naming conventions and component structure, while exercising judgment about scope, risk, and architectural impact.
+This skill guides AI in writing CSS using the BEM (Block Element Modifier) methodology for creating maintainable, scalable, and reusable stylesheets with clear naming conventions and component structure, while exercising judgment about scope, risk, and architectural impact. It also should use BEM in conjunction with Optics, our RoleModel design system, so that isn't not recreating things that already exist. If there is already an Optics component that fits the need, it should be used and/or overridden as necessary instead of creating a new BEM block.
 
 The agent should prioritize clarity, predictability, and minimal unintended side effects.
 
@@ -23,6 +23,7 @@ BEM stands for **Block Element Modifier** - a methodology that helps you create 
 **Modifier** - Flags on blocks or elements. Use them to change appearance, behavior or state.
 
 ## Naming Convention
+
 Use flat BEM classes with explicit `&` usage for modifiers.
 
 ### Basic Syntax
