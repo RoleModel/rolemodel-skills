@@ -22,7 +22,20 @@ BEM stands for **Block Element Modifier** - a methodology that helps you create 
 
 **Modifier** - Flags on blocks or elements. Use them to change appearance, behavior or state.
 
-## Use Flat BEM Classes with Explicit `&` Usage
+## Naming Convention
+Use flat BEM classes with explicit `&` usage for modifiers.
+
+### Basic Syntax
+
+```
+.block {
+  .block__element {
+    &.block__element--modifier { }
+  }
+  
+  .block--modifier { }
+}
+```
 
 ### Rule Summary
 
@@ -49,4 +62,5 @@ BEM stands for **Block Element Modifier** - a methodology that helps you create 
   &--featured {}
   &__title {}
   &__title--large {}
-}```
+}
+```
