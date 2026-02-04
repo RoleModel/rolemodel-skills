@@ -13,6 +13,14 @@ The agent should prioritize clarity, predictability, and minimal unintended side
 
 BEM stands for **Block Element Modifier** - a methodology that helps you create reusable components and code sharing in front-end development.
 
+| Pattern | Syntax | Example |
+|---------|--------|---------|
+| **Block** | `.block` | `.card` |
+| **Element** | `.block__element` | `.card__title` |
+| **Block Modifier** | `.block--modifier` | `.card--elevated` |
+| **Element Modifier** | `.block__element--modifier` | `.card__title--large` |
+| **Multi-word names** | `.block-name` | `.user-profile` |
+
 ### Naming Convention
 
 As with any other development, intention revealing names are important. In BEM, the intention we are trying to find is not the styling that gets applied to the component, but rather its purpose in the user’s workflow. Specific styling typically makes for bad naming with the exception of modifiers (small, large, padded, etc.). Naming after the specific workflow can, in certain cases be acceptable. (calendar with days). Naming after the shared type of workflow tends to be the sweet spot. (form, table, card, button). Naming after the broader UI abstraction is not always necessary, but can be used for abstract cases with no context required (primary, large, etc)
@@ -72,8 +80,6 @@ DOM structure does not need to follow CSS class structure.
 - `&` MUST NOT be used to construct class names (`&--`, `&__`)
 - Nesting is for organization only, not meaning
 
-### Allowed Usage
-
 `&` may be used to co-locate modifiers with their Block or Element while keeping selectors explicit.
 
 ✅ GOOD (Do this)
@@ -86,7 +92,6 @@ DOM structure does not need to follow CSS class structure.
   }
 }
 ```
-### Disallowed Usage
 
 🚫 BAD (Don't do this)
 ```scss
@@ -269,7 +274,6 @@ Modifier is an extra class name which you add to a block/element DOM node. Add m
 }
 ```
 
-
 ### Miscellaneous Rules
 - Classes only (no IDs)
 - Flat classes and selectors only
@@ -287,26 +291,45 @@ Modifier is an extra class name which you add to a block/element DOM node. Add m
 ### Syntax Example
 Suppose you have block form with modifiers `theme: "xmas"` and `simple: true` and with elements `input` and `submit`, and element `submit` with its own modifier `disabled: true` for not submitting form while it is not filled:
 
-  ✅ GOOD (Do this)
-  
-  ``` html
-  <form class="form form--theme-xmas form--simple">
-    <input class="form__input" type="text" />
-    <input
-      class="form__submit form__submit--disabled"
-      type="submit" />
-  </form>
-  ```
-  
-  ``` css
-  .form {
-    .form__input { }
-    .form__submit {
-      &.form__submit--disabled { }
-    }
-    
-    &.form--simple { }
-    &.form--theme-xmas { }
+✅ GOOD (Do this)
+
+``` html
+<form class="form form--theme-xmas form--simple">
+  <input class="form__input" type="text" />
+  <input
+    class="form__submit form__submit--disabled"
+    type="submit" />
+</form>
+```
+
+``` css
+.form {
+  .form__input { }
+  .form__submit {
+    &.form__submit--disabled { }
   }
-  ```
+  
+  &.form--simple { }
+  &.form--theme-xmas { }
+}
+```
+
+## HTML Usage
+
+```html
+<!-- Base component -->
+<div class="card">
+  <h2 class="card__title">Title</h2>
+</div>
+
+<!-- With modifier -->
+<div class="card card--elevated">
+  <h2 class="card__title">Title</h2>
+</div>
+
+<!-- Multiple modifiers -->
+<div class="card card--elevated card--primary">
+  <h2 class="card__title card__title--large">Title</h2>
+</div>
+```
   
