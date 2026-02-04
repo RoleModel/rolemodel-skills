@@ -34,13 +34,13 @@ DOM structure does not need to follow CSS class structure.
 ```
 ``` html
 <div class="block">
-  <div class="block__element"></div>
-  <div class="block__element block__element--modifier"></div>
+  <div class="block__element">...</div>
+  <div class="block__element block__element--modifier">...</div>
 </div>
 
 <div class="block block--modifier">
-  <div class="block__element"></div>
-  <div class="block__element"></div>
+  <div class="block__element">...</div>
+  <div class="block__element">...</div>
 </div>
 ```
 
@@ -55,13 +55,13 @@ DOM structure does not need to follow CSS class structure.
 }
 ```
 ``` html
-<div class="block"></div>  
-<div class="block__element"></div> <!-- Incorrect; Element has become the Block -->
-  <div class="block__element--modifier"></div> <!-- Incorrect; Modifier must be accompanied by a corresponding Element -->
+<div class="block">...</div>  
+<div class="block__element">...</div> <!-- Incorrect; Element has become the Block -->
+  <div class="block__element--modifier">...</div> <!-- Incorrect; Modifier must be accompanied by a corresponding Element -->
 </div>
 
 <div class="block__element"> <!-- Incorrect; Element must be accompanied by a corresponding Block -->
-  <div class="block__element"></div> <!-- Incorrect; Do not nest an element within itself -->
+  <div class="block__element">...</div> <!-- Incorrect; Do not nest an element within itself -->
 </div>
 ```
 
@@ -106,6 +106,27 @@ Block names may consist of lowercase Latin letters, digits, and dashes. To form 
 #### HTML: 
 Any DOM node can be a block if it accepts a class name.
 
+✅ GOOD (Do this)
+```html
+<div class="card">...</div>
+<div class="button">...</div>
+<div class="menu">...</div>
+<div class="header">...</div>
+<div class="search-form">...</div>
+<div class="user-profile">...</div>
+<div class="modal">...</div>
+<div class="navigation">...</div>
+<div class="dropdown-menu">...</div>
+```
+
+🚫 BAD (Don't do this)
+```html
+<div class="searchForm">...</div>
+<div class="button_primary">...</div>
+<div class="userProfile">...</div>
+<div class="dropdown__menu">...</div>  <!-- Don't use element syntax for blocks -->
+```
+
 #### CSS:
 Use class name selector only. No tag name or ids. No dependency on other blocks/elements on a page.
 
@@ -121,8 +142,6 @@ Use class name selector only. No tag name or ids. No dependency on other blocks/
 .navigation { }
 .dropdown-menu { }
 ```
-
-
 
 🚫 BAD (Don't do this)
 ```css
@@ -141,6 +160,17 @@ Element names may consist of lowercase Latin letters, digits, dashes and undersc
 
 #### HTML: 
 Any DOM node within a block can be an element. Within a given block, all elements are semantically equal. An element should not be used outside of the block that contains it in the CSS.
+
+✅ GOOD (Do this)
+```html
+<div class='block'>
+  <div class='block__element'>
+    <div class='block2'>
+      <div class='block2__element'>...</div>
+    </div>
+  </div>
+</div>
+```
 
 🚫 BAD (Don't do this)
 ```html
