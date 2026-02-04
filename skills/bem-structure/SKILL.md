@@ -21,3 +21,32 @@ BEM stands for **Block Element Modifier** - a methodology that helps you create 
 **Element** - Parts of a block and have no standalone meaning. Any element is semantically tied to its block.
 
 **Modifier** - Flags on blocks or elements. Use them to change appearance, behavior or state.
+
+## Use Flat BEM Classes with Explicit `&` Usage
+
+### Rule Summary
+
+- All class names MUST be fully explicit and flat BEM
+- `&` may be used only as a textual reference to the full selector
+- `&` MUST NOT be used to construct class names (`&--`, `&__`)
+- Nesting is for organization only, not meaning
+
+### Allowed Usage
+
+`&` may be used to co-locate modifiers with their Block or Element while keeping selectors explicit.
+
+```scss
+.card {
+  &.card--featured {}
+  &.card--compact {}
+  &.card--featured.card--compact {}
+}
+```
+### Disallowed Usage
+
+```scss
+.card {
+  &--featured {}
+  &__title {}
+  &__title--large {}
+}```
