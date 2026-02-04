@@ -25,7 +25,6 @@ BEM stands for **Block Element Modifier** - a methodology that helps you create 
   .block__element--modifier { }
   ```
 
-<<<<<<< HEAD
 **Modifier** - Flags on blocks or elements. Use them to change appearance, behavior or state.
 
 ## Naming Convention
@@ -73,7 +72,6 @@ Use flat BEM classes with explicit `&` usage for modifiers.
   &__title--large {}
 }
 ```
-=======
 ### Block
 Encapsulates a standalone entity that is meaningful on its own. While blocks can be nested and interact with each other, semantically they remain equal; there is no precedence or hierarchy. Holistic entities without DOM representation (such as controllers or models) can be blocks as well.
 
@@ -244,4 +242,3 @@ Suppose you have block form with modifiers `theme: "xmas"` and `simple: true` an
   .form__submit--disabled { }
   ```
   
->>>>>>> 55f7afa (changes to md)
