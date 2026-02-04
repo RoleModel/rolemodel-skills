@@ -22,14 +22,47 @@ DOM structure does not need to follow CSS class structure.
 
 ### Basic Syntax
 
+✅ GOOD (Do this)
 ```css
 .block {
   .block__element {
     &.block__element--modifier { }
   }
   
-  .block--modifier { }
+  &.block--modifier { }
 }
+```
+``` html
+<div class="block">
+  <div class="block__element"></div>
+  <div class="block__element block__element--modifier"></div>
+</div>
+
+<div class="block block--modifier">
+  <div class="block__element"></div>
+  <div class="block__element"></div>
+</div>
+```
+
+🚫 BAD (Don't do this)
+```css
+.block {
+  .block--modifier { } /* Use `&` before all Modifier class names */
+}
+
+.block_element { /* Use `__` between Blocks and Elements and nest Element within the Block */
+  &.block__element-modifier { } /* Use `--` between the Modifier and its Element */
+}
+```
+``` html
+<div class="block"></div>  
+<div class="block__element"></div> <!-- Incorrect; Element has become the Block -->
+  <div class="block__element--modifier"></div> <!-- Incorrect; Modifier must be accompanied by a corresponding Element -->
+</div>
+
+<div class="block__element"> <!-- Incorrect; Element must be accompanied by a corresponding Block -->
+  <div class="block__element"></div> <!-- Incorrect; Do not nest an element within itself -->
+</div>
 ```
 
 ### Rule Summary
@@ -43,6 +76,7 @@ DOM structure does not need to follow CSS class structure.
 
 `&` may be used to co-locate modifiers with their Block or Element while keeping selectors explicit.
 
+✅ GOOD (Do this)
 ```scss
 .card {
   &.card--featured {}
@@ -54,6 +88,7 @@ DOM structure does not need to follow CSS class structure.
 ```
 ### Disallowed Usage
 
+🚫 BAD (Don't do this)
 ```scss
 .card {
   &--featured {}
@@ -74,7 +109,7 @@ Any DOM node can be a block if it accepts a class name.
 #### CSS:
 Use class name selector only. No tag name or ids. No dependency on other blocks/elements on a page.
 
-✅ GOOD
+✅ GOOD (Do this)
 ```css
 .card { }
 .button { }
@@ -87,12 +122,14 @@ Use class name selector only. No tag name or ids. No dependency on other blocks/
 .dropdown-menu { }
 ```
 
-🚫 BAD
+
+
+🚫 BAD (Don't do this)
 ```css
 .searchForm {}
 .button_primary {}
 .userProfile {}
-.dropdown__menu {} - Don't use element syntax for blocks
+.dropdown__menu {} /* Don't use element syntax for blocks */
 }
 ```
 ---
@@ -220,7 +257,7 @@ Modifier is an extra class name which you add to a block/element DOM node. Add m
 ### Syntax Example
 Suppose you have block form with modifiers `theme: "xmas"` and `simple: true` and with elements `input` and `submit`, and element `submit` with its own modifier `disabled: true` for not submitting form while it is not filled:
 
-  ✅ DO, GOOD
+  ✅ GOOD (Do this)
   
   ``` html
   <form class="form form--theme-xmas form--simple">
