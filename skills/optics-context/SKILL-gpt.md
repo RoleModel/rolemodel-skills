@@ -10,7 +10,7 @@ This document defines **strict, enforceable rules** for an AI implementing HTML 
 - Core tokens live in:
   - `src/core/tokens/base_tokens.css`
   - `src/core/tokens/scale_color_tokens.css`
-- A canonical list and organizational reference exists in `docs/token_structure.json`
+- A canonical list and organizational reference of all current tokens exist in `docs/token_structure.json`
 
 The AI must assume that **only tokens defined by Optics or explicitly provided by the user exist**. Never invent tokens.
 
@@ -32,29 +32,29 @@ All Optics tokens follow this structure:
 --{prefix}-{category}-{sub-category?}-{variant-qualifier?}-{variant}: value;
 ```
 
-Each segment is **lowercase**, **kebab‑case**, and **hyphen‑delimited**. Segments must appear **in this order only**.
+Each segment is **lowercase**, **kebab‑case**, and **hyphen‑delimited**. Segments must appear **in this order only**. 
 
 ### Segments
 
 #### 1. Prefix (required)
-Namespace indicating ownership.
+Namespace indicating ownership and the source of the token.
 
 - `op` — Optics system tokens
-- `ya` — application‑level tokens (used only when explicitly instructed)
+- `ya` — application‑level tokens (used only when explicitly instructed, `ya` is an abbreviation for `your application`)
 
 > The AI must never change the prefix of an Optics token.
 
 ---
 
 #### 2. Category (required)
-Defines the token domain.
+Defines the token domain and sub category of the token
 
 Common categories include:
-- `color`
-- `font`
-- `space`
-- `border`
-- `shadow`
+- `color` - color token
+- `font` - font token
+- `space` - space token
+- `border` - border token
+- `shadow` - shadow token
 
 ---
 
@@ -62,39 +62,55 @@ Common categories include:
 Further specialization within a category.
 
 Examples:
-- `font-size`
-- `font-weight`
-- `primary`
+- `size` - indicates a token that is a size, in our case a sub category of font
+- `weight` - indicates a token that is a font weight, in our case a sub category of font
+- `primary` - color
+- `neutral` - color
+- `warning` - color
+- `danger` - color
+- `info` - color
+- `notice` - color
 
 Only include a sub‑category when the Optics token definition includes one.
 
 ---
 
 #### 4. Variant Qualifier (optional)
-Qualifies the variant with a condition, state, or multiplier.
+Qualifies the variant with a condition or multiplier.
 
 Examples:
 - `x`, `2x`, `3x`
 - `on`
-- `active`
 
 Variant qualifiers **must precede** the variant.
 
 ---
 
 #### 5. Variant (required)
-The concrete value choice.
+The concrete value choice that indicates a specific variant of the token.
 
 Common variants:
-- `small`
-- `medium`
-- `large`
-- `plus-one`
+- `3x-small` - font, space, border, shadow
+- `2x-small` - font, space, border, shadow
+- `x-small` - font, space, border, shadow
+- `small` - font, space, border, shadow
+- `medium` -  font, space, border, shadow
+- `large` -  font, space, border, shadow
+- `x-large` -  font, space, border, shadow
+- `2x-large` -  font, space, border, shadow
+- `3x-large` -  font, space, border, shadow
+- `plus-three` - color
+- `plus-two` - color
+- `plus-one` - color
+- `min-one` - color
+- `min-two` - color
+- `min-three` - color
 
 ---
 
-## Valid Token Examples
+## Token Example
 
+✅ GOOD (Do this)
 ```
 --op-color-primary-on-plus-one
 --op-font-size-large
@@ -102,8 +118,7 @@ Common variants:
 --op-border-bottom
 ```
 
-## Invalid Token Examples (Do Not Generate)
-
+🚫 BAD (Don't do this)
 ```
 --op-primary-color
 --op-font-large
@@ -117,9 +132,22 @@ Common variants:
 
 Tokens must be consumed via `var()`:
 
+✅ GOOD (Do this)
 ```css
 color: var(--op-color-primary-on-plus-one);
 font-size: var(--op-font-size-large);
+padding: var(--op-space-small);
+box-shadow: var(--op-border-all) var(--op-color-border);
+box-shadow: var(--op-shadow-x-small);
+```
+
+🚫 BAD (Don't do this)
+```css
+color: --op-color-primary-on-plus-one;
+font-size: --op-font-size-large;
+padding: --op-space-small;
+box-shadow: --op-border-all, --op-color-border;
+box-shadow: --op-shadow-x-small;
 ```
 
 Never redefine Optics tokens inside component styles unless explicitly instructed.
@@ -133,7 +161,7 @@ Some components expose their own tokens. These follow a related but distinct str
 ### Structure
 
 ```
---{prefix}-{component-name}-{sub-name?}-{variant-qualifier?}-{variant}
+--{prefix}-{component-name}-{sub-name?}-{variant-qualifier?}-{variant}: value;
 ```
 
 - The **component name replaces the category**
@@ -185,22 +213,22 @@ The AI must:
 
 ## Token Safety Rules (Non‑Negotiable)
 
-- ❌ Do not invent tokens
-- ❌ Do not reorder token segments
-- ❌ Do not camelCase or snake_case tokens
-- ❌ Do not inline raw values when a token exists
+- 🚫 Do not invent tokens
+- 🚫 Do not reorder token segments
+- 🚫 Do not camelCase or snake_case tokens
+- 🚫 Do not inline raw values when a token exists
 - ✅ Always assume the token structure is authoritative
 
 ---
 
 ## Failure Mode Examples
 
-**Incorrect**
+🚫 BAD (Don't do this)
 ```css
 padding: 16px;
 ```
 
-**Correct**
+✅ GOOD (Do this)
 ```css
 padding: var(--op-space-medium);
 ```
@@ -219,4 +247,3 @@ When uncertain:
 - Or leave the value unset
 
 Never guess.
-
