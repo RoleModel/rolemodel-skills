@@ -13,7 +13,7 @@ metadata:
 
 ## Overview
 
-This skill guides AI in writing CSS using the BEM (Block Element Modifier) methodology for creating maintainable, scalable, and reusable stylesheets with clear naming conventions and component structure, while exercising judgment about scope, risk, and architectural impact. It also should use BEM in conjunction with Optics, our RoleModel design system, so that isn't not recreating things that already exist. If there is already an Optics component that fits the need, it should be used and/or overridden as necessary instead of creating a new BEM block.
+This skill guides AI in writing CSS using the BEM (Block Element Modifier) methodology for creating maintainable, scalable, and reusable stylesheets with clear naming conventions and component structure, while exercising judgment about scope, risk, and architectural impact. It also should use BEM in conjunction with Optics, our RoleModel design system, so that it's not recreating things that already exist. If there is already an Optics component that fits the need, it should be used and/or overridden as necessary instead of creating a new BEM block.
 
 The agent should prioritize clarity, predictability, and minimal unintended side effects.
 
@@ -36,7 +36,7 @@ BEM stands for **Block Element Modifier** - a methodology that helps you create 
 - As with any other development, intention revealing names are important.
 - In BEM, the intention we are trying to convey in naming is not based on the styling that gets applied or its appearance, but rather its purpose in the interface. 
 - Specific styling typically makes for bad naming with the exception of modifiers (small, large, padded, etc.). 
-- Naming after the specific workflow can, in certain cases be acceptable. (calendar with days). 
+- Naming after the specific workflow can, in certain cases, be acceptable. (calendar with days). 
 - Naming after the shared type of workflow tends to be the sweet spot. (form, table, card, button). 
 - Naming after the broader UI abstraction is not always necessary, but can be used for abstract cases with no context required (primary, large, etc). 
 - Be specific enough to convey purpose clearly, but general enough to allow for reuse if applicable. Reuse won't always be possible or desirable, so don't push it too far. 
@@ -93,12 +93,11 @@ If you're not able to follow these guidelines due to project constraints or othe
 
 ## Rule Summary
 
-- All class names MUST be fully explicit and flat BEM
+- All class names MUST be fully explicit BEM. Nesting is allowed for organization, but selectors should not rely on tag names or IDs.
 - `&` may be used only as a textual reference to the full selector
 - `&` MUST NOT be used to construct class names (`&--`, `&__`)
-- Nesting is for organization only, not meaning
-
-`&` may be used to co-locate modifiers with their Block or Element while keeping selectors explicit.
+- Nesting is for organization only; explicit BEM class names are required. Nested selectors may be used to scope elements under their block if desired.
+- `&` may be used to co-locate modifiers with their Block or Element while keeping selectors explicit.
 
 ✅ GOOD (Do this)
 ```css
@@ -151,7 +150,7 @@ Any DOM node can be a block if it accepts a class name.
 ```
 
 #### CSS:
-Use class name selector only. No tag name or ids. No dependency on other blocks/elements on a page.
+Use class name selector only. No tag name or IDs. No dependency on other blocks/elements on a page.
 
 ✅ GOOD (Do this)
 ```css
@@ -204,7 +203,8 @@ Any DOM node within a block can be an element. Within a given block, all element
 </div>
 ```
 
-#### CSS: 
+#### CSS:
+In the CSS, elements should be nested inside of the block they belong to. The structure doesn't need to match the DOM structure.
 
 ✅ GOOD (Do this)
 ```css
@@ -246,20 +246,70 @@ Any DOM node within a block can be an element. Within a given block, all element
 Flags on blocks or elements. Use them to change appearance, behavior or state.
 
 #### Naming: 
-Modifier names may consist of lowercase Latin letters, digits, dashes and underscores. CSS class is formed as block’s or element’s name plus two dashes: `.block--mod` or `.block__elem--mod` and `.block--color-black` with `.block--color-red`. Spaces in complicated modifiers are replaced by dash.
+Modifier names may consist of lowercase Latin letters, digits, dashes and underscores. CSS class is formed as block’s or element’s name plus two dashes: `.block--modifier` or `.block__elem--modifier` and `.block--color-black` with `.block--color-red`. Spaces in complicated modifiers are replaced by dash. 
+
+Modifiers should be used over creating separate elements when:
+- The change is a simple state change (e.g., active, disabled, highlighted)
+- The change is a simple appearance change (e.g., size, color, layout)
+- The change does not introduce new content or functionality that would require additional elements
+
+If you have a default state for an element and another that would be a modifier, add the default styles to the base element and use the modifier to override those styles when the modifier is applied. Don't create an exclusive element for the default and also don't create two modifiers for this case.
+
+🚫 BAD (Don't do this)
+```css
+.music-entry__artwork-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.music-entry__artwork-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-tan) 0%, var(--color-beige) 100%);
+}
+```
+✅ GOOD (Do this)
+```css
+.music-entry__artwork-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  
+  &.music-entry__artwork-image--placeholder {
+    object-fit: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-tan) 0%, var(--color-beige) 100%);
+  }
+}
+```
 
 #### HTML:
-Modifier is an extra class name which you add to a block/element DOM node. Add modifier classes only to blocks/elements they modify, and keep the original class. To be clear, a modidifier class should always be used in conjunction with its base block/element class.
+Modifier is an extra class name which you add to a block/element DOM node. Add modifier classes only to blocks/elements they modify, and keep the original class. To be clear, a modifier class should always be used in conjunction with its base block/element class.
 
 ✅ GOOD (Do this)
 ```html
-<div class="block block--mod">...</div>
+<div class="block block--modifier">...</div>
 <div class="block block--size-big block--shadow-yes">...</div>
 ```
 
 🚫 BAD (Don't do this)
 ```html
-<div class="block--mod utility">...</div> <!-- Missing base block class and using utility class -->
+<div class="block--modifier utility">...</div> <!-- Missing base block class and using utility class -->
 ```
 
 #### CSS: 
@@ -318,7 +368,7 @@ Suppose you have block form with modifiers `theme: "xmas"` and `simple: true` an
 </form>
 ```
 
-``` css
+```css
 .form {
   .form__input { }
   .form__submit {
