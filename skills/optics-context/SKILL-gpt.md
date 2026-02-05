@@ -169,7 +169,7 @@ Some components expose their own tokens. These follow a related but distinct str
 
 ---
 
-### Public vs Private Component Tokens
+## Public vs Private Component Tokens
 
 #### Public API Tokens
 - Intended for user customization
@@ -189,6 +189,24 @@ __prefix-component-name-sub-name-variant-qualifier-variant
 ```
 
 If a token starts with `__`, it is read‑only.
+
+---
+
+## Discovering Optics Classes
+When you need classes follow these steps:
+
+1. Check `.github/optics/components.json` for the appropriate component, modifiers, and attributes.
+2. If you don't find an appropriate component, search in `app/assets/stylesheets` for any relevant components.
+3. If nothing is found, create a new component in a CSS file named after the page that we're on.
+3a. If you're creating new classes, always use existing CSS tokens. You can find these in the `.github/optics/tokens.json` file.
+
+### Modifying Optics Classes
+When modifying Optics classes, follow these guidelines:
+
+- Always ensure that changes align with the overall design system principles.
+- Follow BEM naming conventions for any new classes.
+- Add changes to the appropriate CSS file in `app/assets/stylesheets/components/overrides/{component.css}`.
+- Ensure that you import any new css files in the `application.scss`
 
 ---
 
@@ -217,6 +235,7 @@ The AI must:
 - 🚫 Do not reorder token segments
 - 🚫 Do not camelCase or snake_case tokens
 - 🚫 Do not inline raw values when a token exists
+- 🚫 Always prioritize DRY principles - extract repeated markup into partials
 - ✅ Always assume the token structure is authoritative
 
 ---
