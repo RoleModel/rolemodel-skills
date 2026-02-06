@@ -14,7 +14,7 @@ metadata:
 When you need classes follow these steps:
 
 1. Check `skills/optics-context/assets/components.json` for the appropriate component, modifiers, and attributes.
-  - Often you may need to modify these components to better fit the context or need. Use BEM CSS structure to create modifiers and variants as needed. Use existing tokens when available to ensure consistency. 
+  - Often you may need to modify these components to better fit the context or need. Use BEM CSS structure to create modifiers and variants as needed. Use existing tokens when available to ensure consistency.
 2. If you don't find an appropriate component, search in `app/assets/stylesheets` for any relevant components.
 3. If nothing is found, create a new component in a CSS file named after the page that we're on.
   - If you're creating new classes, always use existing CSS tokens. You can find these in the `skills/optics-context/assets/tokens.json` file.
@@ -26,6 +26,9 @@ When modifying Optics classes, follow these guidelines:
 - Follow BEM naming conventions for any new classes.
 - Add changes to the appropriate CSS file in `app/assets/stylesheets/components/overrides/{component.css}`.
 - Ensure that you import any new css files in the `application.scss`
+- Elements and modifiers should be nested under the block
+- Magic numbers should be avoided
+- Classes should have intentional-revealing names.
 
 ### Fixing Optics Violations
 As CSS is created or modified, it's important to be looking for Optics violations. These would include:
@@ -55,101 +58,83 @@ When creating new Optics tokens, follow these guidelines:
 - Otherwise, use the standard token format as seen in the `skills/optics-context/assets/tokens.json` file.
 - Occasionally, it may be helpful to create new global tokens to fit into the main Optics token set for your project. In such cases, ensure that the new token is broadly applicable and follows the established naming conventions. Usually, these tokens would be very general, such as new spacing sizes, color shades, or typography styles that could be reused across multiple parts of the application.
 
-## Theming
-To customize the application, a custom theme files that serve as overrides to the existing tokens can be provided. An example implementation of the main project CSS file would look like:
+## Example CSS class
 ```css
-@import '@rolemodel/optics';
+.card {
+  position: relative;
+  border-radius: var(--_op-card-radius);
+  background-color: var(--op-color-background);
 
-@import 'stylesheets/theme/my_app_theme';
-```
-Note how the custom theme is imported after the main Optics styles, ensuring that any token overrides take precedence.
+  /* Modifiers */
 
-A custom theme can change any tokens, including colors, radius, fonts, and even redefine the luminosity and semantic scales.
+  &.card--padded {
+    padding: var(--op-space-medium);
+  }
 
-```css
-@import url('https://fonts.googleapis.com/css2?family=Coming+Soon&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-:root {
-  /* Colors */
-  --op-color-primary-h: my-new-value;
-  --op-color-primary-s: my-new-value;
-  --op-color-primary-l: my-new-value;
+  /* Elements */
+  .card__header,
+  .card__body,
+  .card__footer {
+    padding: var(--op-space-medium);
+  }
 
-  /* Color Scale */
-  --op-color-primary-plus-two: light-dark(
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 64%),
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 32%)
-  );
+  .card__header {
+    border-start-end-radius: var(--op-radius-medium);
+    border-start-start-radius: var(--op-radius-medium);
+  }
 
-  /* Fonts */
-  --op-font-family: 'Coming Soon', sans-serif;
+  .card__footer {
+    border-end-end-radius: var(--op-radius-medium);
+    border-end-start-radius: var(--op-radius-medium);
+  }
 }
+```
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme-mode='light']) {
-    --op-font-family: 'Grandstander', sans-serif;
+## Creating Optics Components
+
+To create a new CSS component, follow these steps:
+
+1. Create a CSS file for the new component and import it
+2. Start by defining a css `.{component-name}` selector for the component. This will serve as the base style for the component and all its variants.
+3. Create modifiers for any all variants of the component you defined in the previous step. This ensures that the base style is shared consistently across all variations.
+4. When creating variants of the component, use the following syntax: `.{component-name}--{variant}`. It can be helpful to nest these under the main class with a `&.{component-name}--{variant}` to ensure they only work with that component.
+5. For stylistic tweaks that apply to all variants, use modifiers following the BEM (Block, Element, Modifier) syntax. The modifier class should be in the format: `.{component-name}--{modifier}` just like the other variants.
+
+As a general policy, each CSS component should live in its own file unless very closely related.
+
+To illustrate these concepts, let's consider an example of a button. You can use the following template as a guide:
+
+```css
+/* Define the main component */
+.btn {
+  /* Base styles for the button */
+
+  /* Hover state */
+  &:hover {
+    /*
+      Styles for the hovered button modifier
+      ...
+    */
+  }
+
+  /* Modifier: Large button */
+  &.btn--large {
+    /* Styles for the large button modifier */
+  }
+
+  /* Modifier: Disabled button */
+  &.btn--disabled,
+  &:disabled {
+    /* Styles for the disabled button modifier */
   }
 }
 
-:root[data-theme-mode='dark'] {
-  --op-font-family: 'Grandstander', sans-serif;
+/* Variant: Primary button */
+.btn.btn--primary {
+  /*
+    Specific styles for the primary button variant
+    ...
+  */
 }
 ```
-
-### Color Scale Overriding
-If  you need to override the provided color scales, you should redefine all the variants of that color to ensure consistency across the application. For example, if you are overriding the primary color, you should redefine all its variants like so:
-
-```css
-:root {
-  --op-color-primary-h: 164;
-  --op-color-primary-s: 100%;
-  --op-color-primary-l: 50%;
-
-  /* Main Scale */
-  --op-color-primary-plus-two: light-dark(
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 64%),
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 32%)
-  );
-  --op-color-primary-plus-one: light-dark(
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 45%),
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 35%)
-  );
-
-  /* On Scale */
-  --op-color-primary-on-plus-two: light-dark(
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 16%),
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 80%)
-  );
-  --op-color-primary-on-plus-two-alt: light-dark(
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 6%),
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 92%)
-  );
-  --op-color-primary-on-plus-one: light-dark(
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 100%),
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 80%)
-  );
-  --op-color-primary-on-plus-one-alt: light-dark(
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 95%),
-    hsl(var(--op-color-primary-h) var(--op-color-primary-s) 98%)
-  );
-}
-```
-
-## For More Information
-For more details on theming and token overrides, refer to the Optics documentation using the links below
-- [Optics Repo](https://github.com/RoleModel/optics/)
-
-### Documentation Resources
-For detailed component usage, refer to:
-- **Component API**: https://docs.optics.rolemodel.design/?path=/docs/components-button--docs
-- **Token Reference**: https://docs.optics.rolemodel.design/?path=/docs/overview-tokens--docs
-- **Color System**: https://docs.optics.rolemodel.design/?path=/docs/tokens-color-color-scale--docs
-
-### When You Need More Information
-If the user asks about specific components or advanced features not covered in this skill:
-1. Use `web_fetch` or another method to retrieve the relevant documentation page
-2. Extract the specific information needed
-3. Apply it to the user's request
-
-Example: For button variants, check https://docs.optics.rolemodel.design/?path=/docs/components-button--docs
