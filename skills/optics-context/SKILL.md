@@ -1,140 +1,240 @@
 ---
 name: optics-context
 description: Use the Optics design framework for styling applications. Apply Optics classes for layout, spacing, typography, colors, and components. Use when working on CSS, styling views, or implementing design system guidelines.
-metadata:
-  triggers:
-    - slim
-    - css
-    - frontend
-    - design-system
-    - optics
 ---
 
-## Discovering Optics Classes
-When you need classes follow these steps:
+# Optics Design Framework
 
-1. Check `skills/optics-context/assets/components.json` for the appropriate component, modifiers, and attributes.
-  - Often you may need to modify these components to better fit the context or need. Use BEM CSS structure to create modifiers and variants as needed. Use existing tokens when available to ensure consistency.
-2. If you don't find an appropriate component, search in `app/assets/stylesheets` for any relevant components.
-3. If nothing is found, create a new component in a CSS file named after the page that we're on.
-  - If you're creating new classes, always use existing CSS tokens. You can find these in the `skills/optics-context/assets/tokens.json` file.
+Apply the Optics design system for consistent, token-based styling in Rails applications.
 
-### Modifying Optics Classes
-When modifying Optics classes, follow these guidelines:
+## Core Principles
 
-- Always ensure that changes align with the overall design system principles.
-- Follow BEM naming conventions for any new classes.
-- Add changes to the appropriate CSS file in `app/assets/stylesheets/components/overrides/{component.css}`.
-- Ensure that you import any new css files in the `application.scss`
-- Elements and modifiers should be nested under the block
-- Magic numbers should be avoided
-- Classes should have intentional-revealing names.
+1. **Use tokens, not hard-coded values** - All colors, spacing, typography from `assets/tokens.json`
+2. **Follow BEM structure** - Block, Element, Modifier naming conventions
+3. **Check existing components first** - Reuse before creating new
+4. **Progressive enhancement** - Start with semantic HTML, layer styles
 
-### Fixing Optics Violations
-As CSS is created or modified, it's important to be looking for Optics violations. These would include:
-- **Hard-coded colors**
-  - `#fff`, `#FFFFFF`, `rgb(...)`, `hsl(...)`, `rgba(...)`, named colors like `white`
-  - Gradients: `linear-gradient(...)` containing literals
-- **Hard-coded spacing/sizing**
-  - `px`, `rem`, `em`, `%` (sometimes), `vh/vw` (maybe allowed depending on policy)
-  - `border-radius`, `gap`, `padding`, `margin`, `width/height` when used as spacing primitives
-- **Hard-coded shadows/borders**
-  - `box-shadow: 0 1px 3px rgba(...)`
-  - `border: 1px solid #ddd`
-- **"Almost token" mistakes**
-  - `var(--op_color_primary...)` (bad separators)
-  - `var(--op-color-primary-plus-one-on)` (segment order wrong)
-  - Missed `--op-` prefix
+## Finding Optics Classes
 
-When violations are found, refactor the CSS to use the appropriate Optics tokens from `skills/optics-context/assets/tokens.json`.
+Search for components in this order:
 
-If no appropriate token exists, create a new token following the guidelines below.
+1. **Check Optics components** - `skills/optics-context/assets/components.json`
+   - Find appropriate component, modifiers, and attributes
+   - Modify using BEM if needed
+2. **Search project styles** - Look in `app/assets/stylesheets` for existing classes
+3. **Create new component** - Only if nothing exists (see "Creating Components" below)
 
-### Creating New Optics Tokens
-When creating new Optics tokens, follow these guidelines:
-- Always ensure that new tokens align with the overall design system principles.
-- Follow the established naming conventions for tokens.
-- New tokens created within a project should use a namespace prefix related to the project to avoid conflicts. For example, a project called "Your App" might use the prefix `--ya-` for its tokens.
-- Otherwise, use the standard token format as seen in the `skills/optics-context/assets/tokens.json` file.
-- Occasionally, it may be helpful to create new global tokens to fit into the main Optics token set for your project. In such cases, ensure that the new token is broadly applicable and follows the established naming conventions. Usually, these tokens would be very general, such as new spacing sizes, color shades, or typography styles that could be reused across multiple parts of the application.
+## Using Optics Tokens
 
-## Example CSS class
+**Always use CSS custom properties from `assets/tokens.json`:**
+
+- **Colors**: `var(--op-color-primary)`, `var(--op-color-background)`
+- **Spacing**: `var(--op-space-small)`, `var(--op-space-medium)`, `var(--op-space-large)`
+- **Typography**: `var(--op-font-size-base)`, `var(--op-line-height-normal)`
+- **Borders**: `var(--op-radius-small)`, `var(--op-border-width)`
+- **Shadows**: `var(--op-shadow-small)`, `var(--op-shadow-medium)`
+
+## Detecting Violations
+
+**Never use hard-coded values:**
+
+❌ **Colors**: `#fff`, `#000`, `rgb(...)`, `rgba(...)`, `hsl(...)`, color names like `white`, `black`
+❌ **Spacing**: Bare `px`, `rem`, `em` values in padding, margin, gap
+❌ **Shadows**: `box-shadow: 0 1px 3px rgba(...)`
+❌ **Borders**: `border: 1px solid #ddd`
+❌ **Gradients**: `linear-gradient(...)` with literal colors
+
+**Common token mistakes:**
+
+❌ `var(--op_color_primary_base)` - Wrong separator (underscore instead of hyphen)
+❌ `var(--color-primary-base)` - Missing `--op-` prefix
+❌ `var(--op-primary-color-base)` - Wrong segment order
+
+✅ `var(--op-color-primary-base)` - Correct format
+
+**Fix violations by replacing with tokens from `assets/tokens.json`**
+
+## BEM Structure
+
+**Block, Element, Modifier naming:**
+
+```css
+.block { }                    /* Component base */
+.block__element { }           /* Part of component */
+.block--modifier { }          /* Variant of component */
+.block__element--modifier { } /* Variant of element */
+```
+
+**Nest modifiers and elements:**
+
+```css
+.card {
+  /* Base styles */
+  
+  &.card--padded {
+    /* Modifier */
+  }
+  
+  .card__header {
+    /* Element */
+  }
+}
+```
+
+## Creating Components
+
+**File organization:**
+- Create CSS file: `app/assets/stylesheets/components/{component-name}.css`
+- Or override: `app/assets/stylesheets/components/overrides/{component-name}.css`
+- Import in `application.scss`
+
+**Component structure:**
+
+1. Define base block with semantic name
+2. Add nested elements (parts of component)
+3. Add modifiers (variants)
+4. Use only Optics tokens
+5. One component per file unless tightly coupled
+
+**Example - Card component:**
+
 ```css
 .card {
   position: relative;
-  border-radius: var(--_op-card-radius);
+  border-radius: var(--op-radius-medium);
   background-color: var(--op-color-background);
-
+  box-shadow: var(--op-shadow-small);
+  
   /* Modifiers */
-
   &.card--padded {
     padding: var(--op-space-medium);
   }
-
-
+  
+  &.card--elevated {
+    box-shadow: var(--op-shadow-large);
+  }
+  
   /* Elements */
-  .card__header,
-  .card__body,
-  .card__footer {
+  .card__header {
+    padding: var(--op-space-medium);
+    border-bottom: var(--op-border-width) solid var(--op-color-border);
+    border-start-start-radius: var(--op-radius-medium);
+    border-start-end-radius: var(--op-radius-medium);
+  }
+  
+  .card__body {
     padding: var(--op-space-medium);
   }
-
-  .card__header {
-    border-start-end-radius: var(--op-radius-medium);
-    border-start-start-radius: var(--op-radius-medium);
-  }
-
+  
   .card__footer {
-    border-end-end-radius: var(--op-radius-medium);
+    padding: var(--op-space-medium);
+    border-top: var(--op-border-width) solid var(--op-color-border);
     border-end-start-radius: var(--op-radius-medium);
+    border-end-end-radius: var(--op-radius-medium);
   }
 }
 ```
 
-## Creating Optics Components
-
-To create a new CSS component, follow these steps:
-
-1. Create a CSS file for the new component and import it
-2. Start by defining a css `.{component-name}` selector for the component. This will serve as the base style for the component and all its variants.
-3. Create modifiers for any all variants of the component you defined in the previous step. This ensures that the base style is shared consistently across all variations.
-4. When creating variants of the component, use the following syntax: `.{component-name}--{variant}`. It can be helpful to nest these under the main class with a `&.{component-name}--{variant}` to ensure they only work with that component.
-5. For stylistic tweaks that apply to all variants, use modifiers following the BEM (Block, Element, Modifier) syntax. The modifier class should be in the format: `.{component-name}--{modifier}` just like the other variants.
-
-As a general policy, each CSS component should live in its own file unless very closely related.
-
-To illustrate these concepts, let's consider an example of a button. You can use the following template as a guide:
+**Example - Button component:**
 
 ```css
-/* Define the main component */
 .btn {
-  /* Base styles for the button */
-
-  /* Hover state */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--op-space-small) var(--op-space-medium);
+  font-size: var(--op-font-size-base);
+  font-weight: var(--op-font-weight-medium);
+  border-radius: var(--op-radius-small);
+  border: var(--op-border-width) solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
   &:hover {
-    /*
-      Styles for the hovered button modifier
-      ...
-    */
+    opacity: 0.9;
   }
-
-  /* Modifier: Large button */
+  
   &.btn--large {
-    /* Styles for the large button modifier */
+    padding: var(--op-space-medium) var(--op-space-large);
+    font-size: var(--op-font-size-large);
   }
-
-  /* Modifier: Disabled button */
+  
+  &.btn--small {
+    padding: var(--op-space-xsmall) var(--op-space-small);
+    font-size: var(--op-font-size-small);
+  }
+  
   &.btn--disabled,
   &:disabled {
-    /* Styles for the disabled button modifier */
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 
-/* Variant: Primary button */
 .btn.btn--primary {
-  /*
-    Specific styles for the primary button variant
-    ...
-  */
+  background-color: var(--op-color-primary);
+  color: var(--op-color-on-primary);
+  
+  &:hover {
+    background-color: var(--op-color-primary-hover);
+  }
+}
+
+.btn.btn--secondary {
+  background-color: var(--op-color-secondary);
+  color: var(--op-color-on-secondary);
+  
+  &:hover {
+    background-color: var(--op-color-secondary-hover);
+  }
+}
+
+.btn.btn--outline {
+  background-color: transparent;
+  border-color: var(--op-color-border);
+  color: var(--op-color-text);
+  
+  &:hover {
+    background-color: var(--op-color-background-hover);
+  }
 }
 ```
+
+## Creating Custom Tokens
+
+**First ensure there isn't an existing token that fits your need**
+**When tokens are missing, create component-specific ones:**
+
+**Project-specific tokens** (preferred for custom needs):
+- Use namespace prefix: `--{project-prefix}-{category}-{name}`
+- Example: `--ya-color-brand-accent` for "Your App" project
+- Keeps project tokens separate from core Optics
+
+**Token categories:**
+- **Color**: `--op-color-{name}` or `--{prefix}-color-{name}`
+- **Spacing**: `--op-space-{size}` or `--{prefix}-space-{size}`
+- **Typography**: `--op-font-{property}-{value}`
+- **Border**: `--op-radius-{size}`, `--op-border-{property}`
+- **Shadow**: `--op-shadow-{size}`
+
+## Quick Reference
+
+**Discovery workflow:**
+1. Check `assets/components.json` for existing component
+2. Search `app/assets/stylesheets` for project styles
+3. Create new component with Optics tokens
+
+**Token workflow:**
+1. Check `assets/tokens.json` for appropriate token
+2. Use token in CSS: `var(--op-category-name)`
+3. Create custom token if needed (use project prefix)
+
+**Component workflow:**
+1. Create CSS file in `components/` or `components/overrides/`
+2. Define block with base styles
+3. Add nested elements and modifiers
+4. Use only Optics tokens (no hard-coded values)
+5. Import in `application.scss`
+
+See `assets/components.json` for available Optics components and `assets/tokens.json` for all design tokens.
