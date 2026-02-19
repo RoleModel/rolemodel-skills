@@ -1,26 +1,25 @@
 # RoleModel Skills
-This contain's the set of RoleModel's agentic skills.
+This contains the set of RoleModel's agentic skills.
 
 ## Installation
-You can use git submodules to automatically pull this repository into your:
+You can use https://skills.sh/ to automatically pull these skills into your repository:
 
 ```bash
-git submodule add https://github.com/rolemodel/rolemodel-skills.git .github/rolemodel-skills
-git submodule update --init --recursive
+npx skills add RoleModel/rolemodel-skills
 ```
 
-You'll need to update the VS Code settings to look at the custom skills directory.
+You'll need to update the VS Code settings to look at the skills directory.
 `/.vscode/settings.json`:
 ```json
 {
   "chat.agentSkillsLocations": {
-    ".github/rolemodel-skills/skills": true
+    ".github/skills": true
   }
 }
 ```
 
 ## Updating
-Anytime you want to pull in the latest changes just update the submodule:
+Anytime you want to pull in the latest changes just run the skills update command:
 ```bash
-git submodule update --init --recursive
+npx skills update
 ```
