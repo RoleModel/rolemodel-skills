@@ -8,6 +8,7 @@ description: Review and update existing Rails controllers and generate new contr
 ## Quick Reference
 
 ### When to Use This Skill
+
 - Generating new Rails controllers
 - Reviewing existing controllers for best practices
 - Implementing RESTful actions (index, show, new, create, edit, update, destroy)
@@ -19,6 +20,7 @@ description: Review and update existing Rails controllers and generate new contr
 ### Core Patterns at a Glance
 
 **Standard CRUD Controller:**
+
 ```ruby
 class ResourcesController < ApplicationController
   before_action :set_resource, only: %i[show edit update destroy]
@@ -56,12 +58,13 @@ class ResourcesController < ApplicationController
   end
 
   def resource_params
-    params.require(:resource).permit(:attr1, :attr2)
+    params.expect(resource: %i[attr1 attr2])
   end
 end
 ```
 
 **Namespaced State Controller:**
+
 ```ruby
 class Resources::StatesController < ApplicationController
   before_action :set_resource
@@ -134,6 +137,7 @@ end
 ```
 
 **Rules:**
+
 - `policy_scope()` for collections (index)
 - `authorize ClassName.new()` for new records (new, create)
 - `authorize` in `set_*` methods for existing records
@@ -157,12 +161,14 @@ before_action :ensure_stopped, only: :create
 ```
 
 **Rules:**
+
 - Always use `only:` or `except:`
 - Name descriptively: `set_[resource]`, `ensure_[state]`, `require_[permission]`
 - Order matters - execute in declaration order
 - Keep methods focused on single responsibility
 
 **State Validation Example:**
+
 ```ruby
 def ensure_pending
   return if @resource.pending?
@@ -173,6 +179,7 @@ end
 ### 3. RESTful Action Patterns
 
 **Index - List all resources:**
+
 ```ruby
 def index
   @resources = policy_scope(Resource)
@@ -180,6 +187,7 @@ end
 ```
 
 **Show - Display one resource:**
+
 ```ruby
 def show
   # Resource set via before_action
@@ -189,6 +197,7 @@ end
 ```
 
 **New - Form for new resource:**
+
 ```ruby
 def new
   @resource = authorize Resource.new
@@ -196,6 +205,7 @@ end
 ```
 
 **Create - Save new resource:**
+
 ```ruby
 def create
   @resource = authorize Resource.new(resource_params)
@@ -208,6 +218,7 @@ end
 ```
 
 **Edit - Form for existing resource:**
+
 ```ruby
 def edit
   # Resource set via before_action
@@ -215,6 +226,7 @@ end
 ```
 
 **Update - Save changes to resource:**
+
 ```ruby
 def update
   if @resource.update(resource_params)
@@ -226,6 +238,7 @@ end
 ```
 
 **Destroy - Delete resource:**
+
 ```ruby
 def destroy
   @resource.destroy
@@ -239,20 +252,23 @@ end
 
 ```ruby
 def resource_params
-  params.require(:resource).permit(
-    :simple_attr,
-    :another_attr,
-    nested_attrs: %i[id attr1 attr2 _destroy],
-    array_attrs: [],
-    multiple_ids: []
+  params.expect(
+    resource: [
+      :simple_attr,
+      :another_attr,
+      nested_attrs: %i[id attr1 attr2 _destroy],
+      array_attrs: [],
+      multiple_ids: []
+    ]
   )
 end
 ```
 
 **Rules:**
-- Use `params.require(:model).permit(...)`
-- Nested attributes: `nested_attrs: %i[id attr _destroy]`
-- Arrays: `array_attr: []`
+
+- Use `params.expect(model: [...])`
+- Nested attributes: `{nested_attrs: %i[id attr _destroy]}`
+- Arrays: `{array_attr: []}`
 - Include `:id` for update, `_destroy` for deletion in nested attributes
 
 ### 5. HTTP Status Codes
@@ -272,6 +288,7 @@ head :not_found                                # 404
 ```
 
 **Rules:**
+
 - Redirects never need explicit status
 - Failed validations: `:unprocessable_content` (422)
 - Turbo requires proper status codes for error handling
@@ -292,6 +309,7 @@ redirect_to products_path, alert: 'Cannot delete active product.'
 ```
 
 **Rules:**
+
 - Format: `Successfully [Action] [Resource]`
 - Use `notice:` for success
 - Use `alert:` for errors/warnings
@@ -320,6 +338,7 @@ def require_admin       # Authorization check
 ## Complete Examples
 
 ### Simple CRUD Controller
+
 ```ruby
 class ProductsController < ApplicationController
   before_action :set_product, only: %i[show edit update destroy]
@@ -365,12 +384,13 @@ class ProductsController < ApplicationController
   end
 
   def product_params
-    params.require(:product).permit(:name, :description, :price)
+    params.expect(product: %i[name description price])
   end
 end
 ```
 
 ### Nested Resource Controller
+
 ```ruby
 class OrderItemsController < ApplicationController
   before_action :set_order
@@ -417,7 +437,7 @@ class OrderItemsController < ApplicationController
   end
 
   def order_item_params
-    params.require(:order_item).permit(:product_id, :quantity, :price)
+    params.expect(order_item: %i[product_id quantity price])
   end
 end
 ```
@@ -425,11 +445,12 @@ end
 ## Common Mistakes
 
 | ❌ Anti-Pattern | ✅ Correct Pattern |
-|----------------|-------------------|
+| --- | --- |
 | `@product = Product.new(product_params)` | `@product = authorize Product.new(product_params)` |
 | `render :new, status: :unprocessable_entity` | `render :new, status: :unprocessable_content` |
 | `render :new` (on validation failure) | `render :new, status: :unprocessable_content` |
 | `@product = Product.new(params[:product])` | `@product = Product.new(product_params)` |
+| `params.require(:product).permit(:name)` | `params.expect(product: %i[name])` |
 | `redirect_to @product, notice: 'Product created!'`<br>`redirect_to @product, notice: 'Success!'` | `redirect_to @product, notice: 'Successfully Created Product'` |
 | `before_action :set_product` (no scope) | `before_action :set_product, only: %i[show edit update destroy]` |
 | Custom action for state changes | Namespaced controller with RESTful actions |
@@ -487,6 +508,7 @@ button_to time_entry_submission_path(@time_entry), method: :delete  # Unsubmit
 ```
 
 **Benefits:**
+
 - RESTful (uses standard create/destroy actions)
 - Clear file organization (controllers/time_entries/submissions_controller.rb)
 - Validation extracted to before_actions
@@ -557,23 +579,26 @@ end
 
 ```ruby
 def product_params
-  params.require(:product).permit(
-    :name,
-    :description,
-    :price,
-    images_attributes: %i[id url alt_text _destroy],
-    variants_attributes: %i[id sku price stock_count _destroy],
-    tags: [],
-    category_ids: []
+  params.expect(
+    product: [
+      :name,
+      :description,
+      :price,
+      images_attributes: %i[id url alt_text _destroy],
+      variants_attributes: %i[id sku price stock_count _destroy],
+      tags: [],
+      category_ids: []
+    ]
   )
 end
 ```
 
 **Key Points:**
+
 - Include `:id` for updating existing nested records
 - Include `_destroy` for deletion via nested attributes
-- Use `[]` for simple arrays
-- Use `%i[...]` for nested attribute hashes
+- Use `{ array_attr: [] }` for simple arrays
+- Use `{ nested_attrs: %i[attr1 attr2] }` for nested attribute hashes
 
 ## Agent Instructions
 
@@ -601,6 +626,7 @@ end
 ### Reviewing Existing Controllers
 
 **Check for:**
+
 - [ ] Authorization on all resource operations
 - [ ] `before_action` with `only:`/`except:`
 - [ ] Strong parameters (no direct `params[]` access)
