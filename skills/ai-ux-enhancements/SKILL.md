@@ -59,8 +59,8 @@ All rules are selected because they are **measurable / detectable via automation
    **Fail message example:** "Raw data table shown without summary, chart, or key metrics → high cognitive load."
 
 7. **Use Judicious Redundancy**  
-   **Check:** Repeat only mission-critical information in 1–2 strategic locations (e.g., total in header + footer). Avoid useless repetition.  
-   **Automation ideas:** NLP similarity analysis across labels / text nodes; flag duplicate strings > 90% match unless semantically justified.  
+   **Check:** Repeat only mission-critical information in 1–2 strategic locations (e.g., total in header + footer). Avoid useless or excessive repetition.  
+   **Automation ideas:** NLP similarity analysis across labels / text nodes; flag strings with > 90% similarity when they appear 3+ times within the same view, excluding clearly mission-critical information intentionally repeated in ≤2 locations.  
    **Fail message example:** "Excessive repeated text detected (e.g., same CTA copy 5× on screen)."
 
 8. **Provide Multiple Data Codings**  
