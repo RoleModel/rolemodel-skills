@@ -622,7 +622,7 @@ All settings dumped on one page with no hierarchy or progressive disclosure. Adv
 - Flag data tables with more than 6-7 columns visible simultaneously
 - Flag verbose body copy in action-oriented contexts (forms, dialogs, toolbars)
 
-**Cross-references:** `laws-of-ux`: Occam's Razor (simplest solution), Law of Pragnanz (visual simplicity), Hick's Law (fewer choices speed decisions). Also see `optics-context` for minimal, token-based styling.
+**Cross-references:** `laws-of-ux`: Occam's Razor (simplest solution), Law of Prägnanz (visual simplicity), Hick's Law (fewer choices speed decisions). Also see `optics-context` for minimal, token-based styling.
 
 ---
 
