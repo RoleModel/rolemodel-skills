@@ -82,35 +82,69 @@ git submodule update --init
 
 Then tell your agent where to find the skills:
 
-**For Claude Code**, use the `--add-dir` flag to include the skills directory:
+**For Claude Code**, you have a few options:
 
-```bash
-claude --add-dir .rolemodel-skills/skills
-```
+1. **Use `--add-dir`** to include the skills directory when launching Claude:
 
-Or add it to your project's `.claude/settings.json`:
+    ```bash
+    claude --add-dir .rolemodel-skills/skills
+    ```
 
-```json
-{
-  "additionalDirectories": [".rolemodel-skills/skills"]
-}
-```
+2. **Add it to your project's `.claude/settings.json`** so it's always available:
 
-Alternatively, symlink individual skills you want into `.claude/skills/`:
+    ```json
+    {
+      "additionalDirectories": [".rolemodel-skills/skills"]
+    }
+    ```
 
-```bash
-mkdir -p .claude/skills
-ln -s ../../.rolemodel-skills/skills/bem-structure .claude/skills/bem-structure
-ln -s ../../.rolemodel-skills/skills/laws-of-ux .claude/skills/laws-of-ux
-```
+3. **Reference the skills in your `CLAUDE.md`** so Claude knows to read them when relevant:
 
-**For GitHub Copilot**, symlink the skills you need into `.github/skills/`:
+    ```markdown
+    ## Skills
 
-```bash
-mkdir -p .github/skills
-ln -s ../../.rolemodel-skills/skills/bem-structure .github/skills/bem-structure
-ln -s ../../.rolemodel-skills/skills/laws-of-ux .github/skills/laws-of-ux
-```
+    This project uses shared AI agent skills from `.rolemodel-skills/skills/`.
+    When working on CSS, read and follow the instructions in:
+    - `.rolemodel-skills/skills/bem-structure/SKILL.md`
+    - `.rolemodel-skills/skills/optics-context/SKILL.md`
+
+    When reviewing UI for usability, read and follow:
+    - `.rolemodel-skills/skills/laws-of-ux/SKILL.md`
+    - `.rolemodel-skills/skills/usability-heuristics/SKILL.md`
+    ```
+
+4. **Symlink individual skills** into `.claude/skills/` for automatic discovery:
+
+    ```bash
+    mkdir -p .claude/skills
+    ln -s ../../.rolemodel-skills/skills/bem-structure .claude/skills/bem-structure
+    ln -s ../../.rolemodel-skills/skills/laws-of-ux .claude/skills/laws-of-ux
+    ```
+
+**For GitHub Copilot:**
+
+1. **Reference the skills in `.github/copilot-instructions.md`** so Copilot knows to read them when relevant:
+
+    ```markdown
+    ## Skills
+
+    This project uses shared AI agent skills from `.rolemodel-skills/skills/`.
+    When working on CSS, read and follow the instructions in:
+    - `.rolemodel-skills/skills/bem-structure/SKILL.md`
+    - `.rolemodel-skills/skills/optics-context/SKILL.md`
+
+    When reviewing UI for usability, read and follow:
+    - `.rolemodel-skills/skills/laws-of-ux/SKILL.md`
+    - `.rolemodel-skills/skills/usability-heuristics/SKILL.md`
+    ```
+
+2. **Symlink individual skills** into `.github/skills/` for automatic discovery:
+
+    ```bash
+    mkdir -p .github/skills
+    ln -s ../../.rolemodel-skills/skills/bem-structure .github/skills/bem-structure
+    ln -s ../../.rolemodel-skills/skills/laws-of-ux .github/skills/laws-of-ux
+    ```
 
 To pull the latest skill updates:
 
