@@ -1,6 +1,6 @@
 # SKILL: Automated UX Review Rules – AI-Optimized Subset (2026)
 
-**Skill Name:** AI-Automated UX Heuristic Checks – Non-Duplicative Complement  
+**Skill Name:** AI-Automated UX Heuristic Checks – non-duplicative Complement  
 **Version:** 1.0  
 **Date Created:** February 25, 2026  
 **Purpose:** Provide a concise, highly automatable set of UX design rules that complement (without duplicating) Nielsen's 10 Usability Heuristics and the Laws of UX (lawsofux.com). Optimized for **AI-driven / programmatic design reviews**, linting tools, accessibility scanners, computer-vision UI analyzers, and automated prototyping checks.
