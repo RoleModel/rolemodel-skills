@@ -26,6 +26,7 @@ Each skill has YAML frontmatter defining `name`, `description`, and `metadata.tr
 
 ### UX & Frontend
 - **laws-of-ux**: Review and guide UI implementations using the 21 Laws of UX (Fitts's Law, Hick's Law, Miller's Law, etc.). Identifies usability issues in HTML, CSS, and JS by applying cognitive, visual, and behavioral principles. Works alongside `bem-structure` and `optics-context`.
+- **usability-heuristics**: Audit UIs against Nielsen's 10 Usability Heuristics. Produces a structured issue log with severity ratings, heuristic mappings, and remediation guidance. Designed to complement `laws-of-ux` with a formal evaluation methodology.
 - **frontend-patterns**: Frontend patterns for Rails applications using Slim templates, Stimulus, and CSS with Optics utilities.
 - **stimulus-controllers**: Create and register Stimulus controllers for interactive JavaScript features.
 - **turbo-fetch**: Implement dynamic form updates using Turbo Streams and Stimulus (cascading dropdowns, conditional fields, dynamic option lists).
@@ -42,6 +43,6 @@ Each skill has YAML frontmatter defining `name`, `description`, and `metadata.tr
 ## Key Conventions
 
 - When editing skills, preserve the YAML frontmatter format at the top of SKILL.md files.
-- BEM, Optics, and Laws of UX skills are designed to work together — BEM provides CSS structure, Optics provides design tokens and components, and Laws of UX provides usability principles.
+- BEM, Optics, Laws of UX, and Usability Heuristics skills are designed to work together — BEM provides CSS structure, Optics provides design tokens and components, Laws of UX provides usability principles, and Usability Heuristics provides structured audit methodology.
 - Optics tokens use the `--op-` CSS custom property prefix. Project-specific tokens should use a project namespace prefix (e.g., `--ya-` for "Your App").
 - Optics component overrides go in `app/assets/stylesheets/components/overrides/{component.css}` (in consuming projects).
