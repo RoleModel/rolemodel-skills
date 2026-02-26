@@ -156,20 +156,19 @@ end
 
 ## 6. Singular Resources
 
-Use `resource` (singular) for resources where there's only one per parent:
+Use `resource` (singular) instead of adding non-RESTful actions to another resource.
 
 ```ruby
 resources :users do
-  resource :profile, only: %i[show edit update]  # Only one profile per user
-  resource :settings, only: %i[edit update]      # Only one settings per user
-  resource :avatar, only: %i[show update]        # Only one avatar per user
+  resource :profile, only: %i[edit update]  # Instead of edit_profile on users
+  resource :settings, only: %i[edit update] # Instead of edit_settings on users
 end
 ```
 
 **Key Points:**
 - Singular resources don't have an `index` action
 - URLs don't require an `:id` parameter (e.g., `/users/1/profile` not `/users/1/profiles/1`)
-- Perfect for one-to-one relationships or singleton resources
+- Perfect for domain concepts that have a clear owner but are not backed by their own database table (e.g., profile, settings, dashboard)
 
 ## 7. Collection and Member Routes
 
