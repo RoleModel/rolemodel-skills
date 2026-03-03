@@ -157,7 +157,7 @@ git submodule update --remote .rolemodel-skills
 [skills.sh](https://skills.sh) is a community directory and CLI for discovering and installing agent skills. If these skills are published there, you can install them with:
 
 ```bash
-npx skillsadd RoleModel/rolemodel-skills
+npx skills add RoleModel/rolemodel-skills
 ```
 
 This installs skills into the appropriate directory for your agent automatically. You can also browse [skills.sh](https://skills.sh) to discover additional skills from the community.
