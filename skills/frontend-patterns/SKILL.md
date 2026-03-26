@@ -5,270 +5,253 @@ description: Frontend patterns for Rails applications using Slim templates, Stim
 
 # Frontend Patterns
 
-## Tech Stack
-- **Slim** - HTML templating
-- **Stimulus** - JavaScript interactions
-- **CSS** - Styling
-- **Optics** - CSS styling framework
-- **Simple Form** - Form builder
+Build Rails frontend using Slim templates, Simple Form, Stimulus controllers, and Optics CSS.
+
+**Tech Stack:** Slim (HTML) • Simple Form (forms) • Stimulus (JavaScript) • Optics (CSS)
+
+See [references/EXAMPLES.md](references/EXAMPLES.md) for detailed code examples.
 
 ## Slim Templates
 
-### Conventions
-- Use Ruby 3+ syntax (e.g., keyword arguments with `:`)
-- Keep logic minimal in views
-- Extract complex rendering to helpers or partials
-- Use locals for partial data passing
-- **Always prioritize DRY principles - extract repeated markup into partials**
-- **Extract partials when logic or markup is repeated more than once**
+### Core Conventions
+- Use Ruby 3+ syntax ( e.g. keyword arguments with `:`)
+- Keep view logic minimal - extract to helpers/partials
+- Always add policy checks around actions (e.g. edit/delete links)
 - **Never use inline styles**
+- **Extract repeated markup into partials (DRY principle)**
+- Always use locals with keyword arguments: `render 'partial', user:, active: true`
 
-### When to Use Helpers vs Partials
+### Helpers vs Partials
 
-**Use Helper Methods when:**
-- Simple conditional logic that returns HTML with different text/classes
-- Formatting data (dates, currency, durations)
-- Generating single HTML elements with varying attributes
-- Logic is stateless and doesn't need multiple elements
-- Example: `status_badge(status)`, `format_duration(seconds)`
+**Use Helpers for:**
+- Single elements with conditional text/classes
+- Data formatting (dates, currency)
+- Stateless logic
+- Example: `status_badge(status)`
 
-**Use Partials when:**
-- Complex markup structure (multiple nested elements)
-- Reusable UI components with layout
-- Need to render collections
-- Significant HTML that would clutter a helper
-- Example: `_time_entry_row.html.slim`, `_timer_form.html.slim`
+**Use Partials for:**
+- Multi-element structures
+- Reusable UI components
+- Collection rendering
+- Example: `_form.html.slim`, `_user_card.html.slim`
 
-**Rule of thumb:** If it's primarily conditional text/classes in a single element, use a helper. If it's a structure/layout, use a partial.
-
-### Partial Extraction Guidelines
-- Extract forms on the `new` and `edit` pages into `_form` partials
-- Extract repeated structures into component partials
-- Use descriptive partial names: `_time_entry_row`, `_project_selector`, `_status_badge`
-- Place partials in same directory as parent view or in `shared/` for cross-feature use
-- Always use keyword arguments for partial locals: `render 'row', time_entry:, show_actions: true`
+**Rule:** Single element = helper. Structure/layout = partial.
 
 ### Partial Organization
 ```
 app/views/
-  time_entries/
-    edit.html.slim            # Edit view
-    index.html.slim           # Main view
-    new.html.slim             # New view
-    show.html.slim            # Show view
-    _time_entries.html.slim   # Table collection of rows
-    _time_entry.html.slim     # Individual row
-    _form.html.slim           # Time Entries form
+  resource_name/
+    index.html.slim           # Main views
+    _form.html.slim           # Forms (shared by new/edit)
+    _resource_name.html.slim  # Individual item
   shared/
-    _status_badge.html.slim   # Reusable badge
-    _empty_state.html.slim    # Empty state pattern
+    _status_badge.html.slim   # Cross-feature components
 ```
 
-### Conditional class names
-Use the rails class_names helper to manage conditional class names in Slim templates.
+### Common Patterns
 ```slim
-button.btn class=class_names('btn--active': active) Click Me
-```
+-# Conditional classes
+.card class=class_names('card--active': active, 'card--urgent': urgent)
 
-### Example
-```slim
--# locals: (user:, active: false)
-.user-card class=('active' if active)
-  h3 = user.name
-  p = user.email
+-# Partial with locals
+= render 'user_card', user:, show_actions: true
+
+-# Collection rendering
+= render partial: 'item', collection: @items
+
+-# Conditional rendering
+- if policy(@resource).update?
+  = link_to 'Edit', edit_path(@resource)
 ```
 
 ## Simple Form
 
-### Overview
-Always use Simple Form for forms. Never use `form_with`, `form_for`, or Rails form helpers directly.
+**Always use Simple Form.** Never use `form_with` or `form_for`.
 
-### Basic Model Form
+### Basic Forms
+
+**Model form:**
 ```slim
 = simple_form_for @user do |f|
-  = f.input :first_name
-  = f.input :last_name
+  = f.input :name
   = f.input :email, required: true
-
+  
   .form__actions
     = link_to 'Cancel', :back, class: 'btn btn--outline'
     = f.submit 'Save', class: 'btn btn--primary'
 ```
 
-### Non-Model Form (with URL)
-For forms without a model (like bulk actions or search forms):
-
+**Non-model form (search, filters, bulk actions):**
 ```slim
 = simple_form_for :search, url: search_path, method: :get do |f|
-  = f.input :query, label: 'Search'
+  = f.input :query
   = f.submit 'Search', class: 'btn btn--primary'
 ```
 
-**Important**: When using `simple_form_for :symbol`, params are nested under the symbol:
-```ruby
-# View: simple_form_for :time_entry
-# Params received: { time_entry: { task_id: 1, description: "text" } }
-# Access with: params.dig(:time_entry, :task_id)
-```
-
-### Form with HTML Options
-```slim
-= simple_form_for @record, html: { id: 'custom-form', class: 'special-form' } do |f|
-  = f.input :name
-```
-
-### Form with Data Attributes (Turbo)
-```slim
-= simple_form_for @record, data: { turbo_frame: '_top' } do |f|
-  = f.input :name
-```
+**Important:** `:symbol` forms nest params: `params.dig(:search, :query)`
 
 ### Common Input Types
+
+| Type | Example |
+|------|---------|
+| Text | `= f.input :name` |
+| Textarea | `= f.input :description, as: :text, input_html: { rows: 4 }` |
+| Association | `= f.association :project, collection: @projects, prompt: 'Select...'` |
+| Select | `= f.input :type, collection: @project_types, prompt: 'Select...'` |
+| Boolean | `= f.input :active, as: :boolean` |
+| Date | `= f.input :start_date, as: :date` |
+| Hidden | `= f.hidden_field :organization_id, value: current_user.organization_id` |
+
+### Input Options
+- `placeholder:` - Placeholder text
+- `label:` - Custom label
+- `hint:` - Help text below input
+- `required: true` - Mark as required
+- `disabled: true` - Disable input
+- `input_html: {}` - HTML attributes for input element
+- `wrapper_html: {}` - HTML attributes for wrapper div
+
+### Collections
 ```slim
-/ Text input
-= f.input :name
-
-/ Text area
-= f.input :description, as: :text, input_html: { rows: 4 }
-
-/ Select dropdown
-= f.input :project_id, collection: @projects, prompt: 'Select a project...'
-
-/ Boolean checkbox
-= f.input :active, as: :boolean
-
-/ Date picker
-= f.input :start_date, as: :date
-
-/ With placeholder
-= f.input :email, placeholder: 'user@example.com'
-
-/ With custom input attributes
-= f.input :description, input_html: { rows: 3, required: true, data: { controller: 'auto-save' } }
-```
-
-### Collections and Associations
-```slim
-/ Simple collection
+/ Basic collection
 = f.input :category_id, collection: @categories
 
-/ With custom text/value methods
-= f.input :project_id, collection: @projects, label_method: :name, value_method: :id
-
-/ Grouped collection
-= f.input :task_id, as: :grouped_select, collection: @projects, group_method: :tasks
-
-/ With prompt
-= f.input :status, collection: ['pending', 'approved', 'rejected'], prompt: 'Select status...'
+/ Custom label/value methods
+= f.input :project_id, 
+  collection: @projects,
+  label_method: :name,
+  value_method: :id,
+  prompt: 'Select project...'
 ```
 
-### Custom Labels and Hints
+### Special Form Patterns
+
+**Bulk action form:**
 ```slim
-= f.input :email, label: 'Email Address', hint: 'We will never share your email'
-= f.input :password, label: 'Password', placeholder: 'At least 8 characters'
+= simple_form_for :bulk_action, url: bulk_path, method: :post, html: { id: 'bulk-form' } do |f|
+  = f.button 'Approve Selected', class: 'btn btn--primary'
+
+-# Checkboxes reference form
+= check_box_tag 'entry_ids[]', entry.id, false, form: 'bulk-form'
 ```
 
-### Disabled Inputs
+**Modal form with external submit:**
 ```slim
-= f.input :task_id, disabled: true, input_html: { data: { target: 'form.taskSelect' } }
+= simple_form_for @record, html: { id: 'modal-form' }, data: { turbo_frame: '_top' } do |f|
+  = f.input :reason, as: :text, input_html: { rows: 3, required: true }
+
+-# In modal footer
+= button_tag 'Submit', type: 'submit', form: 'modal-form', class: 'btn btn--primary'
 ```
 
-### Hidden Fields
+### Form Options
+- `html: {}` - HTML attributes for form element
+- `data: {}` - Data attributes (e.g., Turbo, Stimulus)
+- `url:` - Form submission URL (required for `:symbol` forms)
+- `method:` - HTTP method (`:get`, `:post`, `:patch`, `:delete`)
+
+See [references/EXAMPLES.md](references/EXAMPLES.md) for complex form examples.
+
+## Stimulus Controllers
+
+JavaScript interactions using Stimulus framework.
+
+### Controller Structure
+```javascript
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static targets = ["output", "input"]
+  static values = { url: String, delay: Number }
+  static classes = ["hidden", "active"]
+
+  connect() {
+    // Initialization when controller connects to DOM
+  }
+
+  disconnect() {
+    // Cleanup when controller disconnects
+  }
+
+  action(event) {
+    // Action methods called from HTML
+  }
+}
+```
+
+### Usage in Slim
 ```slim
-= f.hidden_field :organization_id, value: current_user.organization_id
+.component data-controller="example" data-example-url-value="/api/endpoint"
+  input data-example-target="input" data-action="input->example#search"
+  .results data-example-target="output"
 ```
 
-### Submit Buttons
+### Best Practices
+- One controller per behavior (focused, composable)
+- Use data attributes for configuration
+- Name controllers in kebab-case in HTML
+- Keep controllers simple and testable
+- Clean up in `disconnect()` (timers, listeners)
+
+See [references/EXAMPLES.md](references/EXAMPLES.md) for complete controller examples.
+
+## CSS & Optics
+
+### Guidelines
+- **Use Optics utility classes** for spacing, typography, colors, layout
+- Keep custom CSS minimal and component-scoped
+- Follow BEM naming for custom components: `.block__element--modifier`
+- **Never use inline styles**
+- Use `class_names` helper for conditional classes
+
+### Common Patterns
 ```slim
-/ Standard submit
-= f.submit 'Save', class: 'btn btn--primary'
+/ Layout with Optics utilities
+.container.mt-4.mb-6
+  .grid.grid--2-col.gap-4
+    .card.p-4
+      h2.text-lg.font-bold Title
+      p.text-gray-600 Description
 
-/ With data attributes
-= f.submit 'Save', class: 'btn btn--primary', data: { disable_with: 'Saving...' }
-
-/ Associated with external form (for modal footers)
-= f.submit 'Save', form: 'my-form-id', class: 'btn btn--primary'
+/ Custom component with BEM
+.time-entry.time-entry--running
+  .time-entry__header
+    h3.time-entry__title = entry.description
+  .time-entry__body
+    span.time-entry__duration = entry.duration
 ```
 
-### Form Actions Pattern
-Standard pattern for form button groups:
+### Conditional Classes
+```slim
+/ Using class_names helper
+.card class=class_names(
+  'card--active': @record.active?,
+  'card--featured': @record.featured?
+)
+```
 
+## Quick Reference
+
+**Form actions pattern:**
 ```slim
 .form__actions
   = link_to 'Cancel', :back, class: 'btn btn--outline'
   = f.submit 'Save', class: 'btn btn--primary'
 ```
 
-### Bulk Action Forms
-For forms that collect checkboxes without inputs:
-
+**Empty state:**
 ```slim
-= simple_form_for :bulk_action, url: bulk_approve_path, method: :post, html: { id: 'bulk-form' } do |f|
-  / Form will collect checked checkboxes via form attribute
-
-/ Checkboxes reference the form
-= check_box_tag 'entry_ids[]', entry.id, false, form: 'bulk-form'
+- if @items.empty?
+  = render 'shared/empty_state', title: 'No items', message: 'Create your first item.'
 ```
 
-### Modal Forms
-Forms that submit within modals and redirect to parent page:
-
+**Authorization check:**
 ```slim
-= simple_form_for @record, html: { id: 'modal-form' }, data: { turbo_frame: '_top' } do |f|
-  = f.input :reason, as: :text, input_html: { rows: 3, required: true }
-
--# In modal footer (outside form)
-- content_for :modal_actions do
-  = button_tag 'Submit', type: 'submit', form: 'modal-form', class: 'btn btn--primary'
+- if policy(@resource).update?
+  = link_to 'Edit', edit_path(@resource), class: 'btn'
 ```
 
-### Best Practices
-- Always use `simple_form_for`, never `form_with` or `form_for`
-- Use `:symbol` for non-model forms with url parameter
-- Use `@model` for model-based forms
-- Leverage Simple Form's automatic label generation
-- Use `input_html` for custom HTML attributes on the input element
-- Use `html` option for attributes on the form element itself
-- Keep forms accessible with proper labels
-- Use `.form__actions` for button groups
-
-## Stimulus Controllers
-
-### Structure
-- One controller per behavior
-- Use data attributes for configuration
-- Keep controllers focused and composable
-- Follow naming conventions (kebab-case in HTML)
-
-### Example
-```javascript
-import { Controller } from "@hotwired/stimulus"
-
-export default class extends Controller {
-  static targets = ["output"]
-  static values = { url: String }
-
-  connect() {
-    // Initialization
-  }
-
-  perform() {
-    // Action logic
-  }
-}
+**Turbo confirmation:**
+```slim
+= button_to 'Delete', path, method: :delete, data: { turbo_confirm: 'Are you sure?' }
 ```
-
-## CSS & Optics
-
-### Guidelines
-- Use Optics utility classes where applicable
-- Keep custom CSS minimal and scoped
-- Follow BEM or similar naming for custom components
-- Avoid inline styles
-
-## Future Topics
-- Turbo Frames and Streams patterns
-- Form styling conventions
-- Icon helper usage
-- Responsive design patterns
-- Animation and transition guidelines
