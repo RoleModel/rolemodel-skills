@@ -3,171 +3,242 @@ name: controller-patterns
 description: Review and update existing Rails controllers and generate new controllers following professional patterns and best practices. Covers RESTful conventions, authorization patterns, proper error handling, and maintainable code organization.
 ---
 
-# Controller Best Practices
+# Rails Controller Patterns
 
-## Purpose
-This skill helps AI agents review existing Rails controllers and generate new controllers following professional patterns and best practices. It covers RESTful conventions, authorization patterns, proper error handling, and maintainable code organization that can be applied to any Rails application.
+## Quick Reference
 
-## Context
-This skill covers:
-- **Rails** with RESTful conventions
-- **Authorization patterns** (Pundit or similar)
-- **Strong parameters** for security
-- **Proper HTTP status codes** and flash messages
-- **Consistent naming conventions**
-- **Error handling best practices**
+### When to Use This Skill
 
-## Best Practices
+- Generating new Rails controllers
+- Reviewing existing controllers for best practices
+- Implementing RESTful actions (index, show, new, create, edit, update, destroy)
+- Adding authorization with Pundit
+- Handling nested resources
+- Implementing state transitions (submissions, approvals, activations)
+- Bulk operations on resources
 
-## 1. Authorization
+### Core Patterns at a Glance
 
-Implement authorization checks for all actions that interact with resources. This example uses Pundit, but the pattern applies to any authorization framework (CanCanCan, ActionPolicy, etc.).
-
-**Key Principles:**
-- Authorize in all actions that interact with resources
-- Use scoped queries for collection actions
-- Authorize in both `set_*` methods and create actions
+**Standard CRUD Controller:**
 
 ```ruby
-# In index - scope collections to authorized records
+class ResourcesController < ApplicationController
+  before_action :set_resource, only: %i[show edit update destroy]
+
+  def index
+    @resources = policy_scope(Resource)
+  end
+
+  def show; end
+
+  def new
+    @resource = authorize Resource.new
+  end
+
+  def create
+    @resource = authorize Resource.new(resource_params)
+    @resource.save ? redirect_to(@resource, notice: 'Successfully Created Resource') : render('new', status: :unprocessable_content)
+  end
+
+  def edit; end
+
+  def update
+    @resource.update(resource_params) ? redirect_to(@resource, notice: 'Successfully Updated Resource') : render('edit', status: :unprocessable_content)
+  end
+
+  def destroy
+    @resource.destroy
+    redirect_to resources_url, notice: 'Successfully Deleted Resource'
+  end
+
+  private
+
+  def set_resource
+    @resource = authorize Resource.find(params[:id])
+  end
+
+  def resource_params
+    params.expect(resource: %i[attr1 attr2])
+  end
+end
+```
+
+**Namespaced State Controller:**
+
+```ruby
+class Resources::StatesController < ApplicationController
+  before_action :set_resource
+  before_action :ensure_valid_state, only: :create
+
+  def create
+    @resource.activate!
+    redirect_to resources_path, notice: 'Resource activated.'
+  end
+
+  def destroy
+    @resource.deactivate!
+    redirect_to resources_path, notice: 'Resource deactivated.'
+  end
+
+  private
+
+  def set_resource
+    @resource = current_user.resources.find(params[:resource_id])
+  end
+
+  def ensure_valid_state
+    redirect_to(resources_path, alert: 'Invalid state') unless @resource.can_activate?
+  end
+end
+```
+
+## Decision Tree
+
+```
+Need to add controller functionality?
+│
+├─ Standard CRUD operations (list, view, create, edit, delete)?
+│  └─ Use: Standard RESTful Controller Pattern
+│
+├─ State transitions (submit, approve, activate, publish)?
+│  └─ Use: Namespaced State Controller (create/destroy actions)
+│
+├─ Bulk operations (bulk submit, bulk delete)?
+│  └─ Use: Namespaced Bulk Controller (create action only)
+│
+├─ Nested under parent resource?
+│  └─ Use: Nested RESTful Controller Pattern
+│
+└─ Complex authorization rules?
+   └─ Add: Policy scopes and explicit authorization checks
+```
+
+## Essential Patterns
+
+### 1. Authorization (Pundit)
+
+**Pattern:** Authorize all resource interactions using `authorize` or `policy_scope`.
+
+```ruby
+# Collections - use policy_scope
 def index
   @products = policy_scope(Product)
-  # Or with CanCanCan: @products = Product.accessible_by(current_ability)
 end
 
-# In new/create - authorize new instances
+# New instances - authorize the class
 def new
   @product = authorize Product.new
 end
 
-def create
-  @product = authorize Product.new(product_params)
-  # ...
-end
-
-# In set method - authorize before any operation
+# Existing instances - authorize in set method
 def set_product
   @product = authorize Product.find(params[:id])
-  # Or with CanCanCan: @product = Product.find(params[:id]); authorize! :read, @product
 end
 ```
 
-**Why This Matters:**
-- Prevents unauthorized access to resources
-- Provides a single, consistent authorization point
-- Makes security audits easier
-- Fails fast if authorization rules aren't met
+**Rules:**
 
-## 2. Before Actions
+- `policy_scope()` for collections (index)
+- `authorize ClassName.new()` for new records (new, create)
+- `authorize` in `set_*` methods for existing records
+- Never skip authorization on resource operations
 
-Use `before_action` to DRY up your controllers by extracting common setup logic.
+### 2. Before Actions
+
+**Pattern:** Extract common setup logic with explicit action scoping.
 
 ```ruby
-before_action :set_product, only: %i[show edit update destroy]
-before_action :set_company, only: %i[show edit update destroy]
-```
-
-**Best Practices:**
-- Always use `only:` or `except:` to be explicit about which actions are affected
-- Name methods descriptively: `set_[resource]`, `require_admin`, `check_ownership`
-- Order matters - list them in the order they should execute
-- Keep before_action methods simple and focused
-
-**Common Before Actions:**
-```ruby
-# Resource loading
+# Resource loading (most common)
 before_action :set_product, only: %i[show edit update destroy]
 
-# Authorization checks
-before_action :require_admin, only: %i[destroy]
-before_action :require_ownership, only: %i[edit update destroy]
-
-# State validation checks
-before_action :ensure_pending, only: %i[create]
-before_action :ensure_stopped, only: %i[create]
-
-# Parent resource loading (for nested resources)
+# Parent resource loading (nested)
 before_action :set_company
 before_action :set_employee, only: %i[show edit update destroy]
+
+# State validation
+before_action :ensure_pending, only: :create
+before_action :ensure_stopped, only: :create
 ```
 
-**State Validation Pattern:**
+**Rules:**
 
-Extract state validation into before_actions to keep controller actions focused:
+- Always use `only:` or `except:`
+- Name descriptively: `set_[resource]`, `ensure_[state]`, `require_[permission]`
+- Order matters - execute in declaration order
+- Keep methods focused on single responsibility
+
+**State Validation Example:**
 
 ```ruby
-private
-
 def ensure_pending
-  return if @time_entry.pending?
-
-  redirect_to time_entries_path, alert: 'Only pending entries can be submitted.'
-end
-
-def ensure_stopped
-  return unless @time_entry.running?
-
-  redirect_to time_entries_path, alert: 'Cannot submit a running timer.'
+  return if @resource.pending?
+  redirect_to resources_path, alert: 'Must be pending.'
 end
 ```
 
-## 3. RESTful Actions Structure
+### 3. RESTful Action Patterns
 
-**Index:**
+**Index - List all resources:**
+
 ```ruby
 def index
   @resources = policy_scope(Resource)
 end
 ```
 
-**Show:**
+**Show - Display one resource:**
+
 ```ruby
 def show
-  # Set resource via before_action
-  # Load any associated data needed for the view
-  @related_items = policy_scope(@resource.related_items)
+  # Resource set via before_action
+  # Load scoped associations if needed
+  @related = policy_scope(@resource.related_items)
 end
 ```
 
-**New:**
+**New - Form for new resource:**
+
 ```ruby
 def new
   @resource = authorize Resource.new
 end
 ```
 
-**Create:**
+**Create - Save new resource:**
+
 ```ruby
 def create
   @resource = authorize Resource.new(resource_params)
-
   if @resource.save
     redirect_to @resource, notice: 'Successfully Created Resource'
   else
-    render 'new', status: :unprocessable_content
+    render :new, status: :unprocessable_content
   end
 end
 ```
 
-**Edit:**
+**Edit - Form for existing resource:**
+
 ```ruby
 def edit
-  # Set resource via before_action
+  # Resource set via before_action
 end
 ```
 
-**Update:**
+**Update - Save changes to resource:**
+
 ```ruby
 def update
   if @resource.update(resource_params)
     redirect_to @resource, notice: 'Successfully Updated Resource'
   else
-    render 'edit', status: :unprocessable_content
+    render :edit, status: :unprocessable_content
   end
 end
 ```
 
-**Destroy:**
+**Destroy - Delete resource:**
+
 ```ruby
 def destroy
   @resource.destroy
@@ -175,139 +246,99 @@ def destroy
 end
 ```
 
-## 4. Private Methods
+### 4. Strong Parameters
 
-**Set Method:**
-```ruby
-private
+**Pattern:** Define permitted attributes in private method.
 
-def set_resource
-  @resource = authorize Resource.find(params[:id])
-end
-```
-
-**Strong Parameters:**
 ```ruby
 def resource_params
-  params.expect(resource: [
-    :attribute_one,
-    :attribute_two,
-    { nested_attributes: %i[id attr1 attr2] },
-    { array_attributes: [] },
-  ])
+  params.expect(
+    resource: [
+      :simple_attr,
+      :another_attr,
+      nested_attrs: %i[id attr1 attr2 _destroy],
+      array_attrs: [],
+      multiple_ids: []
+    ]
+  )
 end
 ```
 
-## 5. HTTP Status Codes
+**Rules:**
 
-Use semantic HTTP status codes to communicate the result of operations clearly.
+- Use `params.expect(model: [...])`
+- Nested attributes: `{nested_attrs: %i[id attr _destroy]}`
+- Arrays: `{array_attr: []}`
+- Include `:id` for update, `_destroy` for deletion in nested attributes
 
-**Common Status Codes:**
+### 5. HTTP Status Codes
+
 ```ruby
-# Success (2xx)
-render :show, status: :ok                    # 200 - Standard success
-render :show, status: :created               # 201 - Resource created (optional for create)
-head :no_content                             # 204 - Success with no response body
+# Success - redirects (default 302, no status needed)
+redirect_to @resource, notice: 'Success'
 
-# Client Errors (4xx)
-render :new, status: :unprocessable_content  # 422 - Validation failed
-render json: {error: "Not found"}, status: :not_found  # 404
-head :forbidden                              # 403 - User lacks permission
-head :unauthorized                           # 401 - Authentication required
+# Validation failure - render with unprocessable_content
+render :new, status: :unprocessable_content    # 422
+render :edit, status: :unprocessable_content   # 422
+
+# Other statuses (rare in controllers)
+head :no_content                               # 204
+head :forbidden                                # 403
+head :not_found                                # 404
 ```
 
-**Best Practices:**
-- Use `:unprocessable_content` (422) for validation errors on create/update
-- Use standard redirects (302) for successful operations
-- No explicit status needed for redirects (uses 302 by default)
-- Turbo/Hotwire requires proper status codes for correct behavior
+**Rules:**
 
-**Example:**
+- Redirects never need explicit status
+- Failed validations: `:unprocessable_content` (422)
+- Turbo requires proper status codes for error handling
+
+### 6. Flash Messages
+
+**Pattern:** Consistent, user-friendly messaging.
+
 ```ruby
-def create
-  @product = authorize Product.new(product_params)
-
-  if @product.save
-    redirect_to @product, notice: 'Successfully Created Product'  # 302 redirect
-  else
-    render :new, status: :unprocessable_content  # 422 for validation errors
-  end
-end
-```
-
-## 6. Flash Messages
-
-Use consistent, user-friendly flash messages for user feedback.
-
-**Message Patterns:**
-```ruby
-# Success messages (use notice:)
+# Success (notice:)
 redirect_to @product, notice: 'Successfully Created Product'
 redirect_to @product, notice: 'Successfully Updated Product'
 redirect_to products_url, notice: 'Successfully Deleted Product'
 
-# Error messages (use alert:)
-redirect_to products_url, alert: 'Failed to delete product'
-redirect_to @product, alert: 'Unable to process request'
-
-# Info messages
-redirect_to @product, notice: 'Email sent successfully'
+# Errors (alert:)
+redirect_to products_path, alert: 'Must be pending to submit.'
+redirect_to products_path, alert: 'Cannot delete active product.'
 ```
 
-**Best Practices:**
-- Use `notice:` for success messages
-- Use `alert:` for error/warning messages
-- Keep messages concise and action-oriented
-- Use consistent capitalization and phrasing
-- Avoid technical jargon in user-facing messages
+**Rules:**
 
-## 7. Naming Conventions
+- Format: `Successfully [Action] [Resource]`
+- Use `notice:` for success
+- Use `alert:` for errors/warnings
+- Keep concise and action-oriented
+- Title case for resource names
 
-Follow Rails conventions for consistent, predictable code.
+### 7. Naming Conventions
 
-**Controller Naming:**
 ```ruby
-# Controller inherits from ApplicationController
-class ProductsController < ApplicationController
-  # ...
-end
+# Controllers
+ProductsController < ApplicationController
+Admin::ProductsController < Admin::BaseController
+Products::SubmissionsController < ApplicationController
 
-# Nested namespaced controllers
-class Admin::ProductsController < Admin::BaseController
-  # ...
-end
+# Instance variables
+@product, @user         # Singular for one resource
+@products, @users       # Plural for collections
+
+# Private methods
+def set_product         # Resource loading
+def product_params      # Strong parameters
+def ensure_pending      # State validation
+def require_admin       # Authorization check
 ```
 
-**Instance Variables:**
-```ruby
-# Singular for individual resources
-@product, @user, @article, @order
+## Complete Examples
 
-# Plural for collections
-@products, @users, @articles, @orders
+### Simple CRUD Controller
 
-# Related resources maintain context
-@product_reviews, @user_orders
-```
-
-**Private Method Names:**
-```ruby
-# Resource loading
-def set_product
-def set_user
-
-# Strong parameters
-def product_params
-def user_params
-
-# Authorization checks
-def require_admin
-def require_ownership
-```
-
-## Examples
-
-## Simple CRUD Controller
 ```ruby
 class ProductsController < ApplicationController
   before_action :set_product, only: %i[show edit update destroy]
@@ -316,8 +347,7 @@ class ProductsController < ApplicationController
     @products = policy_scope(Product)
   end
 
-  def show
-  end
+  def show; end
 
   def new
     @product = authorize Product.new
@@ -325,22 +355,20 @@ class ProductsController < ApplicationController
 
   def create
     @product = authorize Product.new(product_params)
-
     if @product.save
       redirect_to @product, notice: 'Successfully Created Product'
     else
-      render 'new', status: :unprocessable_content
+      render :new, status: :unprocessable_content
     end
   end
 
-  def edit
-  end
+  def edit; end
 
   def update
     if @product.update(product_params)
       redirect_to @product, notice: 'Successfully Updated Product'
     else
-      render 'edit', status: :unprocessable_content
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -361,7 +389,8 @@ class ProductsController < ApplicationController
 end
 ```
 
-## Controller with Nested Resources
+### Nested Resource Controller
+
 ```ruby
 class OrderItemsController < ApplicationController
   before_action :set_order
@@ -377,11 +406,10 @@ class OrderItemsController < ApplicationController
 
   def create
     @order_item = authorize @order.order_items.build(order_item_params)
-
     if @order_item.save
       redirect_to [@order, @order_item], notice: 'Successfully Created Order Item'
     else
-      render 'new', status: :unprocessable_content
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -389,7 +417,7 @@ class OrderItemsController < ApplicationController
     if @order_item.update(order_item_params)
       redirect_to [@order, @order_item], notice: 'Successfully Updated Order Item'
     else
-      render 'edit', status: :unprocessable_content
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -414,128 +442,33 @@ class OrderItemsController < ApplicationController
 end
 ```
 
-## Review Checklist
+## Common Mistakes
 
-When reviewing or generating controllers, verify:
-
-- [ ] Controller inherits from `ApplicationController`
-- [ ] All resource interactions use `authorize` or `policy_scope`
-- [ ] `before_action` is used appropriately with `only:` parameter
-- [ ] All standard RESTful actions follow the pattern
-- [ ] Strong parameters are properly defined in private method
-- [ ] Nested attributes use proper symbols array syntax
-- [ ] Array attributes use `[]` notation
-- [ ] HTTP status `:unprocessable_content` is used for validation failures
-- [ ] Flash messages are consistent and user-friendly
-- [ ] Redirects use resource path helpers
-- [ ] Instance variables use appropriate singular/plural naming
-- [ ] Private methods are properly defined and ordered
-
-## Anti-Patterns to Avoid
-
-❌ **Don't skip authorization:**
-```ruby
-def create
-  @product = Product.new(product_params)  # Missing authorize!
-end
-```
-
-✅ **Always authorize:**
-```ruby
-def create
-  @product = authorize Product.new(product_params)
-end
-```
-
-❌ **Don't use incorrect status codes:**
-```ruby
-render :new, status: :unprocessable_entity  # Wrong status
-```
-
-✅ **Use correct status:**
-```ruby
-render :new, status: :unprocessable_content
-```
-
-❌ **Don't use inconsistent flash messages:**
-```ruby
-redirect_to @product, notice: 'Product created!'
-redirect_to @product, notice: 'The product has been successfully created'
-redirect_to @product, notice: 'Product was saved'
-```
-
-✅ **Be consistent:**
-```ruby
-redirect_to @product, notice: 'Successfully Created Product'
-redirect_to @product, notice: 'Successfully Updated Product'
-redirect_to @product, notice: 'Successfully Deleted Product'
-```
-
-❌ **Don't forget strong parameters:**
-```ruby
-def create
-  @product = authorize Product.new(params[:product])  # Unsafe!
-end
-```
-
-✅ **Always use strong parameters:**
-```ruby
-def create
-  @product = authorize Product.new(product_params)
-end
-
-private
-
-def product_params
-  params.expect(product: %i[name description price])
-end
-```
+| ❌ Anti-Pattern | ✅ Correct Pattern |
+| --- | --- |
+| `@product = Product.new(product_params)` | `@product = authorize Product.new(product_params)` |
+| `render :new, status: :unprocessable_entity` | `render :new, status: :unprocessable_content` |
+| `render :new` (on validation failure) | `render :new, status: :unprocessable_content` |
+| `@product = Product.new(params[:product])` | `@product = Product.new(product_params)` |
+| `params.require(:product).permit(:name)` | `params.expect(product: %i[name])` |
+| `redirect_to @product, notice: 'Product created!'`<br>`redirect_to @product, notice: 'Success!'` | `redirect_to @product, notice: 'Successfully Created Product'` |
+| `before_action :set_product` (no scope) | `before_action :set_product, only: %i[show edit update destroy]` |
+| Custom action for state changes | Namespaced controller with RESTful actions |
 
 ## Advanced Patterns
 
-## RESTful Namespaced Controllers
+### Namespaced State Controllers
 
-For related actions on a resource, use namespaced controllers with standard RESTful actions (`create` and `destroy`) instead of custom actions. Organize controllers in a namespace folder matching the parent resource.
+**Use When:** Actions represent state transitions (submit/unsubmit, activate/deactivate, approve/reject) on a resource.
 
-**Anti-Pattern:**
+**Pattern:** Namespace under parent resource, use `create` and `destroy` for state changes.
+
 ```ruby
-# ❌ Custom action on main controller
-class TimeEntriesController < ApplicationController
-  def submit
-    @time_entry.update!(status: :submitted)
-    redirect_to time_entries_path
-  end
-end
-
-# ❌ Controller not namespaced properly
-class UnsubmitTimeEntriesController < ApplicationController
-  def create
-    @time_entry.update!(status: :pending)
-    redirect_to time_entries_path
-  end
-end
-
-# routes.rb
-resources :time_entries do
-  resource :submit_time_entry, only: [:create]
-  resource :unsubmit_time_entry, only: [:create]
-end
-
-# File structure
-/controllers
-  /time_entries_controller.rb
-  /submit_time_entries_controller.rb
-  /unsubmit_time_entries_controller.rb
-```
-
-**Better Pattern:**
-```ruby
-# ✅ Namespaced controller with create and destroy actions
+# Controller: app/controllers/time_entries/submissions_controller.rb
 class TimeEntries::SubmissionsController < ApplicationController
   before_action :set_time_entry
-  before_action :ensure_pending, only: [:create]
-  before_action :ensure_stopped, only: [:create]
-  before_action :ensure_submitted, only: [:destroy]
+  before_action :ensure_valid_for_submission, only: :create
+  before_action :ensure_submitted, only: :destroy
 
   def create
     @time_entry.update!(status: :submitted, submitted_at: Time.current)
@@ -553,63 +486,43 @@ class TimeEntries::SubmissionsController < ApplicationController
     @time_entry = current_user.time_entries.find(params[:time_entry_id])
   end
 
-  def ensure_pending
-    return if @time_entry.pending?
-
-    redirect_to time_entries_path, alert: 'Only pending entries can be submitted.'
-  end
-
-  def ensure_stopped
-    return unless @time_entry.running?
-
-    redirect_to time_entries_path, alert: 'Cannot submit a running timer.'
+  def ensure_valid_for_submission
+    return if @time_entry.pending? && @time_entry.stopped?
+    redirect_to time_entries_path, alert: 'Only stopped pending entries can be submitted.'
   end
 
   def ensure_submitted
     return if @time_entry.submitted?
-
     redirect_to time_entries_path, alert: 'Only submitted entries can be unsubmitted.'
   end
 end
 
-# routes.rb
+# Routes
 resources :time_entries do
   resource :submission, only: [:create, :destroy], module: :time_entries
 end
 
-# File structure
-/controllers
-  /time_entries_controller.rb
-  /time_entries
-    /submissions_controller.rb
-
-# View usage
-button_to time_entry_submission_path(@time_entry), method: :post    # submit
-button_to time_entry_submission_path(@time_entry), method: :delete  # unsubmit
+# Views
+button_to time_entry_submission_path(@time_entry), method: :post    # Submit
+button_to time_entry_submission_path(@time_entry), method: :delete  # Unsubmit
 ```
 
-**When to Use:**
-- Actions that represent creating or destroying a conceptual sub-resource (submissions, subscriptions, approvals)
-- Related actions that operate on the same parent resource
-- Actions that change a primary state of a resource
-- When you want to keep controllers focused and single-purpose
-
 **Benefits:**
-- Follows RESTful conventions (using `create` and `destroy` actions)
-- Groups related functionality under a clear namespace
-- Cleaner file organization with namespace folders
-- Easier to test and maintain
-- Clear separation of concerns
-- Standard routing patterns
-- Single controller instead of multiple separate controllers
-- Validation logic extracted to before_actions keeps controller actions focused
-- Before_actions can be tested independently
 
-## Bulk Operations as Namespaced RESTful Controllers
+- RESTful (uses standard create/destroy actions)
+- Clear file organization (controllers/time_entries/submissions_controller.rb)
+- Validation extracted to before_actions
+- Single controller handles both transitions
+- Easy to test
 
-Handle bulk operations in namespaced controllers using the `create` action with validation in before_actions:
+### Bulk Operation Controllers
+
+**Use When:** Operating on multiple records at once (bulk submit, bulk delete, bulk archive).
+
+**Pattern:** Namespaced controller with only `create` action, validations in before_actions.
 
 ```ruby
+# Controller: app/controllers/time_entries/bulk_submissions_controller.rb
 class TimeEntries::BulkSubmissionsController < ApplicationController
   before_action :set_entries
   before_action :ensure_entries_present
@@ -617,102 +530,109 @@ class TimeEntries::BulkSubmissionsController < ApplicationController
 
   def create
     @entries.update_all(status: TimeEntry.statuses[:submitted], submitted_at: Time.current)
-    redirect_to time_entries_path, notice: "#{@entries.count} time #{'entry'.pluralize(@entries.count)} submitted for approval."
+    redirect_to time_entries_path, notice: "#{@entries.count} #{'entry'.pluralize(@entries.count)} submitted."
   end
 
   private
 
   def set_entries
-    entry_ids = params[:time_entry_ids] || []
-    @entries = current_user.time_entries.where(id: entry_ids)
+    ids = params[:time_entry_ids] || []
+    @entries = current_user.time_entries.where(id: ids)
   end
 
   def ensure_entries_present
     return if @entries.any?
-
-    redirect_to time_entries_path, alert: 'No time entries selected.'
+    redirect_to time_entries_path, alert: 'No entries selected.'
   end
 
   def ensure_entries_valid
-    invalid_entries = @entries.reject { |e| e.pending? && e.stopped? }
-    return if invalid_entries.empty?
-
+    invalid = @entries.reject { |e| e.pending? && e.stopped? }
+    return if invalid.empty?
     redirect_to time_entries_path, alert: 'Only stopped pending entries can be submitted.'
   end
 end
 
-# routes.rb
-resource :bulk_submissions, only: [:create], module: :time_entries
+# Routes
+resource :bulk_submissions, only: :create, module: :time_entries
 
-# File structure
-/controllers
-  /time_entries_controller.rb
-  /time_entries
-    /submissions_controller.rb
-    /bulk_submissions_controller.rb
-
-# View usage
+# Views
 form_with url: bulk_submissions_path, method: :post do |f|
-  # form fields
+  # checkboxes for time_entry_ids[]
 end
 ```
 
-## Scoped Collections in Show Actions
+### Scoped Collections in Show
 
-When showing a resource with related collections, apply policy scopes:
+**Use When:** Showing a resource with multiple related collections.
 
 ```ruby
 def show
   @active_projects = policy_scope(@company.projects.active)
   @archived_projects = policy_scope(@company.projects.archived)
+  @team_members = policy_scope(@company.users)
 end
 ```
 
-## Multiple Nested Associations
+### Complex Nested Attributes
 
-Handle complex nested relationships:
-
-```ruby
-def show
-  @reviews = policy_scope(@product.reviews)
-  @related_products = policy_scope(@product.category.products.where.not(id: @product.id))
-end
-```
-
-## Nested Attributes in Strong Parameters
+**Use When:** Forms accept nested records (has_many associations).
 
 ```ruby
 def product_params
-  params.expect(product: [
-    :name,
-    :description,
-    :price,
-    { images_attributes: %i[id url alt_text _destroy] },
-    { variants_attributes: %i[id sku price stock_count _destroy] },
-    { tags: [] },
-    { category_ids: [] },
-  ])
+  params.expect(
+    product: [
+      :name,
+      :description,
+      :price,
+      images_attributes: %i[id url alt_text _destroy],
+      variants_attributes: %i[id sku price stock_count _destroy],
+      tags: [],
+      category_ids: []
+    ]
+  )
 end
 ```
 
 **Key Points:**
+
 - Include `:id` for updating existing nested records
-- Include `_destroy` to allow deletion of nested records
-- Use `[]` for simple array attributes
-- Use `%i[...]` for nested attributes hashes
+- Include `_destroy` for deletion via nested attributes
+- Use `{ array_attr: [] }` for simple arrays
+- Use `{ nested_attrs: %i[attr1 attr2] }` for nested attribute hashes
 
-## Usage Instructions for AI Agents
+## Agent Instructions
 
-When asked to **review a controller:**
-1. Check against the review checklist
-2. Identify any anti-patterns
-3. Suggest specific fixes with code examples
-4. Prioritize authorization and security issues
+### Generating New Controllers
 
-When asked to **generate a new controller:**
-1. Ask for the resource name and attributes if not provided
-2. Determine if it's a simple or nested resource
-3. Follow the appropriate example pattern
-4. Include all standard RESTful actions unless specified otherwise
-5. Generate appropriate strong parameters based on attributes
-6. Ensure all authorization calls are in place
+1. **Identify controller type:**
+   - Standard CRUD → Use Simple CRUD pattern
+   - State transitions → Use Namespaced State pattern
+   - Bulk operations → Use Bulk Operation pattern
+   - Nested resource → Use Nested Resource pattern
+
+2. **Apply patterns:**
+   - Start with appropriate template
+   - Add authorization (`authorize`, `policy_scope`)
+   - Define strong parameters
+   - Add before_actions with explicit scoping
+   - Use correct status codes and flash messages
+
+3. **Follow conventions:**
+   - Name: `ResourcesController` or `Resources::StatesController`
+   - Inherit from: `ApplicationController`
+   - Instance variables: `@resource` (singular), `@resources` (plural)
+   - Private methods: `set_resource`, `resource_params`
+
+### Reviewing Existing Controllers
+
+**Check for:**
+
+- [ ] Authorization on all resource operations
+- [ ] `before_action` with `only:`/`except:`
+- [ ] Strong parameters (no direct `params[]` access)
+- [ ] Status `:unprocessable_content` on validation failures
+- [ ] Consistent flash messages: `Successfully [Action] [Resource]`
+- [ ] Proper naming conventions
+- [ ] State validations in before_actions (not in main actions)
+
+**Priority order:** Security (authorization, params) → RESTful patterns → Status codes → Messaging
