@@ -81,7 +81,7 @@ If the shortlist is empty after filtering, say "Nothing to pick." and stop.
 
 Phase 5 — Handoff
 
-Unless dry-run is set, invoke the fixer skill (default sentry-issue-fixer) via the Skill tool. Pass the selected issue ID **plus `automatic=true`** as args — for example: `PROJECT-123 automatic=true`. The existing fixer's Phase 1 already handles a direct ID input, and a fixer such as `sentry-fix-issues` reads the `automatic` flag to run fully non-interactively and always open a PR. Callers who want a more manual run should invoke the fixer skill directly with `automatic=false` instead of going through `sentry-top-issue`.
+Unless dry-run is set, invoke the fixer skill (default rm-sentry-issue-fixer) via the Skill tool. Pass the selected issue ID **plus `automatic=true`** as args — for example: `PROJECT-123 automatic=true`. The existing fixer's Phase 1 already handles a direct ID input, and a fixer such as `rm-sentry-issue-fixer` reads the `automatic` flag to run fully non-interactively and always open a PR. Callers who want a more manual run should invoke the fixer skill directly with `automatic=false` instead of going through `sentry-top-issue`.
 
 references/SCOPE_DISCOVERY.md content (summary)
 
