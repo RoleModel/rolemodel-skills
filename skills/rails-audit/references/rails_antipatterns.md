@@ -73,7 +73,9 @@ class User::ActivationsController < ApplicationController
 end
 ```
 
-**Audit Check**: Count public actions per controller. Flag controllers with > 7 actions. Check `config/routes.rb` for excessive `member`/`collection` blocks.
+**Exceptions**: Actions named `turbo_fetch` are an intentional convention for Turbo Stream responses and should not be flagged as REST violations.
+
+**Audit Check**: Count public actions per controller. Flag controllers with > 8 actions. Check `config/routes.rb` for excessive `member`/`collection` blocks.
 
 ---
 
