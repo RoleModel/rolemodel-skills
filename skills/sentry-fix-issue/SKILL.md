@@ -7,7 +7,7 @@ parent: sentry-workflow
 disable-model-invocation: true
 ---
 
-> [All Skills](../../SKILL_TREE.md) > [Workflow](../sentry-workflow/SKILL.md) > Fix Issues
+> This skill was a modification of https://github.com/getsentry/sentry-for-ai/blob/main/skills/sentry-fix-issues/SKILL.md
 
 # Fix Sentry Issues
 
