@@ -41,6 +41,16 @@ Before calling any Sentry tool, confirm a Sentry MCP server is actually availabl
     - Do **not** call any tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
     - Exit cleanly. Like the missing-scope case, this is a normal outcome and must not be treated as an error.
 
+Phase 1c — Verify GitHub CLI is installed
+
+Unless no-pr-filter is set, confirm the `gh` CLI is available before proceeding:
+
+- Run `command -v gh` (or `gh --version`) via Bash.
+- If `gh` is not found, **do nothing**:
+    - Print a single line: `GitHub CLI (gh) is not installed — skipping. Re-run with no-pr-filter to bypass this check.`
+    - Do **not** call any Sentry MCP tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
+    - Exit cleanly. Like the missing-scope and missing-MCP cases, this is a normal outcome and must not be treated as an error.
+
 Phase 2 — Fetch candidate shortlist
 
 Call the Sentry MCP search_issues tool (tool name looks like mcp__<server>__search_issues — resolve via ToolSearch at runtime since the prefix varies by MCP server name) with:
@@ -56,7 +66,7 @@ Unless no-pr-filter is set:
 
 - For each candidate ID, run gh pr list --state open --search "<issue-id>" --limit 1 --json number.
 - Drop any candidate with a hit.
-- If gh is not installed or not authenticated, log a one-line warning and continue without the filter — never block the pick on this check.
+- If gh is not authenticated, log a one-line warning and continue without the filter — never block the pick on this check. (Missing gh is already caught in Phase 1c.)
 
 Phase 4 — Select and justify
 
