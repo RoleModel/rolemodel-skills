@@ -1,5 +1,5 @@
 ---
-name: rails-audit
+name: rails-audit-thoughtbot
 description: Perform comprehensive code audits of Ruby on Rails applications based on thoughtbot best practices. Use this skill when the user requests a code audit, code review, quality assessment, or analysis of a Rails application. The skill analyzes the entire codebase focusing on testing practices (RSpec), security vulnerabilities, code design (skinny controllers, domain models, PORO with ActiveModel), Rails conventions, database optimization, and Ruby best practices. Outputs a detailed markdown audit report grouped by category (Testing, Security, Models, Controllers, Code Design, Views) with severity levels (Critical, High, Medium, Low) within each category.
 ---
 
@@ -50,14 +50,11 @@ Based on the user's choice, spawn the accepted subagents **in parallel** using t
 
 Before analyzing, read the relevant reference files:
 - `references/code_smells.md` - Code smell patterns to identify
-- `references/testing_guidelines.md` - Testing best practices
+- `references/ruby_testing_guidelines.md` - Ruby testing best practices
+- `references/javascript_testing_guidelines.md` - Javascript testing best practices
 - `references/poro_patterns.md` - PORO and ActiveModel patterns
 - `references/security_checklist.md` - Security vulnerability patterns
 - `references/rails_antipatterns.md` - Rails-specific antipatterns (external services, migrations, performance)
-- `references/stimulus_patterns.md` - Stimulus controller patterns and anti-patterns (betterstimulus.com)
-
-If the project contains `.js`, `.mjs`, or `.cjs` files (check `app/javascript/` or similar frontend directories), also read:
-- `references/jsdoc_authoring.md` - JSDoc annotation standards and type import patterns
 
 ### Step 4: Analyze Code by Category
 
@@ -109,26 +106,14 @@ Analyze in this order:
    - Missing partials for DRY
    - Helper complexity
    - Query logic in views
-   - Stimulus controllers: hardcoded classes/selectors, lifecycle misuse, SRP violations (see references/stimulus_patterns.md)
-   - Manual event listeners without `disconnect()` cleanup (memory leaks)
-   - Page-level god controllers mixing multiple responsibilities
 
-7. **JavaScript Type Annotations** *(skip if no `.js`/`.mjs`/`.cjs` files found in Step 3)*
-   - Missing JSDoc on public methods and constructors
-   - Wildcard types (`{*}` or `{any}`) — banned by `jsdoc/reject-any-type`
-   - Inline `import()` expressions inside `@param`/`@returns`/`@type` positions (anti-pattern; use `@import` at top of file)
-   - Old `@typedef` import style instead of `@import` for module types
-   - Referenced types with no corresponding `require`, `import`, or `@import`
-   - Classes using `extend()` mixins without `@mixes` annotations
-   - See `references/jsdoc_authoring.md` for canonical patterns and ESLint rule details
-
-8. **External Services & Error Handling**
+7. **External Services & Error Handling**
    - Fire and forget (missing exception handling for HTTP calls)
    - Sluggish services (missing timeouts, synchronous calls that should be backgrounded)
    - Bare rescue statements
    - Silent failures (save without checking return value)
 
-9. **Database & Migrations**
+8. **Database & Migrations**
    - Messy migrations (model references, missing down methods)
    - Missing indexes on foreign keys, polymorphic associations, uniqueness validations
    - Performance antipatterns (Ruby iteration vs SQL queries)
@@ -141,36 +126,6 @@ Create `RAILS_AUDIT_REPORT.md` in project root with structure defined in `refere
 When SimpleCov coverage data was collected in Step 2, use the **SimpleCov variant** of the Testing section in the report template. When coverage data is not available, use the **estimation variant**.
 
 When RubyCritic data was collected in Step 2b, include the **Code Quality Metrics** section in the report using the RubyCritic variant from the report template. When RubyCritic data is not available, use the **not available variant**.
-
-## Ignore File
-
-Projects may opt out of specific findings by creating `.rails-audit-ignore.yml` at the project root. Each entry identifies a finding by file path + a short description substring. Ignored findings are hidden completely from the report — they do not appear in category sections, executive summary counts, or files-analyzed counts.
-
-Format:
-
-```yaml
-# Findings listed here are suppressed from RAILS_AUDIT_REPORT.md.
-# Each entry matches when:
-#   - the finding's file path contains `file`, AND
-#   - the finding's title or details contain `matches` (case-insensitive substring)
-# `reason` is documentation only — not used for matching.
-
-ignore:
-  - file: app/javascript/controllers/toggle_controller.js
-    matches: setTimeout
-    reason: Intentional animation hack — deferring to next tick so CSS transition picks up
-
-  - file: db/schema.rb
-    matches: long method
-    reason: Generated file
-```
-
-Matching rules:
-- `file` — substring match against the finding's file reference (so `app/javascript/controllers/toggle_controller.js` matches `app/javascript/controllers/toggle_controller.js:12-14`)
-- `matches` — case-insensitive substring match against the finding's heading plus details text
-- Both must match for a finding to be suppressed
-- A missing file is not an error — the audit proceeds as if no ignores exist
-- If the file is present but malformed YAML, print a warning and proceed as if it were empty
 
 ## Severity Definitions
 
