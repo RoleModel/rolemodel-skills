@@ -54,6 +54,7 @@ Before analyzing, read the relevant reference files:
 - `references/poro_patterns.md` - PORO and ActiveModel patterns
 - `references/security_checklist.md` - Security vulnerability patterns
 - `references/rails_antipatterns.md` - Rails-specific antipatterns (external services, migrations, performance)
+- `references/stimulus_patterns.md` - Stimulus controller patterns and anti-patterns (betterstimulus.com)
 
 If the project contains `.js`, `.mjs`, or `.cjs` files (check `app/javascript/` or similar frontend directories), also read:
 - `references/jsdoc_authoring.md` - JSDoc annotation standards and type import patterns
@@ -108,6 +109,9 @@ Analyze in this order:
    - Missing partials for DRY
    - Helper complexity
    - Query logic in views
+   - Stimulus controllers: hardcoded classes/selectors, lifecycle misuse, SRP violations (see references/stimulus_patterns.md)
+   - Manual event listeners without `disconnect()` cleanup (memory leaks)
+   - Page-level god controllers mixing multiple responsibilities
 
 7. **JavaScript Type Annotations** *(skip if no `.js`/`.mjs`/`.cjs` files found in Step 3)*
    - Missing JSDoc on public methods and constructors
