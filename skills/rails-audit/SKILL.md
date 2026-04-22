@@ -55,6 +55,9 @@ Before analyzing, read the relevant reference files:
 - `references/security_checklist.md` - Security vulnerability patterns
 - `references/rails_antipatterns.md` - Rails-specific antipatterns (external services, migrations, performance)
 
+If the project contains `.js`, `.mjs`, or `.cjs` files (check `app/javascript/` or similar frontend directories), also read:
+- `references/jsdoc_authoring.md` - JSDoc annotation standards and type import patterns
+
 ### Step 4: Analyze Code by Category
 
 Analyze in this order:
@@ -106,13 +109,22 @@ Analyze in this order:
    - Helper complexity
    - Query logic in views
 
-7. **External Services & Error Handling**
+7. **JavaScript Type Annotations** *(skip if no `.js`/`.mjs`/`.cjs` files found in Step 3)*
+   - Missing JSDoc on public methods and constructors
+   - Wildcard types (`{*}` or `{any}`) — banned by `jsdoc/reject-any-type`
+   - Inline `import()` expressions inside `@param`/`@returns`/`@type` positions (anti-pattern; use `@import` at top of file)
+   - Old `@typedef` import style instead of `@import` for module types
+   - Referenced types with no corresponding `require`, `import`, or `@import`
+   - Classes using `extend()` mixins without `@mixes` annotations
+   - See `references/jsdoc_authoring.md` for canonical patterns and ESLint rule details
+
+8. **External Services & Error Handling**
    - Fire and forget (missing exception handling for HTTP calls)
    - Sluggish services (missing timeouts, synchronous calls that should be backgrounded)
    - Bare rescue statements
    - Silent failures (save without checking return value)
 
-8. **Database & Migrations**
+9. **Database & Migrations**
    - Messy migrations (model references, missing down methods)
    - Missing indexes on foreign keys, polymorphic associations, uniqueness validations
    - Performance antipatterns (Ruby iteration vs SQL queries)
