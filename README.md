@@ -43,7 +43,6 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 |-------|-------------|
 | **[brave-breakdown](skills/brave-breakdown)** | Interactive BRAVE framework thought partner for breaking down a Linear card before starting work. Guides through Brainstorm, Reflect, Approach, Value, and Estimate — one question at a time. |
 | **[sentry-fix-issue](skills/sentry-fix-issue)** | Find and fix production issues from Sentry using MCP. Analyzes stack traces, breadcrumbs, and context to identify root causes and apply fixes. |
-| **[skill-creation](skills/skill-creation)** | ~~Create and update `SKILL.md` files following the Agent Skills format.~~ **Deprecated** — use the [`skill-creator` skill](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) instead. |
 
 ### Documentation
 
