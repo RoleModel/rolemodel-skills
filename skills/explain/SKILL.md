@@ -25,7 +25,10 @@ license: MIT
      HOW: core flow or logic
      CONNECTS TO: related concepts/models
      ```
-     For `depth:novella` or `depth:novel`, expand each field to a paragraph and add `DATA MODEL: key attributes and associations`.
+     For `depth:novella` or `depth:novel`, expand each field to a paragraph. Each playbook also adds fields:
+     - `default.md` / `architecture.md`: add `DATA MODEL: key attributes and associations`
+     - `pattern.md`: add `DATA MODEL` (base classes/concerns/gems the pattern depends on) and `EXAMPLES: 2–3 real file paths`
+     - `technology.md`: add `CONFIGURATION: how the library is initialized` and `USAGE PATTERN: the canonical call pattern` (no DATA MODEL)
   4. Stop. Do not add narrative, analogies, or the "want more detail?" footer.
 
 - **NO** → Continue reading below and run the full interview.
@@ -127,7 +130,14 @@ HOW: brief description of the core flow or logic
 CONNECTS TO: comma-separated list of related concepts/models
 ```
 
-For `depth:novella` or `depth:novel`, expand each field to a short paragraph rather than a single line, and add a `DATA MODEL` field listing key attributes and associations.
+For `depth:novella` or `depth:novel`, expand each field to a short paragraph rather than a single line. Each playbook adds additional fields:
+
+| Playbook | Extra fields for novella/novel |
+|---|---|
+| `default.md` | `DATA MODEL: key attributes and associations (column names, foreign keys, enums)` |
+| `architecture.md` | `DATA MODEL: key models and their relationships in plain text` |
+| `pattern.md` | `DATA MODEL: base classes, concerns, or gems the pattern depends on (or n/a)` + `EXAMPLES: 2–3 real file paths that best illustrate the pattern` |
+| `technology.md` | `CONFIGURATION: how the library is initialized or configured in this app` + `USAGE PATTERN: the canonical way the library is called in this codebase` |
 
 The goal is a tight information packet the calling agent can reason over, not a walkthrough a developer would read.
 
