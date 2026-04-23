@@ -153,8 +153,8 @@ Cover these five things — keep each concise (not exhaustive documentation, jus
 4. **Patterns & conventions** — e.g. "business logic lives in service objects", "controllers stay thin"
 5. **JavaScript architecture** *(optional)* — include only if the project has significant JS: React/Vue/Angular component structure, state management, Stimulus or Alpine controllers, build/chunk strategy, Node.js services. Derive this from Glob/Grep — look for `components/`, `controllers/`, `src/`, etc.
 
-Then create the Mermaid diagram files with extreme detail and precision:
-- `diagrams/data-model.mmd` — entity relationships (`erDiagram` syntax), derived from `entities.mjs` output and schema files
+Then create the Mermaid diagram files:
+- `diagrams/data-model.mmd` — entity relationships (`erDiagram` syntax), derived from `entities.mjs` output and schema files. Include entity names and relationships only — do not add attribute rows to the tables.
 - `diagrams/architecture.mmd` — high-level module/layer map (`graph TD` syntax), derived from `entry_points.mjs` and directory tree
 
 ### Phase 4 — AI Orientation → `ai-orientation.md`
