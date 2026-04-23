@@ -5,7 +5,6 @@ This reference covers runtime and behavioral JavaScript anti-patterns in `app/ja
 **Cross-references:**
 - Structural code smells (callback hell, god modules, magic numbers, etc.): see `javascript_code_smells.md`
 - Stimulus controller architecture violations: see `stimulus_patterns.md`
-- XSS and security context: see `security_checklist.md`
 
 ---
 
