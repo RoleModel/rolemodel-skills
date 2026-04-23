@@ -2,17 +2,25 @@
 
 ### Framework Detection
 
-Detect the project type before exploring:
+Detect the project type before exploring. Check these signals in parallel:
 
-| Framework   | Signals |
-|-------------|---------|
-| Rails       | `Gemfile` has `rails`, has `app/`, `db/schema.rb` |
-| Django      | `requirements.txt` has `django`, has `migrations/` dirs |
-| Laravel     | `composer.json` has `laravel/framework`, has `database/migrations/` |
-| Prisma/Node | `prisma/schema.prisma` exists |
-| Generic SQL | `schema.sql`, `*.sql`, or any `migrations/` directory |
+| Framework      | Detection Signal |
+|----------------|-----------------|
+| Rails          | `Gemfile` contains `rails`; has `app/`, `db/schema.rb` |
+| Django         | `requirements.txt` or `pyproject.toml` contains `django`; has `migrations/` dirs |
+| FastAPI/Flask  | `requirements.txt` or `pyproject.toml` contains `fastapi` or `flask` |
+| Laravel        | `composer.json` contains `laravel/framework`; has `database/migrations/` |
+| Node/Express   | `package.json` exists; no framework-specific files |
+| Next.js        | `package.json` contains `next`; has `pages/` or `app/` dir |
+| Prisma         | `prisma/schema.prisma` exists |
+| Go             | `go.mod` exists |
+| Rust           | `Cargo.toml` exists |
+| Elixir/Phoenix | `mix.exs` exists |
+| .NET           | `*.csproj` or `*.sln` exists |
+| Java/Kotlin    | `build.gradle` or `pom.xml` exists |
+| Generic SQL    | `schema.sql`, `*.sql`, or any `migrations/` directory |
 
-Use the detected framework to determine where models, schemas, routes, jobs, and tests live — don't assume Rails conventions apply everywhere.
+Read the identified package file(s) to confirm the framework, version, and key dependencies. Use the detected framework to determine where models, schemas, routes, jobs, and tests live — don't assume Rails conventions apply everywhere.
 
 ### Check Existing Docs
 
