@@ -55,6 +55,7 @@ Before analyzing, read the relevant reference files:
 - `references/poro_patterns.md` - PORO and ActiveModel patterns
 - `references/security_checklist.md` - Security vulnerability patterns
 - `references/rails_antipatterns.md` - Rails-specific antipatterns (external services, migrations, performance)
+- `references/stimulus_patterns.md` - Stimulus controller patterns and anti-patterns (betterstimulus.com)
 
 ### Step 4: Analyze Code by Category
 
@@ -106,6 +107,9 @@ Analyze in this order:
    - Missing partials for DRY
    - Helper complexity
    - Query logic in views
+   - Stimulus controllers: hardcoded classes/selectors, lifecycle misuse, SRP violations (see references/stimulus_patterns.md)
+   - Manual event listeners without `disconnect()` cleanup (memory leaks)
+   - Page-level god controllers mixing multiple responsibilities
 
 7. **External Services & Error Handling**
    - Fire and forget (missing exception handling for HTTP calls)
