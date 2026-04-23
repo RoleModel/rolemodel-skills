@@ -49,20 +49,6 @@ covering:
 - Performance antipatterns (Ruby vs SQL, silent failures)
 - Ruby best practices
 
-## Installation
-
-Copy the skill directory to your Claude Code skills folder:
-
-```bash
-cp -r rails-audit-thoughtbot ~/.claude/skills/
-```
-
-Or clone directly:
-
-```bash
-git clone https://github.com/thoughtbot/rails-audit-thoughtbot ~/.claude/skills/rails-audit-thoughtbot
-```
-
 ## Usage
 
 If you are in your terminal and not in a Claude session, you can invoke the
@@ -72,13 +58,13 @@ Rails project.
 ### Full application audit
 
 ```
-claude audit
+claude rails-audit
 ```
 
 If you are in a Claude session, you can reference the skill directly:
 
 ```
-/rails-audit-thoughtbot
+/rails-audit
 ```
 
 ### Targeted audit
@@ -86,7 +72,7 @@ If you are in a Claude session, you can reference the skill directly:
 In a Claude session you can also run targeted audits:
 
 ```
-/rails-audit-thoughtbot audit controllers
+/rails-audit audit controllers
 ```
 
 This focuses the audit on specific files or directories.
@@ -131,20 +117,20 @@ Recommendations of PORO objects are based on different thoughtbot sources and
 
 [service-objects-poro]: https://dimiterpetrov.com/blog/service-objects-are-poorly-named-models/
 
-| File | Description |
-|------|-------------|
-| `references/code_smells.md` | Code smell patterns to identify (Ruby Science) |
-| `references/ruby_testing_guidelines.md` | Testing best practices (Testing Rails) |
-| `references/javascript_testing_guidelines.md` | Testing best practices (Testing JavaScript) |
-| `references/javascript_code_smells.md` | JavaScript/TypeScript code smells (callback hell, god modules, magic numbers, etc.) |
-| `references/javascript_antipatterns.md` | JavaScript/TypeScript runtime anti-patterns (memory leaks, eval, innerHTML, layout thrashing, etc.) |
-| `references/poro_patterns.md` | PORO and ActiveModel patterns |
-| `references/security_checklist.md` | Security vulnerability checklist |
-| `references/rails_antipatterns.md` | Rails-specific antipatterns: external services, migrations, performance |
-| `references/stimulus_patterns.md` | Stimulus controller patterns and anti-patterns (betterstimulus.com) |
-| `references/report_template.md` | Audit report structure template |
-| `agents/simplecov_agent.md` | Subagent for SimpleCov test coverage collection |
-| `agents/rubycritic_agent.md` | Subagent for RubyCritic code quality metrics |
+| File                                          | Description                                                                                         |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `references/code_smells.md`                   | Code smell patterns to identify (Ruby Science)                                                      |
+| `references/ruby_testing_guidelines.md`       | Testing best practices (Testing Rails)                                                              |
+| `references/javascript_testing_guidelines.md` | Testing best practices (Testing JavaScript)                                                         |
+| `references/javascript_code_smells.md`        | JavaScript/TypeScript code smells (callback hell, god modules, magic numbers, etc.)                 |
+| `references/javascript_antipatterns.md`       | JavaScript/TypeScript runtime anti-patterns (memory leaks, eval, innerHTML, layout thrashing, etc.) |
+| `references/poro_patterns.md`                 | PORO and ActiveModel patterns                                                                       |
+| `references/security_checklist.md`            | Security vulnerability checklist                                                                    |
+| `references/rails_antipatterns.md`            | Rails-specific antipatterns: external services, migrations, performance                             |
+| `references/stimulus_patterns.md`             | Stimulus controller patterns and anti-patterns (betterstimulus.com)                                 |
+| `references/report_template.md`               | Audit report structure template                                                                     |
+| `agents/simplecov_agent.md`                   | Subagent for SimpleCov test coverage collection                                                     |
+| `agents/rubycritic_agent.md`                  | Subagent for RubyCritic code quality metrics                                                        |
 
 ## Contributing
 
@@ -160,20 +146,3 @@ new detection rules:
 ## License
 
 This skill is open source and available under the [MIT License](LICENSE).
-
-## About thoughtbot
-
-![thoughtbot](https://thoughtbot.com/thoughtbot-logo-for-readmes.svg)
-
-This skill is inspired by and based on thoughtbot's excellent guides:
-
-- [Ruby Science](https://github.com/thoughtbot/ruby-science)
-- [Testing Rails](https://github.com/thoughtbot/testing-rails)
-- [Rails Antipatterns](https://www.informit.com/store/rails-antipatterns-best-practice-ruby-on-rails-refactoring-9780321604811) by Chad Pytel & Tammer Saleh
-
-The names and logos for thoughtbot are trademarks of thoughtbot, inc.
-
-We love open source software!
-See [thoughtbot's other projects][community].
-
-[community]: https://thoughtbot.com/community?utm_source=github

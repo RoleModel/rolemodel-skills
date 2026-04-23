@@ -364,7 +364,7 @@ git diff --name-only | grep -E '\.(js|mjs)$' | xargs node ../scripts/check-type-
 #### Finding Missing Documentation
 
 ```bash
-node .agents/skills/rails-audit/scripts/find-missing-docs.mjs file1.js file2.js
+node ../scripts/find-missing-docs.mjs file1.js file2.js
 ```
 
 Check modified files:

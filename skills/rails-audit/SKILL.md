@@ -10,7 +10,7 @@ compatibility:
 metadata:
   author: OpenAI
   version: 1.0.0
-license: Apache-2.0
+license: MIT
 ---
 
 # Rails Audit Skill (thoughtbot Best Practices)
@@ -85,58 +85,6 @@ Based on the user's choice, spawn the accepted subagents **in parallel** using t
 - `COVERAGE_FAILED` / `RUBYCRITIC_FAILED`: no data for that tool — use estimation mode (SimpleCov) or omit the section (RubyCritic). Note the failure reason in the report.
 - `COVERAGE_DATA`: parse and keep in context for Steps 4 and 5 (overall coverage, per-directory breakdowns, lowest-coverage files, zero-coverage files).
 - `RUBYCRITIC_DATA`: parse and keep in context for Steps 4 and 5 (overall score, per-directory ratings, worst-rated files, top smells, most complex files).
-
-### Step 2b: Configure Hands-free Permissions (optional)
-
-Ask the user via `AskUserQuestion`:
-- **Question**: "Would you like me to temporarily configure `.claude/settings.local.json` with the permissions needed for this audit? The audit will run without any bash or file-edit prompts. The file will be restored to its original state when the audit completes."
-- **Options**: "Yes, run hands-free" / "No, I'll approve prompts manually"
-
-**If yes:**
-
-1. Check whether `.claude/settings.local.json` exists:
-   - If it exists: read and store its full contents as `ORIGINAL_SETTINGS`
-   - If it doesn't exist: set `ORIGINAL_SETTINGS = null`
-
-2. Write `.claude/settings.local.json`. If `ORIGINAL_SETTINGS` is not null, parse the existing JSON, merge the audit entries into the `permissions.allow` array (creating it if absent), and write the merged result. If `ORIGINAL_SETTINGS` is null, write the file with just the audit permissions:
-
-```json
-{
-  "permissions": {
-    "allow": [
-      "Bash(bundle install*)",
-      "Bash(bundle exec rubycritic*)",
-      "Bash(bundle exec rspec*)",
-      "Bash(bundle exec rails test*)",
-      "Bash(bundle check)",
-      "Bash(bin/spring stop)",
-      "Bash(yarn audit*)",
-      "Bash(npm audit*)",
-      "Bash(git stash push*)",
-      "Bash(git stash pop)",
-      "Bash(git checkout -- Gemfile*)",
-      "Bash(git status)",
-      "Bash(cp Gemfile*)",
-      "Bash(rm -rf coverage/)",
-      "Bash(rm -rf tmp/rubycritic/)",
-      "Bash(cat *)",
-      "Bash(find *)",
-      "Bash(grep *)",
-      "Bash(wc *)",
-      "Bash(python3 *)",
-      "Bash(yarn --version*)",
-      "Bash(npm --version*)",
-      "Bash(head -*)",
-      "Bash(ls *)",
-      "Edit(Gemfile)",
-      "Edit(spec/rails_helper.rb)",
-      "Edit(spec/spec_helper.rb)",
-      "Edit(test/test_helper.rb)",
-      "Write(RAILS_AUDIT_REPORT.md)"
-    ]
-  }
-}
-```
 
 ### Step 3: Load Reference Materials
 
@@ -245,10 +193,6 @@ Create `RAILS_AUDIT_REPORT.md` in project root with structure defined in `refere
 When SimpleCov coverage data was collected in Step 2, use the **SimpleCov variant** of the Testing section in the report template. When coverage data is not available, use the **estimation variant**.
 
 When RubyCritic data was collected in Step 2, include the **Code Quality Metrics** section in the report using the RubyCritic variant from the report template. When RubyCritic data is not available, use the **not available variant**.
-
-After saving and presenting the report, restore permissions if they were configured in Step 2b:
-- If `ORIGINAL_SETTINGS` was `null`: delete `.claude/settings.local.json`
-- Otherwise: restore `.claude/settings.local.json` to `ORIGINAL_SETTINGS`
 
 ## Severity Definitions
 
