@@ -14,24 +14,29 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | **[optics-context](skills/optics-context)** | RoleModel's Optics design system — component classes, design tokens (`--op-` prefix), and styling guidelines. Includes `assets/components.json` and `assets/tokens.json`. |
 | **[theming-context](skills/theming-context)** | Implementing design system guidelines, theming, and color scales with Optics. |
 
-### UX & Frontend
+### UX Review
 
 | Skill | Description |
 |-------|-------------|
 | **[ai-ux-enhancements](skills/ai-ux-enhancements)** | Automatable UX review rules optimized for AI-driven design evaluations — efficiency, control, cognitive workload, learnability, and personalization. Complements `laws-of-ux`. |
+| **[laws-of-ux](skills/laws-of-ux)** | Review and guide UI implementations using the 21 Laws of UX (Fitts's Law, Hick's Law, Miller's Law, etc.). |
+| **[usability-heuristics](skills/usability-heuristics)** | Audit UIs against Nielsen's 10 Usability Heuristics. Structured issue logs with severity ratings and remediation guidance. |
+
+### Rails Frontend
+
+| Skill | Description |
+|-------|-------------|
+| **[action-cable](skills/action-cable)** | ActionCable for real-time features using WebSockets, broadcasting, and Turbo Streams over cable. |
 | **[dynamic-nested-attributes](skills/dynamic-nested-attributes)** | Rails nested attributes with dynamic add/remove using Turbo Streams and Simple Form. |
 | **[form-auto-save](skills/form-auto-save)** | Automatic form submission with debounce for seamless auto-save experiences. |
 | **[frontend-patterns](skills/frontend-patterns)** | Frontend patterns for Rails apps using Slim templates, Stimulus, and CSS with Optics utilities. |
-| **[laws-of-ux](skills/laws-of-ux)** | Review and guide UI implementations using the 21 Laws of UX (Fitts's Law, Hick's Law, Miller's Law, etc.). |
 | **[stimulus-controllers](skills/stimulus-controllers)** | Create and register Stimulus controllers for interactive JavaScript features. |
 | **[turbo-fetch](skills/turbo-fetch)** | Dynamic form updates using Turbo Streams and Stimulus (cascading dropdowns, conditional fields, dynamic option lists). |
-| **[usability-heuristics](skills/usability-heuristics)** | Audit UIs against Nielsen's 10 Usability Heuristics. Structured issue logs with severity ratings and remediation guidance. |
 
 ### Rails Backend
 
 | Skill | Description |
 |-------|-------------|
-| **[action-cable](skills/action-cable)** | ActionCable for real-time features using WebSockets, broadcasting, and Turbo Streams over cable. |
 | **[controller-patterns](skills/controller-patterns)** | Rails controllers following RESTful conventions, authorization patterns, and proper error handling. |
 | **[json-typed-attributes](skills/json-typed-attributes)** | Typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration. |
 | **[routing-patterns](skills/routing-patterns)** | RESTful resource routing, route concerns, and shallow nesting strategies. |
@@ -42,12 +47,6 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | Skill | Description |
 |-------|-------------|
 | **[brave-breakdown](skills/brave-breakdown)** | Interactive BRAVE framework thought partner for breaking down a Linear card before starting work. Guides through Brainstorm, Reflect, Approach, Value, and Estimate — one question at a time. |
-| **[sentry-fix-issue](skills/sentry-fix-issue)** | Find and fix production issues from Sentry using MCP. Analyzes stack traces, breadcrumbs, and context to identify root causes and apply fixes. |
-
-### Documentation
-
-| Skill | Description |
-|-------|-------------|
 | **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document`, or wants fresh documentation reflecting the current codebase state. |
 
 ### Workflow & Observability
@@ -216,8 +215,9 @@ Markdown instructions for the AI agent...
 Several skills are designed to complement each other:
 
 - **BEM + Optics** — BEM provides CSS structure; Optics provides design tokens and components. Use both when writing or reviewing stylesheets.
-- **Laws of UX + Usability Heuristics** — Laws of UX provides theoretical UX principles; Usability Heuristics provides a structured audit methodology. Use both for comprehensive UI reviews.
-- **Frontend Patterns + Stimulus + Turbo Fetch** — These cover the full frontend stack for Rails apps using Hotwire.
+- **Laws of UX + Usability Heuristics + AI UX Enhancements** — Laws of UX provides theoretical principles; Usability Heuristics provides a structured audit methodology; AI UX Enhancements adds automatable review rules. Use together for comprehensive UI reviews.
+- **Frontend Patterns + Stimulus + Turbo Fetch + Action Cable** — These cover the full Rails frontend stack using Hotwire and real-time features.
+- **Sentry Top Issue + Sentry Issue Fixer** — Top Issue selects the highest-priority Sentry issue; Issue Fixer runs the full diagnosis-and-fix workflow. Run together or invoke the fixer directly with a known issue.
 
 ## License
 
