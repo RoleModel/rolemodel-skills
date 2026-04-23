@@ -352,28 +352,26 @@ yarn check_types --checkJs --noEmit path/to/file.js
 Use the provided script to validate that all JSDoc type references have proper imports:
 
 ```bash
-node .agents/skills/jsdoc-author/scripts/check-type-imports.mjs file1.js file2.js
+node ../scripts/check-type-imports.mjs file1.js file2.js
 ```
 
 Check modified files:
 
 ```bash
-git diff --name-only | grep -E '\.(js|mjs)$' | xargs node .agents/skills/jsdoc-author/scripts/check-type-imports.mjs
+git diff --name-only | grep -E '\.(js|mjs)$' | xargs node ../scripts/check-type-imports.mjs
 ```
 
 #### Finding Missing Documentation
 
 ```bash
-node .agents/skills/jsdoc-author/scripts/find-missing-docs.mjs file1.js file2.js
+node .agents/skills/rails-audit/scripts/find-missing-docs.mjs file1.js file2.js
 ```
 
 Check modified files:
 
 ```bash
-git diff --name-only | grep -E '\.(js|mjs)$' | xargs node .agents/skills/jsdoc-author/scripts/find-missing-docs.mjs
+git diff --name-only | grep -E '\.(js|mjs)$' | xargs node ../scripts/find-missing-docs.mjs
 ```
-
-See `scripts/README.md` for complete documentation on both scripts.
 
 #### Interpreting Errors
 
