@@ -1,6 +1,6 @@
 ---
 name: document-this
-description: Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; The agent writes the prose. Project-agnostic and self-orienting. Use when the user asks to "document this project", runs `/document-this`, runs `/document-this <file-path>`, or wants fresh documentation reflecting the current codebase state.
+description: Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Project-agnostic and self-orienting. Use when the user asks to "document this project", runs `/document-this`, runs `/document-this <file-path>`, or wants fresh documentation reflecting the current codebase state.
 ---
 
 # /document-this
