@@ -316,3 +316,27 @@ end
 2. **High**: Duplicated Code, Case Statements, Large Class, Callback Complexity
 3. **Medium**: Long Method, Feature Envy, Long Parameter List, Mixin Abuse
 4. **Low**: Comments, Naming issues
+
+---
+
+## Threshold Reference
+
+### Fat Model
+- > 200 lines or > 15 public methods
+- Multiple unrelated responsibilities
+- Recommendation: extract to POROs using composition
+
+### Fat Controller
+- Actions > 15 lines
+- Business logic beyond request/response handling
+- Multiple instance variable assignments
+- Recommendation: extract to form objects or domain models
+
+### Service Object → PORO
+- Classes in `app/services/` named `*Service`, `*Manager`, `*Handler`
+- Classes with only `.call` or `.perform` entry points
+- Recommendation: rename to domain nouns, include `ActiveModel::Model`
+
+### Missing Tests
+- No corresponding `_spec.rb` / `_test.rb` for a file in `app/`
+- Untested public methods
