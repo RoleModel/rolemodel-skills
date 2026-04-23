@@ -10,7 +10,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 | Skill | Description |
 |-------|-------------|
-| **[bem-structure](skills/bem-structure)** | CSS guidance using BEM (Block Element Modifier) methodology. Naming conventions, nesting rules, and modifier patterns. |
+| **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of detail. Great for onboarding into unfamiliar code. |
 | **[optics-context](skills/optics-context)** | RoleModel's Optics design system — component classes, design tokens (`--op-` prefix), and styling guidelines. Includes `assets/components.json` and `assets/tokens.json`. |
 | **[theming-context](skills/theming-context)** | Implementing design system guidelines, theming, and color scales with Optics. |
 
