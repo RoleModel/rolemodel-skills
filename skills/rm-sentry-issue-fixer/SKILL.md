@@ -109,6 +109,8 @@ Before writing code, confirm your fix will:
 - [ ] Be consistent with codebase patterns
 - [ ] Make any needed adjustments to adjacent code when adding the fix for the root cause
 
+**If the issue has already been fixed:** Do nothing. Do not write tests. Exit the skill with a message: "This issue appears to have already been resolved. No code changes are necessary. Please verify that the fix is working as expected in production and close the Sentry issue if it is resolved."
+
 **Apply the fix:** Prefer input validation > try/catch, graceful degradation > hard failures, specific > generic handling, root cause > symptom fixes.
 
 **Add tests** reproducing the error conditions from Sentry. Use generalized/synthetic test data — do not embed actual values from event payloads (URLs, user data, tokens) in test fixtures.
