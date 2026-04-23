@@ -87,6 +87,6 @@ USAGE PATTERN: the canonical way the library is called in this codebase
 - **Why we use it** — what problem it's solving in this app and why this library was chosen (if inferrable)
 - **Setup & Configuration** — how it's installed and configured: dependency manifest entry (Gemfile, package.json, requirements.txt, etc.), version, and any initialization or application-level config
 - **Integration Points** — where and how the library shows up in the codebase; use a table if there are multiple distinct integration points (e.g. base class include, per-controller usage, view helpers)
-- **Examples** — 2–4 real instances with `file:line_number` references; one-line summary of what each shows about how the library is being used; small code excerpts only when they clarify the shape
+- **Examples** — 2–4 real instances with clickable `[file:line](path/to/file#Lline)` references; one-line summary of what each shows about how the library is being used; small code excerpts only when they clarify the shape
 - **Key Decisions & Gotchas** — non-obvious configuration choices, places where the app extends or customizes the library, known limitations or things to watch out for
 - **Related Technologies** — other libraries, patterns, or parts of the stack that interact with this one

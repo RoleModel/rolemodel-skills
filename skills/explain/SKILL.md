@@ -82,7 +82,7 @@ Tailor the explanation to the user's profile. Read it from `~/.claude/PROFILE.md
 
 **Novella** — 1–2 paragraphs. Light on code snippets, heavy on concepts. Use subheadings only when there are clearly distinct parts that need separation — otherwise, keep it as flowing prose.
 
-**Novel** — A full technical walkthrough organized with headings. Include file references in `file:line_number` format. Cover every section the playbook specifies; omit a section only if it genuinely doesn't apply (e.g. no background jobs exist for this area).
+**Novel** — A full technical walkthrough organized with headings. Include file references as clickable markdown links in `[file:line](path/to/file#Lline)` format (e.g. `[app/models/user.rb:42](app/models/user.rb#L42)`) so they open directly in VS Code. Cover every section the playbook specifies; omit a section only if it genuinely doesn't apply (e.g. no background jobs exist for this area).
 
 ---
 

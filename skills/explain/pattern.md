@@ -64,7 +64,7 @@ EXAMPLES: 2–3 real file paths that best illustrate the pattern
 **Novel** — A comprehensive walkthrough using these sections:
 - **Overview** — the pattern in one paragraph, including *why* the codebase uses it
 - **Structure** — the canonical structure: file location, naming, method signatures, expected inputs/outputs, testing conventions. Cite the instruction file if one exists.
-- **Examples** — 2–4 real instances with `file:line_number` references. For each, a one-line summary of what it does and what it illustrates about the pattern. Include small code excerpts only when they clarify the shape.
+- **Examples** — 2–4 real instances with clickable `[file:line](path/to/file#Lline)` references. For each, a one-line summary of what it does and what it illustrates about the pattern. Include small code excerpts only when they clarify the shape.
 - **Variations & Drift** — where instances diverge, and which variant is the current standard for new code
 - **Implementation** — a short checklist for applying the pattern to a new case (file to create, spec to write, things to wire up)
 - **Key Decisions** — non-obvious design choices: why this pattern over alternatives, constraints it enforces, gotchas to avoid
