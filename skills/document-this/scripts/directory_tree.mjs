@@ -50,11 +50,12 @@ function walk(dir, currentDepth) {
   catch { return null; }
 
   const result = { name: relative(root, dir) || '.', type: 'dir', children: [] };
+  const isTopLevel = dir === root;
 
   for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
     if (HARD_SKIP.has(entry.name)) continue;
     if (entry.name.startsWith('.') && entry.name !== '.github') continue;
-    if (isIgnoredByGitignore(entry.name)) continue;
+    if (isTopLevel && isIgnoredByGitignore(entry.name)) continue;
 
     const full = join(dir, entry.name);
     if (entry.isDirectory()) {
