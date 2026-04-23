@@ -244,7 +244,7 @@ end
 | File Type | Min Coverage | Test Type |
 |-----------|--------------|-----------|
 | Model | 90% | Model spec |
-| Controller | 80% | Request/Controller spec |
+| Controller (API/webhook only) | 80% | Request spec |
 | Service/PORO | 95% | Unit spec |
 | Helper | 100% | Helper spec |
 | Mailer | 100% | Mailer spec |
@@ -258,14 +258,15 @@ For each Ruby file in `app/`:
 
 1. Check for corresponding spec:
    - `app/models/user.rb` → `spec/models/user_spec.rb`
-   - `app/controllers/users_controller.rb` → `spec/controllers/users_controller_spec.rb` or `spec/requests/users_spec.rb`
+   - `app/controllers/api/registrations_controller.rb` → `spec/controllers/api/registrations_controller_spec.rb` or `spec/api/registrations_controller_spec.rb` or `spec/requests/api/registrations_spec.rb`
+     **Exception**: Controllers whose endpoints are accessed via the application UI do **not** require a controller or request spec — their coverage comes from system/feature specs. Only flag missing specs for API-only controllers, webhook receivers, or other endpoints not reachable through the UI.
 
 2. Check public methods are tested:
    - Extract public method names from source
    - Search for those names in spec file
 
 3. Report:
-   - Files without any tests → **High** severity
+   - Files without any tests → **High** severity (skip this check for UI-facing controllers per the exception above)
    - Files with partial coverage → **Medium** severity
 
 ---
@@ -301,7 +302,7 @@ end
 RSpec.describe Link, "#score" do
   it "returns upvotes minus downvotes" do
     link = build(:link, upvotes: 5, downvotes: 2)
-    
+
     expect(link.score).to eq 3
   end
 end
