@@ -9,8 +9,14 @@ You are a subagent responsible for collecting test coverage data from a Rails ap
 - Determine the test helper file:
   - RSpec: `spec/rails_helper.rb` (preferred) or `spec/spec_helper.rb`
   - Minitest: `test/test_helper.rb`
+- Check for parallel test runners (RSpec only):
+  - Search Gemfile for `turbo_tests` → **turbo_tests** (highest priority)
+  - Search Gemfile for `parallel_tests` → **parallel_rspec** (second priority)
+  - Otherwise → **standard rspec**
 - Determine the run command:
-  - RSpec: `bundle exec rspec`
+  - RSpec + turbo_tests: `bundle exec turbo_tests`
+  - RSpec + parallel_rspec: `bundle exec parallel_rspec`
+  - RSpec (standard): `bundle exec rspec`
   - Minitest: `bundle exec rails test`
 
 ## Step 2 — Check if SimpleCov Already Present
@@ -36,24 +42,41 @@ You are a subagent responsible for collecting test coverage data from a Rails ap
 4. **Stop Spring** (if present): Check for `bin/spring` and run `bin/spring stop`
 
 5. **Prepend SimpleCov configuration to test helper**:
-   ```ruby
-   require "simplecov"
-   SimpleCov.start "rails" do
-     enable_coverage :branch
-     formatter SimpleCov::Formatter::JSONFormatter
-   end
-   ```
+   - For **standard rspec or Minitest**:
+     ```ruby
+     require "simplecov"
+     SimpleCov.start "rails" do
+       enable_coverage :branch
+       formatter SimpleCov::Formatter::JSONFormatter
+     end
+     ```
+   - For **parallel_rspec** (`parallel_tests` gem), use the parallel-safe config:
+     ```ruby
+     require "simplecov"
+     SimpleCov.start "rails" do
+       enable_coverage :branch
+       formatter SimpleCov::Formatter::JSONFormatter
+     end
+     ```
+     Also run `bundle exec rake parallel:setup` (or `bundle exec parallel_rspec --setup`) if a `parallel_tests` rake task is defined — check `bin/rake -T parallel` first.
+   - For **turbo_tests**, SimpleCov is supported natively — use the standard config above; no extra setup is needed.
+
    Prepend these lines at the very top of the test helper file, before any other `require` statements.
 
 ## Step 4 — Run Tests and Capture Coverage
 
-1. Run the appropriate test command:
-   - Full audit: run the full suite (`bundle exec rspec` or `bundle exec rails test`)
-   - Targeted audit: run only tests relevant to the audit scope (if the parent skill specified target paths, use those)
+1. Run the appropriate test command using the runner detected in Step 1:
+   - Full audit:
+     - turbo_tests: `bundle exec turbo_tests`
+     - parallel_rspec: `bundle exec parallel_rspec`
+     - standard RSpec: `bundle exec rspec`
+     - Minitest: `bundle exec rails test`
+   - Targeted audit: run only tests relevant to the audit scope (if the parent skill specified target paths, use those — note: `parallel_rspec` and `turbo_tests` accept path arguments the same way as `rspec`)
 
 2. Read `coverage/.resultset.json` and parse the coverage data.
 
 3. **Parsing `.resultset.json`**: The file structure is:
+
    ```json
    {
      "RSpec": {
@@ -66,6 +89,7 @@ You are a subagent responsible for collecting test coverage data from a Rails ap
      }
    }
    ```
+
    - Line coverage % = `(count of lines >= 1) / (count of lines != null) * 100`
    - Aggregate coverage by directory (`app/models/`, `app/controllers/`, etc.)
    - Extract per-file coverage percentages
@@ -79,6 +103,7 @@ You are a subagent responsible for collecting test coverage data from a Rails ap
 ## Step 5 — Cleanup
 
 **If SimpleCov was NOT already present**, undo the setup:
+
 1. **Remove SimpleCov lines from test helper**: delete the prepended `require "simplecov"` and `SimpleCov.start` block
 2. **Restore Gemfile**:
    - Primary: `git stash pop`
@@ -86,9 +111,7 @@ You are a subagent responsible for collecting test coverage data from a Rails ap
    - Fallback: restore from `Gemfile.audit_backup` and `Gemfile.lock.audit_backup` copies, then delete the backup files
 3. **Verify bundle**: run `bundle check` — if it fails, run `bundle install`
 
-**Always, regardless of whether SimpleCov was already present:**
-4. **Remove coverage directory**: `rm -rf coverage/`
-5. **Verify clean state**: run `git status` to confirm no leftover changes
+**Always, regardless of whether SimpleCov was already present:** 4. **Remove coverage directory**: `rm -rf coverage/` 5. **Verify clean state**: run `git status` to confirm no leftover changes
 
 ## Output
 
