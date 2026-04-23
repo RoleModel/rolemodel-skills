@@ -18,20 +18,45 @@ All optional, space-separated key=value tokens plus bare flags:
 - dry-run — pick and print only; do not invoke the fixer
 - no-pr-filter — skip the "open PR already exists" check (useful when gh isn't configured); also skips the merged-commit filter in Phase 3b, since both live behind the same flag
 
-Phase 1 — Resolve Sentry scope
+Phase 1 — Preflight (scope + gh install + PR cap)
 
-Order of precedence (no interactive fallback — this skill runs unattended):
+Phase 1a — Require org + project before running preflight
 
-1. Explicit $ARGUMENTS (org=, project=, region=).
-2. Project documentation. Grep CLAUDE.md, AGENTS.md, and any .claude/**/*.md in the working directory for a Sentry scope block. Recognize the documented pattern (organizationSlug: ..., projectSlugOrId: ..., regionUrl: ...). Details in references/SCOPE_DISCOVERY.md.
+**Do not invoke `preflight.sh` until both `org` and `project` are known.** Resolve them in this order:
 
-If neither source yields both an organizationSlug and a projectSlugOrId, **do nothing**:
+1. Explicit tokens in `$ARGUMENTS` (`org=<slug>`, `project=<slug>`).
+2. `AGENTS.md` at the repo root — this is the canonical location for project Sentry scope. Look for the three-line pattern (case-sensitive keys, tolerant of YAML/Markdown bullets):
+   - `organizationSlug: <slug>`
+   - `projectSlugOrId: <slug>`
+   - `regionUrl: <url>` (optional)
+   Fallbacks if `AGENTS.md` lacks the block: `CLAUDE.md`, then any `.claude/**/*.md`. See references/SCOPE_DISCOVERY.md for the exact regex.
 
-- Print a single line: `No Sentry scope found in $ARGUMENTS or project docs — skipping.`
-- Do **not** call any Sentry MCP tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
-- Exit cleanly. This is a normal outcome in repos that aren't wired to Sentry and must not be treated as an error.
+If either `org` or `project` is still empty after those lookups, **do not run the preflight script**. Print a single line:
 
-Phase 1b — Verify Sentry MCP is connected
+`No Sentry scope found. Add organizationSlug and projectSlugOrId to AGENTS.md (see skills/sentry-top-issue/references/SCOPE_DISCOVERY.md), or pass org=<slug> project=<slug> as arguments — skipping.`
+
+Then exit cleanly. Do not call any Sentry MCP tools, do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 1b.
+
+Phase 1b — Run preflight
+
+With `org` and `project` resolved, run `skills/sentry-top-issue/scripts/preflight.sh` once, forwarding the resolved values plus any other parsed $ARGUMENTS as flags. It consolidates three previously-separate phases (scope resolution, `gh` install check, `[SENTRY …]` open-PR cap) and emits one JSON line on stdout.
+
+```bash
+bash skills/sentry-top-issue/scripts/preflight.sh \
+  [--org <slug>] [--project <slug>] [--region <url>] [--env <name>] \
+  [--no-pr-filter] --repo-root "$PWD"
+```
+
+**Always echo the script's raw JSON output back to the user verbatim** (as a fenced ```json block) so the preflight result is visible in the transcript — regardless of whether the status is `ok` or `skip`. This is the preflight's audit trail; do not paraphrase or summarize it away.
+
+Then read the JSON and branch:
+
+- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **exit cleanly**. Do not call any Sentry MCP tools, do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2.
+- `{"status":"ok","org":...,"project":...,"region":...,"env":...,"prFilter":<bool>,"openSentryPrs":<n>}` — carry these values into Phase 2. `openSentryPrs` is informational; the cap has already been enforced by the script.
+
+Scope precedence (as implemented by the script): explicit flags first, then CLAUDE.md / AGENTS.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `gh` (when PR filter is on), PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.
+
+Phase 1c — Verify Sentry MCP is connected
 
 Before calling any Sentry tool, confirm a Sentry MCP server is actually available in this session:
 
@@ -40,28 +65,6 @@ Before calling any Sentry tool, confirm a Sentry MCP server is actually availabl
   - Print a single line: `Sentry MCP is not connected — skipping.`
   - Do **not** call any tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
   - Exit cleanly. Like the missing-scope case, this is a normal outcome and must not be treated as an error.
-
-Phase 1c — Verify GitHub CLI is installed
-
-Unless no-pr-filter is set, confirm the `gh` CLI is available before proceeding:
-
-- Run `command -v gh` (or `gh --version`) via Bash.
-- If `gh` is not found, **do nothing**:
-  - Print a single line: `GitHub CLI (gh) is not installed — skipping. Re-run with no-pr-filter to bypass this check.`
-  - Do **not** call any Sentry MCP tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
-  - Exit cleanly. Like the missing-scope and missing-MCP cases, this is a normal outcome and must not be treated as an error.
-
-Phase 1d — Check open Sentry PR cap
-
-Unless no-pr-filter is set, enforce a maximum of 3 concurrently open automation PRs before fetching any Sentry data:
-
-- Run: `gh pr list --state open --search "[SENTRY" --json number,title`
-- Count how many results have a title matching `/^\[SENTRY \d+\]/`.
-- If the count is **3 or more**, **do nothing**:
-  - Print a single line: `Sentry PR cap reached (<n> open) — skipping. Close or merge existing Sentry PRs before running again.`
-  - Do **not** call any Sentry MCP tools, do **not** invoke the fixer, and do **not** proceed to Phase 2.
-  - Exit cleanly. This is an expected throttle, not an error.
-- If gh is not authenticated, log a one-line warning and continue without the cap check — never block on this.
 
 Phase 2 — Fetch candidate shortlist
 
@@ -78,9 +81,13 @@ Unless no-pr-filter is set, drop any candidate that is already handled. Two sub-
 
 Phase 3a — Open PR filter
 
-- For each candidate ID, run gh pr list --state open --search "<issue-id>" --limit 1 --json number.
-- Drop any candidate with a hit.
-- If gh is not authenticated, log a one-line warning and continue without this sub-filter — never block the pick on this check. (Missing gh is already caught in Phase 1c.)
+Pipe the candidate IDs through `skills/sentry-top-issue/scripts/filter-candidates.sh`:
+
+```bash
+bash skills/sentry-top-issue/scripts/filter-candidates.sh <id1> <id2> ... <id10>
+```
+
+The script prints surviving IDs one per line (empty output = all filtered). Treat its stdout as authoritative. It degrades gracefully when `gh` is unauthenticated — passing inputs through with a stderr warning — so no extra handling is needed here. (Missing `gh` is already caught by Phase 1 preflight when the PR filter is on.)
 
 Phase 3b — Merged-commit filter
 

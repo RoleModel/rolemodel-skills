@@ -126,23 +126,18 @@ Before writing code, confirm your fix will:
 [SENTRY <number>] <short description>
 ```
 
-Rules:
-- `SENTRY` is always uppercase.
-- `<number>` is the numeric portion of the Sentry issue ID (e.g. `PROJECT-123` → `49`, or extract it directly if the ID is already numeric). If the issue ID contains a project prefix like `PROJECT-123`, use just `123`.
-- Square brackets `[` and `]` are mandatory — do not omit them, use parentheses, or any other delimiter.
-- `<short description>` is an imperative-mood summary of the fix (e.g. `Fix nil pointer in PaymentProcessor`).
-- Apply this format to: the git commit message subject line, the PR title, and the branch name (branch name: `sentry-<number>-<slug>`, e.g. `sentry-123-fix-nil-pointer`).
-- The commit body **must** include the full URL to the Sentry issue on its own line, e.g.:
+Use the helper script to derive the branch name, commit subject, and commit body in one call. It enforces the alphanumeric-suffix rule, the `[SENTRY …]` delimiter format, the slug shape, and (when `--permalink` is passed) the required `Sentry: <url>` body line.
 
-  ```
-  [SENTRY 123] Fix nil pointer in PaymentProcessor
+```bash
+bash skills/rm-sentry-issue-fixer/scripts/make-branch-names.sh \
+  --issue-id <PROJECT-ABC123-or-alphanumeric> \
+  --description "<imperative short description>" \
+  --permalink "<permalink from get_issue_details>"
+```
 
-  Sentry: https://sentry.io/organizations/<org>/issues/<number>/
-  ```
+Output is a single JSON line: `{"branch":"sentry-1g-fix-nil-pointer","commitSubject":"[SENTRY 1G] Fix nil pointer","commitBody":"[SENTRY 1G] Fix nil pointer\n\nSentry: https://..."}`. Use those three values verbatim for the branch name, commit subject, and commit body. The script exits non-zero (code 2 or 3) if the issue ID is malformed or the subject fails `/^\[SENTRY [A-Za-z0-9]+\] .+/` validation — re-run with corrected inputs rather than hand-assembling the strings.
 
-  Retrieve the URL from `get_issue_details` (`permalink` field) — do not construct it manually.
-
-**Before opening the PR**, verify the title string matches `/^\[SENTRY \d+\] .+/` and the commit body contains the Sentry URL. Correct either if missing before proceeding.
+Always pass `--permalink` using the `permalink` field from `get_issue_details` — do not construct the URL manually.
 
 ## Branch creation and push — avoid landing on `master` or `main`
 
