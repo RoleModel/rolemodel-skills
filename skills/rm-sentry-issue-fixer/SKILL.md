@@ -107,7 +107,7 @@ Before writing code, confirm your fix will:
 - [ ] Handle edge cases (null, undefined, empty, malformed)
 - [ ] Provide meaningful error messages
 - [ ] Be consistent with codebase patterns
-- [ ] Make any needed adjustments to adjacent code when adding the fix for the root cause 
+- [ ] Make any needed adjustments to adjacent code when adding the fix for the root cause
 
 **Apply the fix:** Prefer input validation > try/catch, graceful degradation > hard failures, specific > generic handling, root cause > symptom fixes.
 
@@ -143,6 +143,21 @@ Rules:
   Retrieve the URL from `get_issue_details` (`permalink` field) — do not construct it manually.
 
 **Before opening the PR**, verify the title string matches `/^\[SENTRY \d+\] .+/` and the commit body contains the Sentry URL. Correct either if missing before proceeding.
+
+## Branch creation and push — avoid landing on `master` or `main`
+
+If the repo has `push.default = tracking` (or `upstream`) and the fix branch was created from `origin/master`, a plain `git push -u origin <branch>` will push to `master`, bypassing review. Force `simple` push semantics on the command itself so the branch name on the remote always matches the local name, regardless of repo config.
+
+Required sequence:
+
+```bash
+git fetch origin master
+git checkout -B sentry-<number>-<slug> origin/master    # fresh branch from latest master
+# ... stage + commit per the format above ...
+git -c push.default=simple push -u origin sentry-<number>-<slug>
+```
+
+Never run `git push --force` against `master`/`main` under any circumstances, even to undo an accidental direct push.
 
 ## Phase 7: Report Results
 
