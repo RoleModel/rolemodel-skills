@@ -61,6 +61,7 @@ To load the skill instructions:
 
 ```
 read_file: .agents/skills/rails-audit/SKILL.md
+```
 
 ## Key Conventions
 
