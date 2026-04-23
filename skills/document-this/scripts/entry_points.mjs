@@ -7,7 +7,7 @@
 // Usage: node entry_points.mjs [project-root]
 
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { join, resolve, relative } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const root = resolve(process.argv[2] ?? process.cwd());
 
