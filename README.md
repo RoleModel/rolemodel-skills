@@ -20,6 +20,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 |-------|-------------|
 | **[laws-of-ux](skills/laws-of-ux)** | Review and guide UI implementations using the 21 Laws of UX (Fitts's Law, Hick's Law, Miller's Law, etc.). |
 | **[usability-heuristics](skills/usability-heuristics)** | Audit UIs against Nielsen's 10 Usability Heuristics. Structured issue logs with severity ratings and remediation guidance. |
+| **[ai-ux-enhancements](skills/ai-ux-enhancements)** | Automatable UX review rules optimized for AI-driven design evaluations — efficiency, control, cognitive workload, learnability, and personalization. Complements `laws-of-ux`. |
 | **[frontend-patterns](skills/frontend-patterns)** | Frontend patterns for Rails apps using Slim templates, Stimulus, and CSS with Optics utilities. |
 | **[stimulus-controllers](skills/stimulus-controllers)** | Create and register Stimulus controllers for interactive JavaScript features. |
 | **[turbo-fetch](skills/turbo-fetch)** | Dynamic form updates using Turbo Streams and Stimulus (cascading dropdowns, conditional fields, dynamic option lists). |
@@ -35,6 +36,14 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | **[action-cable](skills/action-cable)** | ActionCable for real-time features using WebSockets, broadcasting, and Turbo Streams over cable. |
 | **[json-typed-attributes](skills/json-typed-attributes)** | Typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration. |
 | **[testing-patterns](skills/testing-patterns)** | Automated tests using RSpec, Capybara, and FactoryBot for Rails applications. |
+
+### Process & Planning
+
+| Skill | Description |
+|-------|-------------|
+| **[brave-breakdown](skills/brave-breakdown)** | Interactive BRAVE framework thought partner for breaking down a Linear card before starting work. Guides through Brainstorm, Reflect, Approach, Value, and Estimate — one question at a time. |
+| **[sentry-fix-issue](skills/sentry-fix-issue)** | Find and fix production issues from Sentry using MCP. Analyzes stack traces, breadcrumbs, and context to identify root causes and apply fixes. |
+| **[skill-creation](skills/skill-creation)** | ~~Create and update `SKILL.md` files following the Agent Skills format.~~ **Deprecated** — use the [`skill-creator` skill](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) instead. |
 
 ## Installation
 
