@@ -42,7 +42,7 @@ You are a subagent responsible for collecting test coverage data from a Rails ap
 4. **Stop Spring** (if present): Check for `bin/spring` and run `bin/spring stop`
 
 5. **Prepend SimpleCov configuration to test helper**:
-   - For **standard rspec or Minitest**:
+   - For **rspec, parallel_rspec, turbo_tests, or Minitest**:
      ```ruby
      require "simplecov"
      SimpleCov.start "rails" do
@@ -50,16 +50,11 @@ You are a subagent responsible for collecting test coverage data from a Rails ap
        formatter SimpleCov::Formatter::JSONFormatter
      end
      ```
-   - For **parallel_rspec** (`parallel_tests` gem), use the parallel-safe config:
+   - For **parallel_rspec or turbo_tests** (`parallel_tests` or `turbo_tests` gem), also add the parallel-safe config to the test helper:
      ```ruby
-     require "simplecov"
-     SimpleCov.start "rails" do
-       enable_coverage :branch
-       formatter SimpleCov::Formatter::JSONFormatter
-     end
+      SimpleCov.command_name "features" + (ENV['TEST_ENV_NUMBER'] || '')
      ```
-     Also run `bundle exec rake parallel:setup` (or `bundle exec parallel_rspec --setup`) if a `parallel_tests` rake task is defined — check `bin/rake -T parallel` first.
-   - For **turbo_tests**, SimpleCov is supported natively — use the standard config above; no extra setup is needed.
+     Also run `bundle exec rake parallel:setup` to ensure SimpleCov's parallel configuration is initialized.
 
    Prepend these lines at the very top of the test helper file, before any other `require` statements.
 
