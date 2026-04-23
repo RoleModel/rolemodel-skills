@@ -6,7 +6,7 @@
 // Usage: node directory_tree.mjs [project-root] [--depth N]
 //   default depth: 3
 
-import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 
 const args = process.argv.slice(2);
