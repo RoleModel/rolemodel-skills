@@ -16,20 +16,28 @@ All optional, space-separated key=value tokens plus bare flags:
 - env=<name> — environment filter (default: production)
 - fixer=<skill-name> — override the handoff skill (default: sentry-issue-fixer)
 - dry-run — pick and print only; do not invoke the fixer
-- no-pr-filter — skip the "open PR already exists" check (useful when gh isn't configured)
+- no-pr-filter — skip the "open PR already exists" check (useful when gh isn't configured); also skips the merged-commit filter in Phase 3b, since both live behind the same flag
 
-Phase 1 — Resolve Sentry scope
+Phase 1 — Preflight (scope + gh install + PR cap)
 
-Order of precedence (no interactive fallback — this skill runs unattended):
+Phase 1a — Run preflight
 
-1. Explicit $ARGUMENTS (org=, project=, region=).
-2. Project documentation. Grep CLAUDE.md, AGENTS.md, and any .claude/**/*.md in the working directory for a Sentry scope block. Recognize the documented pattern (organizationSlug: ..., projectSlugOrId: ..., regionUrl: ...). Details in references/SCOPE_DISCOVERY.md.
+`preflight.sh` is the single source of truth for scope discovery, the `gh` install check, and the open-`[SENTRY …]` PR cap. Invoke it unconditionally with any explicit values from `$ARGUMENTS` forwarded as flags — if scope can't be resolved, the script self-skips with a structured reason. Do not pre-check scope yourself; let the script speak.
 
-If neither source yields both an organizationSlug and a projectSlugOrId, **do nothing**:
+```bash
+bash skills/sentry-top-issue/scripts/preflight.sh \
+  [--org <slug>] [--project <slug>] [--region <url>] [--env <name>] \
+  [--no-pr-filter] --repo-root "$PWD"
+```
 
-- Print a single line: `No Sentry scope found in $ARGUMENTS or project docs — skipping.`
-- Do **not** call any Sentry MCP tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
-- Exit cleanly. This is a normal outcome in repos that aren't wired to Sentry and must not be treated as an error.
+**Always echo the script's raw JSON output back to the user verbatim** (as a fenced ```json block) so the preflight result is visible in the transcript — regardless of whether the status is `ok` or `skip`. This is the preflight's audit trail; do not paraphrase or summarize it away.
+
+Then read the JSON and branch:
+
+- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **exit cleanly**. Do not call any Sentry MCP tools, do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
+- `{"status":"ok","org":...,"project":...,"region":...,"env":...,"prFilter":<bool>,"openSentryPrs":<n>}` — carry these values into Phase 2. `openSentryPrs` is informational; the cap has already been enforced by the script.
+
+Scope precedence (as implemented by the script): explicit flags first, then AGENTS.md / CLAUDE.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `gh` (when PR filter is on), missing `jq`, PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.
 
 Phase 1b — Verify Sentry MCP is connected
 
@@ -37,48 +45,62 @@ Before calling any Sentry tool, confirm a Sentry MCP server is actually availabl
 
 - Use ToolSearch with a Sentry-flavoured query (e.g. `+sentry search_issues`) and confirm that `search_issues`, `find_organizations`, and `find_projects` resolve to real tool names under some `mcp__*Sentry*__` prefix.
 - If none of the expected Sentry MCP tools resolve, **do nothing**:
-    - Print a single line: `Sentry MCP is not connected — skipping.`
-    - Do **not** call any tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
-    - Exit cleanly. Like the missing-scope case, this is a normal outcome and must not be treated as an error.
+  - Print a single line: `Sentry MCP is not connected — skipping.`
+  - Do **not** call any tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
+  - Exit cleanly. Like the missing-scope case, this is a normal outcome and must not be treated as an error.
 
-Phase 1c — Verify GitHub CLI is installed
+Phase 2 — Fetch candidate shortlist (priority-tiered)
 
-Unless no-pr-filter is set, confirm the `gh` CLI is available before proceeding:
+Resolve the Sentry MCP search_issues tool (tool name looks like mcp__<server>__search_issues — resolve via ToolSearch at runtime since the prefix varies by MCP server name).
 
-- Run `command -v gh` (or `gh --version`) via Bash.
-- If `gh` is not found, **do nothing**:
-    - Print a single line: `GitHub CLI (gh) is not installed — skipping. Re-run with no-pr-filter to bypass this check.`
-    - Do **not** call any Sentry MCP tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
-    - Exit cleanly. Like the missing-scope and missing-MCP cases, this is a normal outcome and must not be treated as an error.
+IMPORTANT — tool shape. `search_issues` takes a `naturalLanguageQuery` string and routes it through an AI translator; it does **not** accept raw Sentry search syntax or a `sort` parameter. Phrase every call in natural language, then verify the translation with `includeExplanation: true` on the first call of the run. Two quirks observed in prior runs that the phrasings below are designed to dodge:
 
-Phase 1d — Check open Sentry PR cap
+- The word "priority" alone is often translated as a **custom tag** (`priority:<tier>`) instead of the built-in `issue.priority:<tier>` field, which silently returns zero or wrong results. Use the phrase **"issue priority level <tier>"** to steer the translator onto the built-in field.
+- The word "trends" is translated to `sort:freq` (frequency). That is an acceptable proxy for the Issues-page "Trends" sort — use it and do not try to force a literal `sort:trends`.
 
-Unless no-pr-filter is set, enforce a maximum of 3 concurrently open automation PRs before fetching any Sentry data:
+Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, call search_issues with:
 
-- Run: `gh pr list --state open --search "[SENTRY" --json number,title`
-- Count how many results have a title matching `/^\[SENTRY \d+\]/`.
-- If the count is **3 or more**, **do nothing**:
-    - Print a single line: `Sentry PR cap reached (<n> open) — skipping. Close or merge existing Sentry PRs before running again.`
-    - Do **not** call any Sentry MCP tools, do **not** invoke the fixer, and do **not** proceed to Phase 2.
-    - Exit cleanly. This is an expected throttle, not an error.
-- If gh is not authenticated, log a one-line warning and continue without the cap check — never block on this.
+- `organizationSlug`, `projectSlugOrId`, `regionUrl` from preflight
+- `naturalLanguageQuery`: `"unresolved issues with issue priority level <tier> in environment <env> sorted by trends"`
+- `limit: 10`
+- `includeExplanation: true` on the **first** call of the run only (to keep later calls quiet). Inspect the returned translation: it should include `is:unresolved`, `issue.priority:<tier>`, `environment:<env>`, and `sort:freq` (or `sort:trends`). If `priority:` appears without the `issue.` prefix, or the environment / unresolved filters are missing, rephrase once (e.g., add "built-in" before "issue priority level", or split env and priority into separate clauses) and retry. Do not loop more than once per tier.
 
-Phase 2 — Fetch candidate shortlist
+The translator may return **more than `limit`** results — silently truncate to the first 10 candidates yourself; do not retry, warn, or treat it as an error.
 
-Call the Sentry MCP search_issues tool (tool name looks like mcp__<server>__search_issues — resolve via ToolSearch at runtime since the prefix varies by MCP server name) with:
+Run Phase 3 filters against that tier's results; stop at the first tier with surviving candidates and carry them into Phase 4. If all three tiers are empty after filtering, proceed to the "Nothing to pick." path.
 
-- the resolved scope (organizationSlug, projectSlugOrId, regionUrl)
-- query: "is:unresolved environment:<env>"
-- sort set to Sentry's Trends sort — verify the exact parameter name and accepted value against the live tool schema before calling; fall back to user if Trends is rejected
-- limit: 10
+If, after the one retry, the translation still cannot apply `issue.priority:<tier>`, log a one-line warning and fall back to a single untiered call with `naturalLanguageQuery: "unresolved issues in environment <env> sorted by trends"` — don't block the pick on priority filtering.
 
-Phase 3 — Filter issues already being worked on
+Phase 3 — Filter issues already being worked on or already fixed
 
-Unless no-pr-filter is set:
+Unless no-pr-filter is set, drop any candidate that is already handled. Two sub-filters:
 
-- For each candidate ID, run gh pr list --state open --search "<issue-id>" --limit 1 --json number.
-- Drop any candidate with a hit.
-- If gh is not authenticated, log a one-line warning and continue without the filter — never block the pick on this check. (Missing gh is already caught in Phase 1c.)
+Phase 3a — Open PR filter
+
+Pipe the candidate IDs through `skills/sentry-top-issue/scripts/filter-candidates.sh`:
+
+```bash
+bash skills/sentry-top-issue/scripts/filter-candidates.sh <id1> <id2> ... <id10>
+```
+
+The script prints surviving IDs one per line (empty output = all filtered). Treat its stdout as authoritative. It degrades gracefully when `gh` is unauthenticated — passing inputs through with a stderr warning — so no extra handling is needed here. (Missing `gh` is already caught by Phase 1 preflight when the PR filter is on.)
+
+Phase 3b — Merged-commit filter
+
+Catches the case where the fixer skill has already merged a `[SENTRY <suffix>]` commit but the Sentry issue is still marked unresolved because the release hasn't deployed yet. Without this filter, the skill hands the same issue to the fixer again and wastes a PR.
+
+- Resolve the default branch ref, in order of preference:
+  1. `git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null` (yields `origin/main` or `origin/master` on most repos).
+  2. `origin/main` if it resolves via `git rev-parse --verify origin/main`.
+  3. `origin/master` if it resolves via `git rev-parse --verify origin/master`.
+  4. Local `main` or `master` as a last resort.
+- For each remaining candidate ID, compute its suffix by stripping the project prefix — everything through the first `-`. Examples: `ALMANAC-5` → `5`, `ALMANAC-1G` → `1G`, `PROJECT-123` → `123`. This matches the `[SENTRY <suffix>]` format that the sentry-issue-fixer skill uses for commit subjects (which preserves both numeric and base32-ish Sentry short-ID suffixes).
+- Run: `git log <default-branch> --fixed-strings -i --grep "[SENTRY <suffix>]" -n 1 --format=%H`. A non-empty result means a merged commit already targets this issue; drop the candidate. This catches squash merges (PR title on the commit), rebase merges (original commits linearized), and regular merges (feature-branch commits are still in the log).
+- If no default-branch ref can be resolved, log a one-line warning and continue without this sub-filter — never block the pick on this check.
+
+Phase 3c — Stale-issue filter
+
+Filter out Sentry issues that have not occurred in the last 7 days to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant. This is a simple date filter based on the `lastSeen` field of the issue.
 
 Phase 4 — Select and justify
 
@@ -87,7 +109,7 @@ Take the top remaining candidate. Print:
 Top issue: <ID> — <title>
 Users: <userCount>  Events: <count>
 First seen: <firstSeen>  Last seen: <lastSeen>
-Why: ranked #1 by Sentry Trends sort (unresolved, environment=<env>, no open PR).
+Why: ranked #1 by Sentry Trends sort within the highest-priority tier that had surviving candidates (unresolved, environment=<env>, priority=<tier>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
 
 If the shortlist is empty after filtering, say "Nothing to pick." and stop.
 
@@ -124,6 +146,7 @@ Reused existing pieces
 - sentry-issue-fixer skill — invoked as-is for all diagnosis/fix work. The handoff mechanism is a plain Skill tool call, so any drop-in replacement with the same name works too (overridable via fixer=
   arg).
 - gh CLI — used only for the "open PR already exists" best-effort filter; skill degrades gracefully when missing.
+- git CLI — used only for the merged-commit filter (Phase 3b); the skill degrades gracefully if the default branch ref can't be resolved.
 
 Verification
 
@@ -136,9 +159,10 @@ Verification
 5. Scope discovery — missing. In a repo with no scope declaration and no scope args, invoke /sentry-top-issue dry-run. Expect the "No Sentry scope found …" line and a clean exit with no MCP calls and no fixer invocation.
 6. Trends sort vs UI. Compare the top pick against the project's Sentry Issues page sorted by Trends (minus any open-PR filter). They should match.
 7. Open-PR filter. Create a draft PR titled with one of the top candidate issue IDs; rerun in dry-run; confirm that candidate is skipped. Close the draft.
-8. Empty-result path. Use env=nonexistent to force zero results; confirm the skill prints "Nothing to pick." and does not invoke the fixer.
-9. Handoff path. Run /sentry-top-issue (no args, not dry-run) and confirm the fixer skill starts working on the chosen ID.
-10. Scheduling smoke. Use the schedule skill to fire /sentry-top-issue dry-run two minutes out; confirm it runs unattended and prints a pick.
+8. Merged-commit filter. On the default branch, land a commit with subject `[SENTRY <suffix>] test filter` where `<suffix>` matches a top candidate's ID suffix (e.g., ALMANAC-5 → `5`); rerun in dry-run; confirm that candidate is skipped. Revert the commit.
+9. Empty-result path. Use env=nonexistent to force zero results; confirm the skill prints "Nothing to pick." and does not invoke the fixer.
+10. Handoff path. Run /sentry-top-issue (no args, not dry-run) and confirm the fixer skill starts working on the chosen ID.
+11. Scheduling smoke. Use the schedule skill to fire /sentry-top-issue dry-run two minutes out; confirm it runs unattended and prints a pick.
 
 Non-goals
 
