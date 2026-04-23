@@ -60,7 +60,7 @@ Use this skill when asked to perform a code audit, code review, quality assessme
 To load the skill instructions:
 
 ```
-read_file: .agents/skills/rails-audit/SKILL.md
+read_file: skills/rails-audit/SKILL.md
 ```
 
 ## Key Conventions

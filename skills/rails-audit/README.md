@@ -11,7 +11,7 @@ Testing Rails best practices.
 
 - **[Ruby Science][ruby-science]** - thoughtbot's guide to fixing code smells
 - **[Testing Rails][testing-rails]** - thoughtbot's guide to testing Rails applications
-- **[Rails Antipatterns][rails-antipatterns]** - Best practices for Ruby on 
+- **[Rails Antipatterns][rails-antipatterns]** - Best practices for Ruby on
   Rails refactoring (Chad Pytel & Tammer Saleh)
 
 [ruby-science]: https://github.com/thoughtbot/ruby-science
@@ -65,8 +65,8 @@ git clone https://github.com/thoughtbot/rails-audit-thoughtbot ~/.claude/skills/
 
 ## Usage
 
-If you are in your terminal and not in a Claude session, you can invoke the 
-skill directly by using the below. You need to be in the root directory of your 
+If you are in your terminal and not in a Claude session, you can invoke the
+skill directly by using the below. You need to be in the root directory of your
 Rails project.
 
 ### Full application audit
@@ -134,10 +134,14 @@ Recommendations of PORO objects are based on different thoughtbot sources and
 | File | Description |
 |------|-------------|
 | `references/code_smells.md` | Code smell patterns to identify (Ruby Science) |
-| `references/testing_guidelines.md` | Testing best practices (Testing Rails) |
+| `references/ruby_testing_guidelines.md` | Testing best practices (Testing Rails) |
+| `references/javascript_testing_guidelines.md` | Testing best practices (Testing JavaScript) |
+| `references/javascript_code_smells.md` | JavaScript/TypeScript code smells (callback hell, god modules, magic numbers, etc.) |
+| `references/javascript_antipatterns.md` | JavaScript/TypeScript runtime anti-patterns (memory leaks, eval, innerHTML, layout thrashing, etc.) |
 | `references/poro_patterns.md` | PORO and ActiveModel patterns |
 | `references/security_checklist.md` | Security vulnerability checklist |
 | `references/rails_antipatterns.md` | Rails-specific antipatterns: external services, migrations, performance |
+| `references/stimulus_patterns.md` | Stimulus controller patterns and anti-patterns (betterstimulus.com) |
 | `references/report_template.md` | Audit report structure template |
 | `agents/simplecov_agent.md` | Subagent for SimpleCov test coverage collection |
 | `agents/rubycritic_agent.md` | Subagent for RubyCritic code quality metrics |

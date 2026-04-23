@@ -306,6 +306,3 @@ const userFixture = {
 - [ ] API tests cover auth, validation, and error handling
 - [ ] Async tests correctly await outcomes and clean up side effects
 - [ ] Test data setup is minimal, explicit, and maintainable
-
-````
-

@@ -8,7 +8,7 @@ This reference covers antipatterns that **extend** the existing audit references
 - For code smells (Large Class, Feature Envy, Long Method): see `code_smells.md`
 - For security issues (SQL injection, XSS, CSRF): see `security_checklist.md`
 - For PORO patterns and Service Object refactoring: see `poro_patterns.md`
-- For testing antipatterns: see `testing_guidelines.md`
+- For testing antipatterns: see `ruby_testing_guidelines.md`
 
 ---
 
