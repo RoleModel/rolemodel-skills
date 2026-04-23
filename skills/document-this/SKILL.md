@@ -1,6 +1,6 @@
 ---
 name: document-this
-description: Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Project-agnostic and self-orienting. Use when the user asks to "document this project", runs `/document-this`, runs `/document-this <file-path>`, or wants fresh documentation reflecting the current codebase state.
+description: Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Project-agnostic and self-orienting. Includes an automatic end-of-flow accuracy review via the document-review sub-skill. Use when the user asks to "document this project", runs `/document-this`, runs `/document-this <file-path>`, or wants fresh documentation reflecting the current codebase state.
 ---
 
 # /document-this
@@ -177,6 +177,19 @@ Write a brief navigation document:
 - Links to `workflows.md`, `architecture.md`, `ai-orientation.md`, and the diagrams
 - Generation timestamp and auto-generated warning (use `templates/README.template.md`)
 
+### Phase 6 — Documentation Accuracy Review
+
+After generating docs, load and run the `document-review` sub-skill:
+
+```
+skills/document-this/sub-skills/document-review/SKILL.md
+```
+
+- For full generation runs, pass no arguments.
+- For targeted updates (`/document-this <file-path>`), pass the same `<file-path>`.
+
+The sub-skill is responsible for accuracy checks and doc-only corrections under `generated-docs/`.
+
 ---
 
 ## Targeted Update: `/document-this <file-path>`
@@ -197,6 +210,8 @@ When called with a path, do not regenerate the whole document. Instead:
 4. **Ripple check:** After updating, scan other sections for cross-references or dependent content that is now stale. Update those too if needed.
 
 5. Do not regenerate the entire document unless the file affects all sections.
+
+6. Run the `document-review` sub-skill (`skills/document-this/sub-skills/document-review/SKILL.md`) with `<file-path>` as the final verification and correction pass.
 
 ---
 
