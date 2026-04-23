@@ -98,8 +98,8 @@ Execute in this order. Each step's output informs the next. Each phase can stand
 Run the fingerprint and tree scripts to orient yourself:
 
 ```bash
-node .agents/skills/document-this/scripts/fingerprint.mjs
-node .agents/skills/document-this/scripts/directory_tree.mjs --depth 3
+node skills/document-this/scripts/fingerprint.mjs
+node skills/document-this/scripts/directory_tree.mjs --depth 3
 ```
 
 From the output, derive — **do not assume**:
@@ -118,7 +118,7 @@ Also read the README if one was detected.
 **Discovery mechanism:** Start from system/end-to-end and integration tests, not routes or controllers. Tests are human-authored descriptions of complete user interactions.
 
 ```bash
-node .agents/skills/document-this/scripts/test_inventory.mjs
+node skills/document-this/scripts/test_inventory.mjs
 ```
 
 Then:
@@ -139,10 +139,10 @@ Then:
 **Goal:** Give a developer enough orientation to understand the codebase in under 5 minutes.
 
 ```bash
-node .agents/skills/document-this/scripts/tech_stack.mjs
-node .agents/skills/document-this/scripts/directory_tree.mjs --depth 3
-node .agents/skills/document-this/scripts/entities.mjs
-node .agents/skills/document-this/scripts/entry_points.mjs
+node skills/document-this/scripts/tech_stack.mjs
+node skills/document-this/scripts/directory_tree.mjs --depth 3
+node skills/document-this/scripts/entities.mjs
+node skills/document-this/scripts/entry_points.mjs
 ```
 
 Cover these five things — keep each concise (not exhaustive documentation, just orientation):
