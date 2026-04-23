@@ -72,7 +72,7 @@ If unclear, default to `default.md`.
 
 These format constraints apply to **all playbooks**. Each playbook defines *what content to include* — these rules define *how much and in what form* to write it.
 
-Tailor the explanation to the user's profile. Read it from `~/.claude/PROFILE.md` if it exists, and use any stated preferences to shape vocabulary, tone, and emphasis. For example, if they say they prefer concise explanations, skip the analogies and narrative flourishes and get straight to the point. If they say they like thorough explanations, include more context, examples, and details. User their role and experience to focus on things that are specific to this project and avoid over-explaining things they likely already know.
+Tailor the explanation to the user's profile. Read it from `~/.claude/PROFILE.md` if it exists, and use any stated preferences to shape vocabulary, tone, and emphasis. For example, if they say they prefer concise explanations, skip the analogies and narrative flourishes and get straight to the point. If they say they like thorough explanations, include more context, examples, and details. Use their role and experience to focus on things that are specific to this project and avoid over-explaining things they likely already know.
 
 **Pamphlet** — 2–5 sentences as a single plain paragraph. No headings, no bullet points, no code blocks, no diagrams, no jargon. Pure prose.
 
