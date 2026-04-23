@@ -43,6 +43,9 @@ Skills may also include a `references/` directory for supporting markdown files 
 - **json-typed-attributes**: Define typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration.
 - **testing-patterns**: Write automated tests using RSpec, Capybara, and FactoryBot for Rails applications.
 
+### Documentation
+- **document-this**: Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document-this <file-path>`, or wants fresh documentation reflecting the current codebase state.
+
 ### Process & Planning
 - **brave-breakdown**: Interactive BRAVE framework thought partner for breaking down a Linear card before starting work. Guides developer through Brainstorm, Reflect (via AVE), Approach, Value, and Estimate. Fetches Linear card context via MCP, loads relevant codebase patterns on request, asks one question at a time, and produces a structured breakdown doc. Includes reference files for the BRAVE framework, RoleModel estimating guidelines, the full Craftsmanship Radar, and a BRAVE-focused progression summary.
 
