@@ -33,7 +33,7 @@ Briefly scan for instances that violate the pattern. If there's meaningful drift
 
 Apply the **Output Format Rules** from SKILL.md (size, formatting constraints, file references). Omit sections that don't apply. Then follow this content structure per level:
 
-Start with the pattern name as a heading.
+For **Novella** and **Novel**, use the pattern name as a heading. For **Pamphlet**, do not use a heading; instead, begin with the pattern name inline in the opening sentence.
 
 **If agent-triggered** (input began with `depth:`), skip all sections below and return this structured block instead:
 

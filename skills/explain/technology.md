@@ -19,14 +19,28 @@ If docs are unavailable or inaccessible, fall back to what you know from trainin
 
 ### Step 3: Locate it in the codebase
 
-Search for evidence of setup and usage:
+Search for evidence of setup and usage. The right places to look depend on the stack — use the signals below:
 
-- **Gemfile / package.json** — confirm the library is present; note the version
-- **Initializers** — `config/initializers/` for gem setup
-- **Application config** — `config/application.rb`, `app/controllers/application_controller.rb` for includes or base configuration
-- **Relevant directories** — policies in `app/policies/`, Stimulus controllers in `app/javascript/controllers/`, services in `app/services/`, etc.
-- **Grep for usage** — search for the library's key class names, module includes, or method calls (e.g. `authorize!`, `has_many`, `import { Controller }`)
-- **Tests** — look for spec helpers or shared examples that exercise the library
+**Dependency manifest** — confirm the library is present and note the version:
+- Ruby/Rails: `Gemfile` / `Gemfile.lock`
+- Node/JS: `package.json` / `yarn.lock` / `package-lock.json`
+- Python: `requirements.txt`, `pyproject.toml`, `Pipfile`
+- PHP/Laravel: `composer.json`
+- Go: `go.mod`
+- Rust: `Cargo.toml`
+
+**Initialization & configuration** — where the library is wired up at startup:
+- Rails: `config/initializers/`, `config/application.rb`, `app/controllers/application_controller.rb`
+- Django: `settings.py`, `apps.py`, `urls.py`
+- Laravel: `config/`, `app/Providers/`
+- Express/Node: `app.js`, `server.js`, `src/index.ts`, middleware directories
+- Generic: any bootstrap/startup file at the project root or in a `config/` directory
+
+**Relevant source directories** — where the library's abstractions live in this app. Infer from the library's conventions (e.g. policy classes, controller plugins, middleware, decorators) and the project's directory structure — don't assume Rails-style paths.
+
+**Grep for usage** — search for the library's key identifiers: class names it exports, module includes, decorators, method calls, or import statements. Use the library's own documentation to know what to search for.
+
+**Tests** — look for test helpers, fixtures, or shared examples that exercise the library. Location varies by stack (`spec/`, `test/`, `__tests__/`, `tests/`).
 
 ### Step 4: Find representative examples
 
@@ -41,7 +55,7 @@ Pick **2–4 real uses** that show how the library is exercised in this app. Pre
 
 Apply the **Output Format Rules** from SKILL.md (size, formatting constraints, file references). Omit sections that don't apply. Then follow this content structure per level:
 
-Start with the technology name as a heading.
+For **Novella** and **Novel**, use the technology name as a heading. For **Pamphlet**, do not use a heading; instead, begin with the technology name inline in the opening sentence.
 
 **If agent-triggered** (input began with `depth:`), skip all sections below and return this structured block instead:
 
@@ -71,7 +85,7 @@ USAGE PATTERN: the canonical way the library is called in this codebase
 **Novel** — A comprehensive walkthrough using these sections:
 - **Overview** — what the library does and why it exists (from docs, 2–3 sentences)
 - **Why we use it** — what problem it's solving in this app and why this library was chosen (if inferrable)
-- **Setup & Configuration** — how it's installed and configured: Gemfile/package.json version, initializers, application-level config
+- **Setup & Configuration** — how it's installed and configured: dependency manifest entry (Gemfile, package.json, requirements.txt, etc.), version, and any initialization or application-level config
 - **Integration Points** — where and how the library shows up in the codebase; use a table if there are multiple distinct integration points (e.g. base class include, per-controller usage, view helpers)
 - **Examples** — 2–4 real instances with `file:line_number` references; one-line summary of what each shows about how the library is being used; small code excerpts only when they clarify the shape
 - **Key Decisions & Gotchas** — non-obvious configuration choices, places where the app extends or customizes the library, known limitations or things to watch out for
