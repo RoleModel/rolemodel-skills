@@ -6,6 +6,12 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 ## Skills
 
+### General Purpose
+
+| Skill | Description |
+|-------|-------------|
+| **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of details. Great for onboarding into unfamiliar code. |
+
 ### CSS & Design System
 
 | Skill | Description |
