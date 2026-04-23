@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // tech_stack.mjs
-// Parses dependency files found in the project and emits a categorized,
-// deduplicated list of technologies. Project-agnostic: handles each ecosystem
-// only if its marker file exists.
+// Parses dependency files found in the project and emits a categorized
+// list of technologies. Project-agnostic: handles each ecosystem only if its
+// marker file exists.
 //
 // Usage: node tech_stack.mjs [project-root]
 
