@@ -6,7 +6,7 @@
 //
 // Usage: node test_inventory.mjs [project-root]
 
-import { readdirSync, statSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 
 const root = resolve(process.argv[2] ?? process.cwd());
