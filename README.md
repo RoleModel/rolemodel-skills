@@ -46,6 +46,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 | Skill | Description |
 |-------|-------------|
+| **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. |
 | **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of detail. Great for onboarding into unfamiliar code or orienting before making a change. |
 | **[trace](skills/trace)** | Trace code through the stack — upward to entry points, downward to data, laterally across callbacks and side effects. Outputs a stack diagram with clickable file references. |
 
@@ -225,6 +226,8 @@ Several skills are designed to complement each other:
 - **Laws of UX + Usability Heuristics + AI UX Enhancements** — Laws of UX provides theoretical principles; Usability Heuristics provides a structured audit methodology; AI UX Enhancements adds automatable review rules. Use together for comprehensive UI reviews.
 - **Frontend Patterns + Stimulus + Turbo Fetch + Action Cable** — These cover the full Rails frontend stack using Hotwire and real-time features.
 - **Sentry Top Issue + Sentry Issue Fixer** — Top Issue selects the highest-priority Sentry issue; Issue Fixer runs the full diagnosis-and-fix workflow. Run together or invoke the fixer directly with a known issue.
+- **Explain + Trace** — Explain orients you to a feature area or concept; Trace follows a specific code path through the stack. Use Explain first to build context, then Trace to dig into a specific flow.
+- **Explain + Document This** — Explain answers questions interactively; Document This generates persistent reference docs. Use Explain while exploring, Document This when you want to capture the results for the team.
 
 ## License
 
