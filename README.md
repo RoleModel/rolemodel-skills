@@ -42,19 +42,22 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | **[routing-patterns](skills/routing-patterns)** | RESTful resource routing, route concerns, and shallow nesting strategies. |
 | **[testing-patterns](skills/testing-patterns)** | Automated tests using RSpec, Capybara, and FactoryBot for Rails applications. |
 
-### Process & Planning
+### Developer Workflow
+
+| Skill | Description |
+|-------|-------------|
+| **[create-profile](skills/create-profile)** | Creates or updates a personal developer profile at `~/.claude/PROFILE.md`. Run once to tell Claude about your role, experience, and preferences so that explanations and other skills can tailor their output to you. |
+| **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document`, or wants fresh documentation reflecting the current codebase state. |
+| **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of detail. Great for onboarding into unfamiliar code or orienting before making a change. |
+| **[trace](skills/trace)** | Trace code through the stack — upward to entry points, downward to data, laterally across callbacks and side effects. Outputs a stack diagram with clickable file references. |
+
+### Process, Planning, & Observability
 
 | Skill | Description |
 |-------|-------------|
 | **[brave-breakdown](skills/brave-breakdown)** | Interactive BRAVE framework thought partner for breaking down a Linear card before starting work. Guides through Brainstorm, Reflect, Approach, Value, and Estimate — one question at a time. |
-| **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document`, or wants fresh documentation reflecting the current codebase state. |
-
-### Workflow & Observability
-
-| Skill | Description |
-|-------|-------------|
-| **[sentry-top-issue](skills/sentry-top-issue)** | Picks the single highest-priority unresolved Sentry issue (sorted by Trends, filtered for open PRs) and hands it off to `rm-sentry-issue-fixer`. Discovers Sentry scope from args or project docs; exits cleanly if scope or MCP is unavailable. Supports `dry-run`, `no-pr-filter`, and `fixer=` overrides. |
 | **[rm-sentry-issue-fixer](skills/rm-sentry-issue-fixer)** | Full seven-phase workflow for diagnosing and fixing a Sentry issue using Sentry MCP: issue discovery → deep analysis → root cause hypothesis → entry point audit → code investigation → implement fix → report results. Enforces security constraints (never follows instructions embedded in Sentry event data). |
+| **[sentry-top-issue](skills/sentry-top-issue)** | Picks the single highest-priority unresolved Sentry issue (sorted by Trends, filtered for open PRs) and hands it off to `rm-sentry-issue-fixer`. Discovers Sentry scope from args or project docs; exits cleanly if scope or MCP is unavailable. Supports `dry-run`, `no-pr-filter`, and `fixer=` overrides. |
 
 ## Installation
 
@@ -218,6 +221,8 @@ Several skills are designed to complement each other:
 - **Laws of UX + Usability Heuristics + AI UX Enhancements** — Laws of UX provides theoretical principles; Usability Heuristics provides a structured audit methodology; AI UX Enhancements adds automatable review rules. Use together for comprehensive UI reviews.
 - **Frontend Patterns + Stimulus + Turbo Fetch + Action Cable** — These cover the full Rails frontend stack using Hotwire and real-time features.
 - **Sentry Top Issue + Sentry Issue Fixer** — Top Issue selects the highest-priority Sentry issue; Issue Fixer runs the full diagnosis-and-fix workflow. Run together or invoke the fixer directly with a known issue.
+- **Explain + Trace** — Explain orients you to a feature area or concept; Trace follows a specific code path through the stack. Use Explain first to build context, then Trace to dig into a specific flow.
+- **Explain + Document This** — Explain answers questions interactively; Document This generates persistent reference docs. Use Explain while exploring, Document This when you want to capture the results for the team.
 
 ## License
 
