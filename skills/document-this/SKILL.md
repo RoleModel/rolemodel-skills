@@ -61,14 +61,16 @@ All scripts live under `scripts/` in this skill and emit **JSON on stdout**. Inv
 
 **Invocation from project root:**
 
+Replace `skills/document-this/` below with the path to this skill in your installation (for example, under `.claude/skills/`, `.github/skills/`, or `.rolemodel-skills/skills/`).
+
 ```bash
-node .agents/skills/document-this/scripts/fingerprint.mjs
-node .agents/skills/document-this/scripts/front_matter.mjs
-node .agents/skills/document-this/scripts/directory_tree.mjs --depth 3
-node .agents/skills/document-this/scripts/tech_stack.mjs
-node .agents/skills/document-this/scripts/test_inventory.mjs
-node .agents/skills/document-this/scripts/entities.mjs
-node .agents/skills/document-this/scripts/entry_points.mjs
+node skills/document-this/scripts/fingerprint.mjs
+node skills/document-this/scripts/front_matter.mjs
+node skills/document-this/scripts/directory_tree.mjs --depth 3
+node skills/document-this/scripts/tech_stack.mjs
+node skills/document-this/scripts/test_inventory.mjs
+node skills/document-this/scripts/entities.mjs
+node skills/document-this/scripts/entry_points.mjs
 ```
 
 **Fallback rule:** if `node` is not available on PATH, do not error — fall back to agent-driven extraction using Read, Glob, and Grep for the same purposes. Scripts are an optimization, not a hard dependency.
