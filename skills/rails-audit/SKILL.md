@@ -13,6 +13,36 @@ The audit can be run in two modes:
 1. **Full Application Audit**: Analyze entire Rails application
 2. **Targeted Audit**: Analyze specific files or directories
 
+## Ignore File
+
+Projects may opt out of specific findings by creating `.rails-audit-ignore.yml` at the project root. Each entry identifies a finding by file path + a short description substring. Ignored findings are hidden completely from the report — they do not appear in category sections, executive summary counts, or files-analyzed counts.
+
+Format:
+
+```yaml
+# Findings listed here are suppressed from RAILS_AUDIT_REPORT.md.
+# Each entry matches when:
+#   - the finding's file path contains `file`, AND
+#   - the finding's title or details contain `matches` (case-insensitive substring)
+# `reason` is documentation only — not used for matching.
+
+ignore:
+  - file: app/javascript/controllers/toggle_controller.js
+    matches: setTimeout
+    reason: Intentional animation hack — deferring to next tick so CSS transition picks up
+
+  - file: db/schema.rb
+    matches: long method
+    reason: Generated file
+```
+
+Matching rules:
+- `file` — substring match against the finding's file reference (so `app/javascript/controllers/toggle_controller.js` matches `app/javascript/controllers/toggle_controller.js:12-14`)
+- `matches` — case-insensitive substring match against the finding's heading plus details text
+- Both must match for a finding to be suppressed
+- A missing file is not an error — the audit proceeds as if no ignores exist
+- If the file is present but malformed YAML, print a warning and proceed as if it were empty
+
 ## Execution Flow
 
 ### Step 1: Determine Audit Scope
