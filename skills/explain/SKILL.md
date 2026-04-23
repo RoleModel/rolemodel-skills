@@ -1,7 +1,7 @@
 ---
 name: explain
 description: Explains features, terms, and concepts from a codebase. Use whenever the user asks to explain, describe, or understand something ("explain X", "what is X", "how does X work"). Also use when starting an implementation, refactor, or test task — invoke as `depth:pamphlet <concept>` before writing code, `depth:novella <concept>` before designing an approach, or `depth:novel <concept>` before a deep refactor. Agent-triggered mode (depth: prefix) skips the interview and returns a structured WHAT/WHERE/HOW/CONNECTS TO block instead of a narrative.
-allowed-tools: Read(~/.claude/PROFILE.md), AskUserQuestion, WebSearch, WebFetch
+allowed-tools: Read(~/.claude/PROFILE.md) AskUserQuestion WebSearch WebFetch
 compatibility: Designed for Claude Code (or similar products)
 metadata:
   author: rolemodel
