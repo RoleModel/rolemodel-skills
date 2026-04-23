@@ -20,26 +20,9 @@ All optional, space-separated key=value tokens plus bare flags:
 
 Phase 1 — Preflight (scope + gh install + PR cap)
 
-Phase 1a — Require org + project before running preflight
+Phase 1a — Run preflight
 
-**Do not invoke `preflight.sh` until both `org` and `project` are known.** Resolve them in this order:
-
-1. Explicit tokens in `$ARGUMENTS` (`org=<slug>`, `project=<slug>`).
-2. `AGENTS.md` at the repo root — this is the canonical location for project Sentry scope. Look for the three-line pattern (case-sensitive keys, tolerant of YAML/Markdown bullets):
-   - `organizationSlug: <slug>`
-   - `projectSlugOrId: <slug>`
-   - `regionUrl: <url>` (optional)
-   Fallbacks if `AGENTS.md` lacks the block: `CLAUDE.md`, then any `.claude/**/*.md`. See references/SCOPE_DISCOVERY.md for the exact regex.
-
-If either `org` or `project` is still empty after those lookups, **do not run the preflight script**. Print a single line:
-
-`No Sentry scope found. Add organizationSlug and projectSlugOrId to AGENTS.md (see skills/sentry-top-issue/references/SCOPE_DISCOVERY.md), or pass org=<slug> project=<slug> as arguments — skipping.`
-
-Then exit cleanly. Do not call any Sentry MCP tools, do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 1b.
-
-Phase 1b — Run preflight
-
-With `org` and `project` resolved, run `skills/sentry-top-issue/scripts/preflight.sh` once, forwarding the resolved values plus any other parsed $ARGUMENTS as flags. It consolidates three previously-separate phases (scope resolution, `gh` install check, `[SENTRY …]` open-PR cap) and emits one JSON line on stdout.
+`preflight.sh` is the single source of truth for scope discovery, the `gh` install check, and the open-`[SENTRY …]` PR cap. Invoke it unconditionally with any explicit values from `$ARGUMENTS` forwarded as flags — if scope can't be resolved, the script self-skips with a structured reason. Do not pre-check scope yourself; let the script speak.
 
 ```bash
 bash skills/sentry-top-issue/scripts/preflight.sh \
@@ -51,12 +34,12 @@ bash skills/sentry-top-issue/scripts/preflight.sh \
 
 Then read the JSON and branch:
 
-- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **exit cleanly**. Do not call any Sentry MCP tools, do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2.
+- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **exit cleanly**. Do not call any Sentry MCP tools, do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
 - `{"status":"ok","org":...,"project":...,"region":...,"env":...,"prFilter":<bool>,"openSentryPrs":<n>}` — carry these values into Phase 2. `openSentryPrs` is informational; the cap has already been enforced by the script.
 
-Scope precedence (as implemented by the script): explicit flags first, then CLAUDE.md / AGENTS.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `gh` (when PR filter is on), PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.
+Scope precedence (as implemented by the script): explicit flags first, then AGENTS.md / CLAUDE.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `gh` (when PR filter is on), missing `jq`, PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.
 
-Phase 1c — Verify Sentry MCP is connected
+Phase 1b — Verify Sentry MCP is connected
 
 Before calling any Sentry tool, confirm a Sentry MCP server is actually available in this session:
 
@@ -91,18 +74,20 @@ The script prints surviving IDs one per line (empty output = all filtered). Trea
 
 Phase 3b — Merged-commit filter
 
-Phase 3c - Filter out Sentry issues that have not occurred in the last 7 days to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant. This is a simple date filter based on the `lastSeen` field of the issue.
-
-Catches the case where the fixer skill has already merged a `[SENTRY <n>]` commit but the Sentry issue is still marked unresolved because the release hasn't deployed yet. Without this filter, the skill hands the same issue to the fixer again and wastes a PR.
+Catches the case where the fixer skill has already merged a `[SENTRY <suffix>]` commit but the Sentry issue is still marked unresolved because the release hasn't deployed yet. Without this filter, the skill hands the same issue to the fixer again and wastes a PR.
 
 - Resolve the default branch ref, in order of preference:
   1. `git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null` (yields `origin/main` or `origin/master` on most repos).
   2. `origin/main` if it resolves via `git rev-parse --verify origin/main`.
   3. `origin/master` if it resolves via `git rev-parse --verify origin/master`.
   4. Local `main` or `master` as a last resort.
-- For each remaining candidate ID, compute its suffix by stripping the project prefix — everything through the first `-`. Examples: `ALMANAC-5` → `5`, `ALMANAC-1G` → `1G`, `PROJECT-123` → `123`. This matches the `[SENTRY <number>]` format that the sentry-issue-fixer skill uses for commit subjects (which preserves both numeric and base32-ish Sentry short-ID suffixes).
+- For each remaining candidate ID, compute its suffix by stripping the project prefix — everything through the first `-`. Examples: `ALMANAC-5` → `5`, `ALMANAC-1G` → `1G`, `PROJECT-123` → `123`. This matches the `[SENTRY <suffix>]` format that the sentry-issue-fixer skill uses for commit subjects (which preserves both numeric and base32-ish Sentry short-ID suffixes).
 - Run: `git log <default-branch> --fixed-strings -i --grep "[SENTRY <suffix>]" -n 1 --format=%H`. A non-empty result means a merged commit already targets this issue; drop the candidate. This catches squash merges (PR title on the commit), rebase merges (original commits linearized), and regular merges (feature-branch commits are still in the log).
 - If no default-branch ref can be resolved, log a one-line warning and continue without this sub-filter — never block the pick on this check.
+
+Phase 3c — Stale-issue filter
+
+Filter out Sentry issues that have not occurred in the last 7 days to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant. This is a simple date filter based on the `lastSeen` field of the issue.
 
 Phase 4 — Select and justify
 
@@ -111,7 +96,7 @@ Take the top remaining candidate. Print:
 Top issue: <ID> — <title>
 Users: <userCount>  Events: <count>
 First seen: <firstSeen>  Last seen: <lastSeen>
-Why: ranked #1 by Sentry Trends sort (unresolved, environment=<env>, no open PR, no merged `[SENTRY <n>]` commit on the default branch).
+Why: ranked #1 by Sentry Trends sort (unresolved, environment=<env>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
 
 If the shortlist is empty after filtering, say "Nothing to pick." and stop.
 

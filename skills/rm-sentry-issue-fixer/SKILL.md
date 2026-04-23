@@ -125,8 +125,10 @@ Before writing code, confirm your fix will:
 **Every** branch, commit, and PR created by this skill MUST follow this exact format:
 
 ```
-[SENTRY <number>] <short description>
+[SENTRY <suffix>] <short description>
 ```
+
+`<suffix>` is the alphanumeric portion of the Sentry issue ID after the project prefix (e.g. `ALMANAC-1G` → `1G`, `PROJECT-123` → `123`). It is **not** required to be numeric — Sentry short-IDs can contain letters.
 
 Use the helper script to derive the branch name, commit subject, and commit body in one call. It enforces the alphanumeric-suffix rule, the `[SENTRY …]` delimiter format, the slug shape, and (when `--permalink` is passed) the required `Sentry: <url>` body line.
 
@@ -137,13 +139,15 @@ bash skills/rm-sentry-issue-fixer/scripts/make-branch-names.sh \
   --permalink "<permalink from get_issue_details>"
 ```
 
-Output is a single JSON line: `{"branch":"sentry-1g-fix-nil-pointer","commitSubject":"[SENTRY 1G] Fix nil pointer","commitBody":"[SENTRY 1G] Fix nil pointer\n\nSentry: https://..."}`. Use those three values verbatim for the branch name, commit subject, and commit body. The script exits non-zero (code 2 or 3) if the issue ID is malformed or the subject fails `/^\[SENTRY [A-Za-z0-9]+\] .+/` validation — re-run with corrected inputs rather than hand-assembling the strings.
+Output is a single JSON line: `{"branch":"sentry-1g-fix-nil-pointer","commitSubject":"[SENTRY 1G] Fix nil pointer","commitBody":"[SENTRY 1G] Fix nil pointer\n\nFixes ALMANAC-1G\n\nSentry: https://..."}`. Use those three values verbatim for the branch name, commit subject, and commit body. The script exits non-zero (code 2 or 3) if the issue ID is malformed or the subject fails `/^\[SENTRY [A-Za-z0-9]+\] .+/` validation — re-run with corrected inputs rather than hand-assembling the strings.
 
 Always pass `--permalink` using the `permalink` field from `get_issue_details` — do not construct the URL manually.
 
+**Always pass the full `PROJECT-SHORTID` form to `--issue-id`** (e.g. `ALMANAC-1G`, not `1G`). The script emits a `Fixes PROJECT-SHORTID` trailer in the commit body only when the project prefix is present, and Sentry's release integration uses that trailer to auto-resolve the issue when the containing release ships. Passing only the suffix silently drops the trailer and disables auto-resolve.
+
 ## Branch creation and push — avoid landing on `master` or `main`
 
-If the repo has `push.default = tracking` (or `upstream`) and the fix branch was created from `origin/master`, a plain `git push -u origin <branch>` will push to `master`, bypassing review. Force `simple` push semantics on the command itself so the branch name on the remote always matches the local name, regardless of repo config.
+If the repo has `push.default = tracking` (or `upstream`) and the fix branch was created from the remote's default branch, a plain `git push -u origin <branch>` can push to that default branch, bypassing review. Resolve the default branch dynamically from `origin/HEAD`, then force `simple` push semantics on the command itself so the branch name on the remote always matches the local name, regardless of repo config.
 
 Required sequence:
 

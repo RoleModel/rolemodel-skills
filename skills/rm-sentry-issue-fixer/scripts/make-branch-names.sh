@@ -9,6 +9,11 @@ set -euo pipefail
 # Output: JSON with {branch, commitSubject, commitBody}.
 # Exit codes: 0 success, 2 invalid args, 3 subject failed /^\[SENTRY [A-Za-z0-9]+\] .+/.
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq is required by make-branch-names.sh — install jq (e.g. 'brew install jq' or 'apt install jq') and re-run" >&2
+  exit 2
+fi
+
 ISSUE_ID=""
 DESCRIPTION=""
 PERMALINK=""
@@ -24,9 +29,19 @@ done
 
 [[ -z "$ISSUE_ID"    ]] && { echo "--issue-id required" >&2; exit 2; }
 [[ -z "$DESCRIPTION" ]] && { echo "--description required" >&2; exit 2; }
+[[ "$DESCRIPTION" == *$'\n'* || "$DESCRIPTION" == *$'\r'* ]] && {
+  echo "--description must be a single line (no CR/LF)" >&2
+  exit 2
+}
+DESCRIPTION="$(printf '%s' "$DESCRIPTION" | LC_ALL=C sed -E 's/^[[:blank:]]+//; s/[[:blank:]]+$//')"
+[[ -z "$DESCRIPTION" ]] && { echo "--description required" >&2; exit 2; }
 
-if [[ "$ISSUE_ID" =~ ^([A-Za-z0-9]+-)?([A-Za-z0-9]+)$ ]]; then
+if [[ "$ISSUE_ID" =~ ^([A-Za-z0-9]+)-([A-Za-z0-9]+)$ ]]; then
+  PROJECT="${BASH_REMATCH[1]}"
   SUFFIX="${BASH_REMATCH[2]}"
+elif [[ "$ISSUE_ID" =~ ^[A-Za-z0-9]+$ ]]; then
+  PROJECT=""
+  SUFFIX="$ISSUE_ID"
 else
   echo "invalid --issue-id: expected 'PROJECT-ABC123' or alphanumeric" >&2
   exit 2
@@ -47,10 +62,17 @@ if [[ ! "$SUBJECT" =~ ^\[SENTRY\ [A-Za-z0-9]+\]\ .+ ]]; then
   exit 3
 fi
 
+BODY="$SUBJECT"
+
+# Sentry auto-resolves issues on release when the commit body contains
+# "Fixes PROJECT-SHORTID" (canonical short-ID form). Only emit when the caller
+# provided the full ID; callers who pass just the suffix get no trailer.
+if [[ -n "$PROJECT" ]]; then
+  BODY="$(printf '%s\n\nFixes %s-%s' "$BODY" "$PROJECT" "$SUFFIX")"
+fi
+
 if [[ -n "$PERMALINK" ]]; then
-  BODY="$(printf '%s\n\nSentry: %s' "$SUBJECT" "$PERMALINK")"
-else
-  BODY="$SUBJECT"
+  BODY="$(printf '%s\n\nSentry: %s' "$BODY" "$PERMALINK")"
 fi
 
 jq -cn \
