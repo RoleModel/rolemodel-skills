@@ -91,6 +91,8 @@ The script prints surviving IDs one per line (empty output = all filtered). Trea
 
 Phase 3b — Merged-commit filter
 
+Phase 3c - Filter out Sentry issues that have not occurred in the last 7 days to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant. This is a simple date filter based on the `lastSeen` field of the issue.
+
 Catches the case where the fixer skill has already merged a `[SENTRY <n>]` commit but the Sentry issue is still marked unresolved because the release hasn't deployed yet. Without this filter, the skill hands the same issue to the fixer again and wastes a PR.
 
 - Resolve the default branch ref, in order of preference:
