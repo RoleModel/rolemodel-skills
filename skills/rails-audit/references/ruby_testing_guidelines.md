@@ -49,14 +49,16 @@ Structure your test suite as a pyramid:
 - [ ] Edge cases covered
 
 ### Controller Specs (or Request Specs)
-**Required Coverage**:
+**Only required for controllers with endpoints not accessed via the UI** (e.g., API-only controllers, webhook receivers, JSON APIs consumed externally). UI-accessible endpoints should be covered by system tests instead.
+
+**Required Coverage** (for applicable controllers):
 - Authorization checks
 - Error handling paths
-- Response formats (especially for APIs)
+- Response formats
 
 **Use When**:
-- Any controller endpoint exercised through the UI should be covered by a system test — not a request spec
 - API-only controllers, or endpoints not reachable through the application UI (e.g., webhook receivers, JSON APIs consumed externally), should be tested via request specs
+- Any controller endpoint exercised through the UI should be covered by a system test — not a request spec
 
 ### View Specs
 **Required Coverage**:
