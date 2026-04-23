@@ -2,10 +2,7 @@
 name: theming-context
 description: Using Optics for implementing design system guidelines, theming, and color scales.
 metadata:
-  triggers:
-    - theme
-    - design-system
-    - optics
+  triggers: "theme, design-system, optics"
 ---
 # Theming
 To customize the application, a custom theme files that serve as overrides to the existing tokens can be provided. An example implementation of the main project CSS file would look like:

@@ -201,9 +201,7 @@ Each `SKILL.md` has YAML frontmatter at the top:
 name: skill-name
 description: What the skill does and when to use it.
 metadata:
-  triggers:
-    - keyword that activates the skill
-    - another trigger keyword
+  triggers: "keyword that activates the skill, another trigger keyword"
 ---
 
 Markdown instructions for the AI agent...
