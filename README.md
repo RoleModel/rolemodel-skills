@@ -45,6 +45,12 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | **[sentry-fix-issue](skills/sentry-fix-issue)** | Find and fix production issues from Sentry using MCP. Analyzes stack traces, breadcrumbs, and context to identify root causes and apply fixes. |
 | **[skill-creation](skills/skill-creation)** | ~~Create and update `SKILL.md` files following the Agent Skills format.~~ **Deprecated** — use the [`skill-creator` skill](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) instead. |
 
+### Documentation
+
+| Skill | Description |
+|-------|-------------|
+| **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document`, or wants fresh documentation reflecting the current codebase state. |
+
 ## Installation
 
 There are three ways to add these skills to your project. Choose the one that best fits your workflow.
