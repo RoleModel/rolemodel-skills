@@ -124,9 +124,8 @@ node skills/document-this/scripts/test_inventory.mjs
 Then:
 1. Read each system/integration test file to identify workflows
 2. Trace into source code only as needed to fill in details tests don't make explicit (validation rules, supported formats, role-based access)
-3. Write each workflow using `templates/workflow-entry.template.md`
+3. Write each workflow using `templates/workflow-entry.template.md` — role/action line, 1–2 sentence description, numbered steps. No diagrams.
 4. Group workflows logically by role or feature area
-5. For 2–3 headline workflows (highest centrality or test count), add an inline `sequenceDiagram` mermaid block
 
 **Persona filter:** Write as if the reader is a non-technical manager or end user. Do not assume they know what "modal", "CRUD", or "API" means.
 
@@ -147,11 +146,11 @@ node skills/document-this/scripts/entry_points.mjs
 
 Cover these five things — keep each concise (not exhaustive documentation, just orientation):
 
-1. **Stack & key dependencies** — language, framework, database, notable libraries worth knowing
-2. **Directory map** — what lives where and why, one sentence per major folder
-3. **Data model summary** — key entities and their relationships; do not enumerate every field
-4. **Patterns & conventions** — e.g. "business logic lives in service objects", "controllers stay thin"
-5. **JavaScript architecture** *(optional)* — include only if the project has significant JS: React/Vue/Angular component structure, state management, Stimulus or Alpine controllers, build/chunk strategy, Node.js services. Derive this from Glob/Grep — look for `components/`, `controllers/`, `src/`, etc.
+1. **Stack & key dependencies** — language, framework, database, notable libraries worth knowing. Cap at 5–7 libraries; omit obvious transitive dependencies.
+2. **Directory map** — one sentence per major top-level folder. Omit subfolder explanations when self explanatory.
+3. **Data model summary** — key entities and their relationships; do not enumerate every field. 2–3 sentences of narrative max.
+4. **Patterns & conventions** — 3–6 bullet points: e.g. "business logic lives in service objects", "controllers stay thin". No elaboration per bullet.
+5. **JavaScript architecture** *(optional)* — include only if the project has significant JS. Write as a single section: component structure, state management, and controllers in one paragraph or brief list. Derive from Glob/Grep — look for `components/`, `controllers/`, `src/`.
 
 Then create the Mermaid diagram files:
 - `diagrams/data-model.mmd` — entity relationships (`erDiagram` syntax), derived from `entities.mjs` output and schema files. Include entity names and relationships only — do not add attribute rows to the tables.
@@ -211,3 +210,6 @@ When called with a path, do not regenerate the whole document. Instead:
 - **Flag uncertainty explicitly.** Use Known Gaps rather than guessing.
 - **Don't assume framework.** Derive everything from what you find in the project.
 - **When scripts disagree with disk, trust disk.** Update Known Gaps with the discrepancy.
+- **Prefer omission over padding.** If a template field has nothing meaningful to say, leave it out entirely — do not fill it with filler text or restate what is already obvious.
+- **One thing per line in lists.** No multi-sentence bullets. If it needs a sentence to explain, it belongs in prose; if it needs prose, it probably doesn't belong at all.
+- **Stop when complete.** Do not add context, caveats, or "further reading" beyond what the templates define.
