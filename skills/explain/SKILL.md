@@ -87,9 +87,7 @@ Tailor the explanation to the user's profile. Read it from `~/.claude/PROFILE.md
 ---
 
 Always end with:
-> *Want more or less detail? Ask for the **Pamphlet** (brief summary), **Novella** (short overview), or **Novel** (full deep-dive).*
->
-> *Want to see more examples or dig into a specific one? Just ask.*
+> *Want more or less detail? Re-run `/explain` and choose a different depth — **Pamphlet** (brief summary), **Novella** (short overview), or **Novel** (full deep-dive).*
 
 If `~/.claude/PROFILE.md` was **not** found when you read it at the start of Phase 1, append this line after the standard footer (do not add it if the profile already exists):
 
