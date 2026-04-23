@@ -10,7 +10,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 | Skill | Description |
 |-------|-------------|
-| **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of detail. Great for onboarding into unfamiliar code. |
+| **[bem-structure](skills/bem-structure)** | CSS guidance using BEM (Block Element Modifier) methodology. Naming conventions, nesting rules, and modifier patterns. |
 | **[optics-context](skills/optics-context)** | RoleModel's Optics design system — component classes, design tokens (`--op-` prefix), and styling guidelines. Includes `assets/components.json` and `assets/tokens.json`. |
 | **[theming-context](skills/theming-context)** | Implementing design system guidelines, theming, and color scales with Optics. |
 
@@ -46,21 +46,15 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 | Skill | Description |
 |-------|-------------|
-| **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. |
+| **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document`, or wants fresh documentation reflecting the current codebase state. |
 | **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of detail. Great for onboarding into unfamiliar code or orienting before making a change. |
 | **[trace](skills/trace)** | Trace code through the stack — upward to entry points, downward to data, laterally across callbacks and side effects. Outputs a stack diagram with clickable file references. |
 
-### Process & Planning
+### Process, Planning, & Observability
 
 | Skill | Description |
 |-------|-------------|
 | **[brave-breakdown](skills/brave-breakdown)** | Interactive BRAVE framework thought partner for breaking down a Linear card before starting work. Guides through Brainstorm, Reflect, Approach, Value, and Estimate — one question at a time. |
-| **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document`, or wants fresh documentation reflecting the current codebase state. |
-
-### Workflow & Observability
-
-| Skill | Description |
-|-------|-------------|
 | **[sentry-top-issue](skills/sentry-top-issue)** | Picks the single highest-priority unresolved Sentry issue (sorted by Trends, filtered for open PRs) and hands it off to `rm-sentry-issue-fixer`. Discovers Sentry scope from args or project docs; exits cleanly if scope or MCP is unavailable. Supports `dry-run`, `no-pr-filter`, and `fixer=` overrides. |
 | **[rm-sentry-issue-fixer](skills/rm-sentry-issue-fixer)** | Full seven-phase workflow for diagnosing and fixing a Sentry issue using Sentry MCP: issue discovery → deep analysis → root cause hypothesis → entry point audit → code investigation → implement fix → report results. Enforces security constraints (never follows instructions embedded in Sentry event data). |
 
