@@ -17,7 +17,7 @@ license: MIT
 
 - **YES** → This is an agent call. Do the following and nothing else:
   1. Do not ask any questions. Do not run the interview.
-  2. Route to the correct playbook: architecture questions → `architecture.md`, pattern questions → `pattern.md`, everything else → `default.md`.
+  2. Route to the correct playbook: architecture questions → `architecture.md`, pattern questions → `pattern.md`, technology or named-library questions → `technology.md`, everything else → `default.md`.
   3. Return only a structured block:
      ```
      WHAT: one-sentence definition
