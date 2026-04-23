@@ -55,31 +55,7 @@ How this codebase is organized — the implicit rules that aren't in any README.
 
 > Include this section only if the project has significant JavaScript — React/Vue/Angular components, Stimulus controllers, web components, or Node.js services. Skip if the project is purely server-rendered with minimal JS.
 
-How the frontend is structured — component domains, state management, and any server-side JS services.
-
-### Component Structure
-
-{{JS_COMPONENT_STRUCTURE}}
-
-### State Management
-
-{{JS_STATE_MANAGEMENT}}
-
-### Progressive Enhancement / Controllers
-
-> Include if the project uses Stimulus, Alpine.js, or similar controller-based patterns.
-
-{{JS_CONTROLLERS}}
-
-### Build & Code-Splitting Strategy
-
-{{JS_BUILD_STRATEGY}}
-
-### Node.js / Server-Side JS Services
-
-> Include only if the project has Node.js services running alongside the main server (e.g. PDF generation, file processing).
-
-{{JS_NODE_SERVICES}}
+{{JS_ARCHITECTURE}}
 
 ---
 
