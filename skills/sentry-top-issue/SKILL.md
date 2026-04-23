@@ -51,6 +51,18 @@ Unless no-pr-filter is set, confirm the `gh` CLI is available before proceeding:
     - Do **not** call any Sentry MCP tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
     - Exit cleanly. Like the missing-scope and missing-MCP cases, this is a normal outcome and must not be treated as an error.
 
+Phase 1d — Check open Sentry PR cap
+
+Unless no-pr-filter is set, enforce a maximum of 3 concurrently open automation PRs before fetching any Sentry data:
+
+- Run: `gh pr list --state open --search "[SENTRY" --json number,title`
+- Count how many results have a title matching `/^\[SENTRY \d+\]/`.
+- If the count is **3 or more**, **do nothing**:
+    - Print a single line: `Sentry PR cap reached (<n> open) — skipping. Close or merge existing Sentry PRs before running again.`
+    - Do **not** call any Sentry MCP tools, do **not** invoke the fixer, and do **not** proceed to Phase 2.
+    - Exit cleanly. This is an expected throttle, not an error.
+- If gh is not authenticated, log a one-line warning and continue without the cap check — never block on this.
+
 Phase 2 — Fetch candidate shortlist
 
 Call the Sentry MCP search_issues tool (tool name looks like mcp__<server>__search_issues — resolve via ToolSearch at runtime since the prefix varies by MCP server name) with:
