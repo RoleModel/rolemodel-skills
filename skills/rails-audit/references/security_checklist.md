@@ -297,6 +297,33 @@ redirect_to params[:return_to] if ALLOWED_REDIRECTS.include?(params[:return_to])
 
 ---
 
+### 13. JavaScript Dependency Vulnerabilities
+
+**Detection**: Check whether `package.json` exists in the project root.
+
+If present, determine the package manager:
+- `yarn.lock` present → use `yarn audit`
+- `package-lock.json` present → use `npm audit`
+- Neither lockfile → use `npm audit` as fallback
+
+**Run audit**:
+```bash
+yarn audit --level moderate
+# or
+npm audit --audit-level=moderate
+```
+
+Parse the output and map findings to audit severity:
+- Critical/High advisories → **High** in the audit report
+- Moderate advisories → **Medium**
+- Low advisories → **Low**
+
+Include the advisory name, affected package, installed version, and recommended fix version for each finding.
+
+**Severity**: High (if critical/high advisories found), Medium (moderate only), Low (low only)
+
+---
+
 ## Security Audit Checklist
 
 ### Authentication
@@ -331,6 +358,7 @@ redirect_to params[:return_to] if ALLOWED_REDIRECTS.include?(params[:return_to])
 ### Dependencies
 - [ ] Gemfile.lock reviewed for vulnerabilities
 - [ ] Using `bundler-audit` or similar
+- [ ] JavaScript dependencies audited (`yarn audit` / `npm audit`) if `package.json` present
 
 ---
 

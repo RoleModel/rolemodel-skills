@@ -70,6 +70,8 @@ Ask the user via `AskUserQuestion`:
       "Bash(bundle exec rails test*)",
       "Bash(bundle check)",
       "Bash(bin/spring stop)",
+      "Bash(yarn audit*)",
+      "Bash(npm audit*)",
       "Bash(git stash push*)",
       "Bash(git stash pop)",
       "Bash(git checkout -- Gemfile*)",
