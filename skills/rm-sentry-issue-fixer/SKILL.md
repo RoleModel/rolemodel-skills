@@ -118,6 +118,32 @@ Before writing code, confirm your fix will:
 | **Completeness** | Similar patterns elsewhere? Related Sentry issues? Add monitoring/logging? |
 
 
+## PR & Commit Title Format
+
+**Every** branch, commit, and PR created by this skill MUST follow this exact format:
+
+```
+[SENTRY <number>] <short description>
+```
+
+Rules:
+- `SENTRY` is always uppercase.
+- `<number>` is the numeric portion of the Sentry issue ID (e.g. `PROJECT-123` → `49`, or extract it directly if the ID is already numeric). If the issue ID contains a project prefix like `PROJECT-123`, use just `123`.
+- Square brackets `[` and `]` are mandatory — do not omit them, use parentheses, or any other delimiter.
+- `<short description>` is an imperative-mood summary of the fix (e.g. `Fix nil pointer in PaymentProcessor`).
+- Apply this format to: the git commit message subject line, the PR title, and the branch name (branch name: `sentry-<number>-<slug>`, e.g. `sentry-123-fix-nil-pointer`).
+- The commit body **must** include the full URL to the Sentry issue on its own line, e.g.:
+
+  ```
+  [SENTRY 123] Fix nil pointer in PaymentProcessor
+
+  Sentry: https://sentry.io/organizations/<org>/issues/<number>/
+  ```
+
+  Retrieve the URL from `get_issue_details` (`permalink` field) — do not construct it manually.
+
+**Before opening the PR**, verify the title string matches `/^\[SENTRY \d+\] .+/` and the commit body contains the Sentry URL. Correct either if missing before proceeding.
+
 ## Phase 7: Report Results
 
 Format:
