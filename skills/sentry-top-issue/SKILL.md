@@ -1,6 +1,6 @@
 ---
 name: sentry-top-issue
-description: Pick the single highest-priority unresolved Sentry issue and hand it off to a fixer skill.
+description: Pick the single highest-priority unresolved Sentry issue and hand it off to a fixer skill. Use when triaging Sentry errors, running automated issue triage, or when asked to fix the top Sentry issue in a project.
 license: MIT
 ---
 

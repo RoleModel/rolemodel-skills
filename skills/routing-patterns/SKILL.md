@@ -1,6 +1,8 @@
 ---
 name: routing-patterns
 description: Review, generate, and update Rails routes following professional patterns and best practices. Covers RESTful resource routing, route concerns for code reusability, shallow nesting strategies, and advanced route configurations.
+metadata:
+  triggers: "rails routes, routes.rb, route helper, nested routes, resourceful routing, route concern, route configuration"
 ---
 
 # Routes Best Practices

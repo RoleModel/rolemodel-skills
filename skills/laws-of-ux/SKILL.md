@@ -2,15 +2,7 @@
 name: laws-of-ux
 description: Review and guide UI implementations using the 21 Laws of UX. Identifies usability issues in HTML, CSS, and JavaScript by applying established cognitive, visual, and behavioral principles. Use when reviewing UI code, building new interfaces, or auditing user experience.
 metadata:
-  triggers:
-    - ux review
-    - ui review
-    - usability
-    - laws of ux
-    - ux best practices
-    - user experience
-    - ux audit
-    - ui patterns
+  triggers: "ux review, ui review, usability, laws of ux, ux best practices, user experience, ux audit, ui patterns"
 ---
 
 ## Overview

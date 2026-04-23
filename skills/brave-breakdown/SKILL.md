@@ -14,17 +14,7 @@ description: >
   work on a card and wants help planning, validating, or understanding it
   first — this skill should run.
 metadata:
-  triggers:
-    - BRAVE
-    - brave this
-    - break down
-    - task breakdown
-    - card breakdown
-    - think through
-    - validate work
-    - before I start
-    - breakdown
-    - think through a ticket
+  triggers: "BRAVE, brave this, break down, task breakdown, card breakdown, think through, validate work, before I start, breakdown, think through a ticket"
 ---
 
 # BRAVE Breakdown
