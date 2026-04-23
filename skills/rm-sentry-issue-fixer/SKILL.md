@@ -5,7 +5,6 @@ license: Apache-2.0
 metadata:
   category: workflow
   parent: sentry-workflow
-  disable-model-invocation: "true"
 ---
 
 > This skill was a modification of https://github.com/getsentry/sentry-for-ai/blob/main/skills/sentry-fix-issues/SKILL.md
