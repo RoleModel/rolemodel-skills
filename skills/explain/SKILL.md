@@ -56,6 +56,7 @@ Use the answers to calibrate depth and vocabulary throughout. A backend develope
 
 Based on the user's question, follow the appropriate playbook:
 
+- **Design questions** — the user provided a screenshot of the app and wants to know where it is in the codebase, or is asking about the visual appearance/styling of a UI element or the app's design language overall (e.g. *[attaches screenshot]* "where is this?", "which files control this page", "what does the partner card look like", "what fonts and colors does the app use"): follow `design.md`
 - **Technology questions** — the user is asking about a specific library, gem, npm package, framework feature, or external service used in the app — what it is, how it's configured, and how this codebase uses it (e.g. "how does Pundit work here", "how are we using StimulusJS", "explain how Turbo is set up", "how is Harvest integrated", "what gems handle auth"): follow `technology.md`
 - **Architecture questions** — the user wants to understand how the codebase is structured, how a feature area is organized, or how components fit together (e.g. "how does X work", "explain the structure of", "what files are involved in", "I'm new to this project"): follow `architecture.md`
 - **Pattern questions** — the user is asking about a recurring convention or idiom that appears across many files rather than a single feature (e.g. "how are service objects structured", "explain the policy pattern", "what's the convention for X", "how do we do Y here"): follow `pattern.md`
@@ -146,6 +147,10 @@ The goal is a tight information packet the calling agent can reason over, not a 
 ## Example Interaction Shapes
 
 **User-triggered:**
+- *[attaches screenshot]* `where is this in the app?` → design.md
+- *[attaches screenshot]* `which files control this page` → design.md
+- `what does the partner card look like` → design.md
+- `what fonts and colors does the app use` → design.md
 - `explain retainer drawdowns` → default.md
 - `explain SHM novel` → default.md
 - `what is a partner?` → default.md
