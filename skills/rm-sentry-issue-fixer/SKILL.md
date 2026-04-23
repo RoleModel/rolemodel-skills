@@ -5,7 +5,6 @@ license: Apache-2.0
 metadata:
   category: workflow
   parent: sentry-workflow
-  disable-model-invocation: "true"
 ---
 
 > This skill was a modification of https://github.com/getsentry/sentry-for-ai/blob/main/skills/sentry-fix-issues/SKILL.md
@@ -108,7 +107,9 @@ Before writing code, confirm your fix will:
 - [ ] Handle edge cases (null, undefined, empty, malformed)
 - [ ] Provide meaningful error messages
 - [ ] Be consistent with codebase patterns
-- [ ] Make any needed adjustments to adjacent code when adding the fix for the root cause 
+- [ ] Make any needed adjustments to adjacent code when adding the fix for the root cause
+
+**If the issue has already been fixed:** Do nothing. Do not write tests. Exit the skill with a message: "This issue appears to have already been resolved. No code changes are necessary. Please verify that the fix is working as expected in production and close the Sentry issue if it is resolved."
 
 **Apply the fix:** Prefer input validation > try/catch, graceful degradation > hard failures, specific > generic handling, root cause > symptom fixes.
 
@@ -124,26 +125,43 @@ Before writing code, confirm your fix will:
 **Every** branch, commit, and PR created by this skill MUST follow this exact format:
 
 ```
-[SENTRY <number>] <short description>
+[SENTRY <suffix>] <short description>
 ```
 
-Rules:
-- `SENTRY` is always uppercase.
-- `<number>` is the numeric portion of the Sentry issue ID (e.g. `PROJECT-123` → `49`, or extract it directly if the ID is already numeric). If the issue ID contains a project prefix like `PROJECT-123`, use just `123`.
-- Square brackets `[` and `]` are mandatory — do not omit them, use parentheses, or any other delimiter.
-- `<short description>` is an imperative-mood summary of the fix (e.g. `Fix nil pointer in PaymentProcessor`).
-- Apply this format to: the git commit message subject line, the PR title, and the branch name (branch name: `sentry-<number>-<slug>`, e.g. `sentry-123-fix-nil-pointer`).
-- The commit body **must** include the full URL to the Sentry issue on its own line, e.g.:
+`<suffix>` is the alphanumeric portion of the Sentry issue ID after the project prefix (e.g. `ALMANAC-1G` → `1G`, `PROJECT-123` → `123`). It is **not** required to be numeric — Sentry short-IDs can contain letters.
 
-  ```
-  [SENTRY 123] Fix nil pointer in PaymentProcessor
+Use the helper script to derive the branch name, commit subject, and commit body in one call. It enforces the alphanumeric-suffix rule, the `[SENTRY …]` delimiter format, the slug shape, and (when `--permalink` is passed) the required `Sentry: <url>` body line.
 
-  Sentry: https://sentry.io/organizations/<org>/issues/<number>/
-  ```
+```bash
+bash skills/rm-sentry-issue-fixer/scripts/make-branch-names.sh \
+  --issue-id <PROJECT-ABC123-or-alphanumeric> \
+  --description "<imperative short description>" \
+  --permalink "<permalink from get_issue_details>"
+```
 
-  Retrieve the URL from `get_issue_details` (`permalink` field) — do not construct it manually.
+Output is a single JSON line: `{"branch":"sentry-1g-fix-nil-pointer","commitSubject":"[SENTRY 1G] Fix nil pointer","commitBody":"[SENTRY 1G] Fix nil pointer\n\nFixes ALMANAC-1G\n\nSentry: https://..."}`. Use those three values verbatim for the branch name, commit subject, and commit body. The script exits non-zero (code 2 or 3) if the issue ID is malformed or the subject fails `/^\[SENTRY [A-Za-z0-9]+\] .+/` validation — re-run with corrected inputs rather than hand-assembling the strings.
 
-**Before opening the PR**, verify the title string matches `/^\[SENTRY \d+\] .+/` and the commit body contains the Sentry URL. Correct either if missing before proceeding.
+Always pass `--permalink` using the `permalink` field from `get_issue_details` — do not construct the URL manually.
+
+**Always pass the full `PROJECT-SHORTID` form to `--issue-id`** (e.g. `ALMANAC-1G`, not `1G`). The script emits a `Fixes PROJECT-SHORTID` trailer in the commit body only when the project prefix is present, and Sentry's release integration uses that trailer to auto-resolve the issue when the containing release ships. Passing only the suffix silently drops the trailer and disables auto-resolve.
+
+## Branch creation and push — avoid landing on the default branch
+
+If the repo has `push.default = tracking` (or `upstream`) and the fix branch was created from the remote's default branch, a plain `git push -u origin <branch>` can push to that default branch, bypassing review. Resolve the default branch dynamically — **never assume `main` or `master`** — then force `simple` push semantics on the command itself so the branch name on the remote always matches the local name, regardless of repo config.
+
+Use the helper script to detect the default branch. It consults `origin/HEAD` first, runs `git remote set-head origin --auto` if that's unset, and falls back to probing `origin/main` then `origin/master`. It exits non-zero if none of those resolve — do not hand-assemble a fallback in that case; stop and ask the user.
+
+Required sequence:
+
+```bash
+DEFAULT_BRANCH="$(bash skills/rm-sentry-issue-fixer/scripts/detect-default-branch.sh)"
+git fetch origin "$DEFAULT_BRANCH"
+git checkout -B sentry-<suffix>-<slug> "origin/$DEFAULT_BRANCH"   # fresh branch from latest default
+# ... stage + commit per the format above ...
+git -c push.default=simple push -u origin sentry-<suffix>-<slug>
+```
+
+Never run `git push --force` against the default branch under any circumstances, even to undo an accidental direct push.
 
 ## Phase 7: Report Results
 
