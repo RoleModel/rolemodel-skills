@@ -145,20 +145,23 @@ Always pass `--permalink` using the `permalink` field from `get_issue_details` �
 
 **Always pass the full `PROJECT-SHORTID` form to `--issue-id`** (e.g. `ALMANAC-1G`, not `1G`). The script emits a `Fixes PROJECT-SHORTID` trailer in the commit body only when the project prefix is present, and Sentry's release integration uses that trailer to auto-resolve the issue when the containing release ships. Passing only the suffix silently drops the trailer and disables auto-resolve.
 
-## Branch creation and push — avoid landing on `master` or `main`
+## Branch creation and push — avoid landing on the default branch
 
-If the repo has `push.default = tracking` (or `upstream`) and the fix branch was created from the remote's default branch, a plain `git push -u origin <branch>` can push to that default branch, bypassing review. Resolve the default branch dynamically from `origin/HEAD`, then force `simple` push semantics on the command itself so the branch name on the remote always matches the local name, regardless of repo config.
+If the repo has `push.default = tracking` (or `upstream`) and the fix branch was created from the remote's default branch, a plain `git push -u origin <branch>` can push to that default branch, bypassing review. Resolve the default branch dynamically — **never assume `main` or `master`** — then force `simple` push semantics on the command itself so the branch name on the remote always matches the local name, regardless of repo config.
+
+Use the helper script to detect the default branch. It consults `origin/HEAD` first, runs `git remote set-head origin --auto` if that's unset, and falls back to probing `origin/main` then `origin/master`. It exits non-zero if none of those resolve — do not hand-assemble a fallback in that case; stop and ask the user.
 
 Required sequence:
 
 ```bash
-git fetch origin master
-git checkout -B sentry-<number>-<slug> origin/master    # fresh branch from latest master
+DEFAULT_BRANCH="$(bash skills/rm-sentry-issue-fixer/scripts/detect-default-branch.sh)"
+git fetch origin "$DEFAULT_BRANCH"
+git checkout -B sentry-<suffix>-<slug> "origin/$DEFAULT_BRANCH"   # fresh branch from latest default
 # ... stage + commit per the format above ...
-git -c push.default=simple push -u origin sentry-<number>-<slug>
+git -c push.default=simple push -u origin sentry-<suffix>-<slug>
 ```
 
-Never run `git push --force` against `master`/`main` under any circumstances, even to undo an accidental direct push.
+Never run `git push --force` against the default branch under any circumstances, even to undo an accidental direct push.
 
 ## Phase 7: Report Results
 
