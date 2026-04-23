@@ -129,6 +129,8 @@ Before analyzing, read the relevant reference files:
 - `references/security_checklist.md` - Security vulnerability patterns
 - `references/rails_antipatterns.md` - Rails-specific antipatterns (external services, migrations, performance)
 - `references/stimulus_patterns.md` - Stimulus controller patterns and anti-patterns (betterstimulus.com)
+- `references/javascript_code_smells.md` - JavaScript/TypeScript code smells (callback hell, god modules, magic numbers, etc.)
+- `references/javascript_antipatterns.md` - JavaScript/TypeScript runtime anti-patterns (memory leaks, eval, innerHTML, layout thrashing, etc.)
 
 ### Step 4: Analyze Code by Category
 
@@ -190,7 +192,28 @@ Analyze in this order:
    - Bare rescue statements
    - Silent failures (save without checking return value)
 
-8. **Database & Migrations**
+8. **JavaScript Code Smells** (scan `app/javascript/` and `app/assets/javascripts/`)
+   - Callback hell / missing `async`/`await` adoption
+   - Unhandled promise rejections (`.then()` without `.catch()`)
+   - Implicit type coercion (`==` instead of `===`)
+   - `var` usage (should be `const`/`let`)
+   - Magic numbers and strings
+   - Long functions (> 20 lines), god modules (> 200 lines or > 10 exports)
+   - Mutation of function arguments
+   - Console statements left in production code, dead/commented-out code
+   - See `references/javascript_code_smells.md` for full detection patterns
+
+9. **JavaScript Anti-Patterns** (scan `app/javascript/` and `app/assets/javascripts/`)
+   - Global variable pollution (`window.*` assignments)
+   - Memory leaks: `addEventListener` without cleanup, uncancelled intervals/observers
+   - `eval()` usage (flag Critical)
+   - `innerHTML` with unsanitized content (flag Critical; cross-reference security checklist)
+   - Layout thrashing (DOM reads/writes interleaved in loops)
+   - Swallowed errors (empty or console-only catch blocks)
+   - Missing module boundaries (implicit global script-order dependencies)
+   - See `references/javascript_antipatterns.md` for full detection patterns
+
+10. **Database & Migrations**
    - Messy migrations (model references, missing down methods)
    - Missing indexes on foreign keys, polymorphic associations, uniqueness validations
    - Performance antipatterns (Ruby iteration vs SQL queries)

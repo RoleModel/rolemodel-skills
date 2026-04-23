@@ -33,6 +33,8 @@ Use this template when generating the final audit report.
 | Views | X | X | X | X | X |
 | External Services | X | X | X | X | X |
 | Database & Performance | X | X | X | X | X |
+| JavaScript Code Smells | X | X | X | X | X |
+| JavaScript Anti-Patterns | X | X | X | X | X |
 | **Total** | **X** | **X** | **X** | **X** | **X** |
 
 ### Key Findings
@@ -606,6 +608,249 @@ end
 
 ---
 
+## 10. JavaScript Code Smells
+
+### Overview
+
+- **JS/TS Files Analyzed**: X (`app/javascript/`)
+- **Issues Found**: X
+
+### High Severity
+
+#### [ISSUE_ID] Unhandled Promise Rejections
+
+**File**: `app/javascript/api/orders.js:22`
+**Impact**: Failures silently swallowed; no user feedback or error tracking
+**Details**: `.then()` chain with no `.catch()`
+
+**Current Code**:
+```javascript
+fetch("/api/orders").then(res => res.json()).then(renderOrders);
+```
+
+**Recommendation**:
+```javascript
+fetch("/api/orders")
+  .then(res => res.json())
+  .then(renderOrders)
+  .catch(err => {
+    ErrorReporter.notify(err);
+    showErrorMessage("Failed to load orders.");
+  });
+```
+
+#### [ISSUE_ID] Callback Hell
+
+**File**: `app/javascript/checkout/flow.js:18`
+**Impact**: Hard to read, debug, and extend; error handling is duplicated or absent
+**Details**: Three levels of nested callbacks
+
+**Recommendation**:
+Refactor to `async`/`await`:
+```javascript
+async function runCheckout(cartId) {
+  const cart = await fetchCart(cartId);
+  const order = await createOrder(cart);
+  return confirmOrder(order.id);
+}
+```
+
+#### [ISSUE_ID] God Module
+
+**File**: `app/javascript/utils/helpers.js`
+**Lines**: 380
+**Exports**: 18 unrelated functions
+**Impact**: Hard to navigate, test, and tree-shake; any change here affects unrelated features
+**Recommendation**: Split by domain concern (e.g., `date-utils.js`, `format-utils.js`, `dom-utils.js`).
+
+### Medium Severity
+
+#### [ISSUE_ID] Magic Numbers
+
+**File**: `app/javascript/checkout/pricing.js:14`
+**Impact**: Intent is opaque; changing the value requires finding every occurrence
+**Details**: Numeric literal used in business logic with no named constant
+
+**Current Code**:
+```javascript
+if (status === 3) applyDiscount();
+setTimeout(flush, 5000);
+```
+
+**Recommendation**:
+```javascript
+const ORDER_STATUS_SHIPPED = 3;
+const FLUSH_INTERVAL_MS = 5_000;
+```
+
+#### [ISSUE_ID] Implicit Type Coercion
+
+**File**: `app/javascript/filters/search.js:8`
+**Impact**: Produces surprising `true`/`false` results on `0`, `""`, `null`
+**Details**: Loose equality used in conditional
+
+**Current Code**:
+```javascript
+if (response.count == false) { ... }
+```
+
+**Recommendation**: `if (response.count === 0) { ... }`. Enable the `eqeqeq` ESLint rule project-wide.
+
+### Low Severity
+
+#### [ISSUE_ID] Console Statements
+
+**Files**: `app/javascript/utils/debug.js:7`, `app/javascript/controllers/modal_controller.js:22`
+**Impact**: Leaks internal state to browser devtools; visual noise in production
+**Recommendation**: Remove debug `console.log` calls. Use a conditional logger (`if (DEBUG) logger.log(...)`) for intentional output.
+
+#### [ISSUE_ID] `var` Usage
+
+**File**: `app/javascript/legacy/helpers.js:4`
+**Impact**: Function-scoped hoisting causes subtle bugs; inconsistent with modern codebase
+**Recommendation**: Replace `var` with `const` (or `let` where reassignment is needed). Enable the `no-var` ESLint rule.
+
+---
+
+## 11. JavaScript Anti-Patterns
+
+### Overview
+
+- **JS/TS Files Analyzed**: X (`app/javascript/`)
+- **Issues Found**: X
+
+### Critical Issues
+
+#### [ISSUE_ID] `eval()` Usage
+
+**File**: `app/javascript/utils/dynamic.js:14`
+**Impact**: Arbitrary code execution, XSS risk, blocks browser optimizations
+**Details**: `eval()` called with a dynamically constructed string
+
+**Current Code**:
+```javascript
+const result = eval(userInput);
+```
+
+**Recommendation**:
+Replace with a safe lookup or plain function call:
+```javascript
+const handlers = { greet: () => "Hello", bye: () => "Goodbye" };
+const result = handlers[userInput]?.() ?? defaultHandler();
+```
+
+#### [ISSUE_ID] `innerHTML` Assigned from Unsanitized Variable
+
+**File**: `app/javascript/components/card.js:33`
+**Impact**: XSS — attacker-controlled content can execute scripts
+**Details**: Server-derived string written directly to `innerHTML`
+
+**Current Code**:
+```javascript
+container.innerHTML = apiResponse.html;
+```
+
+**Recommendation**:
+Use `textContent` for plain text, or sanitize with DOMPurify before HTML insertion:
+```javascript
+import DOMPurify from "dompurify";
+container.innerHTML = DOMPurify.sanitize(apiResponse.html);
+```
+
+### High Severity
+
+#### [ISSUE_ID] Memory Leak: Event Listener Not Cleaned Up
+
+**File**: `app/javascript/controllers/scroll_controller.js:12`
+**Impact**: Listener accumulates on each page visit; grows unbounded in Turbo Drive apps
+**Details**: `document.addEventListener` in `connect()` with no matching `removeEventListener` in `disconnect()`
+
+**Current Code**:
+```javascript
+connect() {
+  document.addEventListener("scroll", this.handleScroll.bind(this));
+}
+```
+
+**Recommendation**:
+```javascript
+connect() {
+  this._handleScroll = this.handleScroll.bind(this);
+  document.addEventListener("scroll", this._handleScroll);
+}
+disconnect() {
+  document.removeEventListener("scroll", this._handleScroll);
+}
+```
+
+#### [ISSUE_ID] Swallowed Errors in Catch Block
+
+**File**: `app/javascript/services/config-loader.js:45`
+**Impact**: Failures are invisible; no way to diagnose broken config loading
+**Details**: Empty `catch` block discards exception
+
+**Current Code**:
+```javascript
+try {
+  parseConfig(data);
+} catch (e) {}
+```
+
+**Recommendation**:
+```javascript
+try {
+  parseConfig(data);
+} catch (e) {
+  ErrorReporter.notify(e);
+  showConfigError("Configuration failed to load.");
+}
+```
+
+#### [ISSUE_ID] Global Variable Pollution
+
+**File**: `app/javascript/legacy/app.js:5`
+**Impact**: Naming conflicts, unintended state sharing, blocks tree-shaking
+**Details**: Application state stored on `window`
+
+**Current Code**:
+```javascript
+window.currentUser = { id: 1, name: "Alice" };
+```
+
+**Recommendation**:
+Use ES module exports:
+```javascript
+// current-user.js
+let _user = null;
+export const setCurrentUser = (user) => { _user = user; };
+export const getCurrentUser = () => _user;
+```
+
+### Medium Severity
+
+#### [ISSUE_ID] Layout Thrashing in Loop
+
+**File**: `app/javascript/components/resize.js:30`
+**Impact**: Forces browser layout recalculation on every iteration; causes jank on large lists
+**Details**: `offsetHeight` read and style write interleaved in the same loop
+
+**Recommendation**:
+Batch reads before writes:
+```javascript
+const heights = items.map(el => el.offsetHeight);
+items.forEach((el, i) => { el.style.height = heights[i] + 10 + "px"; });
+```
+
+#### [ISSUE_ID] Missing Module Boundaries
+
+**File**: `app/javascript/legacy/checkout.js`
+**Impact**: Script load order is a hidden runtime dependency; breaks when order changes
+**Details**: File references `CartManager` and `PricingEngine` without importing them — relies on prior `<script>` tags
+
+**Recommendation**: Add `import { CartManager } from "./cart-manager.js"` declarations and remove load-order coupling.
+
+---
+
 ## Recommendations Summary
 
 ### Quick Wins (Immediate Action)
@@ -638,6 +883,7 @@ end
 | app/views/ | X | X |
 | app/helpers/ | X | X |
 | app/jobs/ | X | X |
+| app/javascript/ | X | X |
 | db/migrate/ | X | X |
 | config/ | X | X |
 | spec/ or test/ | X | X |
