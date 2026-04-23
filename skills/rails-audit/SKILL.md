@@ -1,6 +1,16 @@
 ---
 name: rails-audit
 description: Perform comprehensive code audits of Ruby on Rails applications based on thoughtbot best practices. Use this skill when the user requests a code audit, code review, quality assessment, or analysis of a Rails application. The skill analyzes the entire codebase focusing on testing practices (RSpec), security vulnerabilities, code design (skinny controllers, domain models, PORO with ActiveModel), Rails conventions, database optimization, and Ruby best practices. Outputs a detailed markdown audit report grouped by category (Testing, Security, Models, Controllers, Code Design, Views) with severity levels (Critical, High, Medium, Low) within each category.
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+compatibility:
+  repo: "*"
+metadata:
+  author: OpenAI
+  version: 1.0.0
+license: Apache-2.0
 ---
 
 # Rails Audit Skill (thoughtbot Best Practices)
