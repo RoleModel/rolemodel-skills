@@ -90,3 +90,5 @@ USAGE PATTERN: the canonical way the library is called in this codebase
 - **Examples** — 2–4 real instances with clickable `[file:line](path/to/file#Lline)` references; one-line summary of what each shows about how the library is being used; small code excerpts only when they clarify the shape
 - **Key Decisions & Gotchas** — non-obvious configuration choices, places where the app extends or customizes the library, known limitations or things to watch out for
 - **Related Technologies** — other libraries, patterns, or parts of the stack that interact with this one
+
+For the follow-up block, add one technology-specific suggestion — e.g. seeing how errors from this library are handled, exploring a related library it integrates with, or finding the tests that exercise this integration.

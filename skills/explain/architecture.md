@@ -95,7 +95,8 @@ DATA MODEL: key models and their relationships in plain text (e.g. Partner has_m
 - **What to Look at Next** — 2–3 specific files or areas to explore next, based on the user's role and intentions
 - **Existing Documentation** — any relevant docs found during exploration
 
-Append this to the "Always end with" block from SKILL.md:
-> *Want to capture the data model as a diagram? Ask to save it to a doc.*
+Add one architecture-specific suggestion to the follow-up block from SKILL.md: offer to capture the data model as a Mermaid diagram saved to `docs/`.
+
+If the user asks for the diagram, generate a Mermaid `erDiagram` showing the relevant models and relationships; always include the central identity model if it connects; point to the schema file for the full column list. Save it to a timestamped file under `docs/` with a filename based on the question asked.
 
 If the user asks for the diagram, generate a Mermaid `erDiagram` showing the relevant models and relationships; always include the central identity model if it connects; point to `db/schema.rb` for the full column list. Save it to a timestamped file under `docs/` with a filename based on the question asked.

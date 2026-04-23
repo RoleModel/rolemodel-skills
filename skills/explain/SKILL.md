@@ -86,10 +86,25 @@ Tailor the explanation to the user's profile. Read it from `~/.claude/PROFILE.md
 
 ---
 
-Always end with:
-> *Want more or less detail? Re-run `/explain` and choose a different depth — **Pamphlet** (brief summary), **Novella** (short overview), or **Novel** (full deep-dive).*
+Always end with a short follow-up block. Write 2–3 specific suggestions based on what you just covered — not generic options. Each suggestion should reflect something a reader of *this particular explanation* would naturally want to explore next. Examples of what "specific" looks like:
 
-If `~/.claude/PROFILE.md` was **not** found when you read it at the start of Phase 1, append this line after the standard footer (do not add it if the profile already exists):
+- If you explained a billing feature: "See how invoices connect to the payment gateway", "Trace an invoice through the background job that sends it"
+- If you explained a pattern: "See a more complex example that extends this pattern", "Find where this pattern is violated and what the current standard is"
+- If you explained a library: "See how errors from this library are handled app-wide", "Find the tests that exercise this integration"
+
+Format the block as:
+
+---
+**Want to go deeper?**
+- [specific suggestion 1]
+- [specific suggestion 2]
+- [specific suggestion 3, optional]
+
+*Or ask for a different depth — **Pamphlet** (brief), **Novella** (overview), **Novel** (full deep-dive).*
+
+Each playbook may add one additional suggestion specific to its domain — append it to this list.
+
+If `~/.claude/PROFILE.md` was **not** found when you read it at the start of Phase 1, append this line after the follow-up block (do not add it if the profile already exists):
 
 > *Want to customize explanations to your preferences? Use `/create-profile`*
 

@@ -38,3 +38,5 @@ DATA MODEL: key attributes and associations (column names, foreign keys, enums)
 **Novella** — Give a developer a working mental model. Cover the main moving parts (key models, services, flows) without going deep on implementation.
 
 **Novel** — A comprehensive technical walkthrough using headings (e.g. Data Model, Business Logic, API/Controller Layer, Views, Background Jobs, External Integrations, Key Decisions, Key Gotchas). Always include a **Key Decisions** section when meaningful design choices are present — explain *why* things were built the way they were, not just *how*. Look for signals in comments, naming conventions, environment guards, and non-obvious logic branches.
+
+For the follow-up block, add one concept-specific suggestion — e.g. tracing this concept through a related flow, exploring an adjacent model, or seeing how this concept is tested.

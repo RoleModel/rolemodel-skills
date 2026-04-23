@@ -69,3 +69,5 @@ EXAMPLES: 2–3 real file paths that best illustrate the pattern
 - **Implementation** — a short checklist for applying the pattern to a new case (file to create, spec to write, things to wire up)
 - **Key Decisions** — non-obvious design choices: why this pattern over alternatives, constraints it enforces, gotchas to avoid
 - **Related Patterns** — adjacent patterns the user should know about (e.g. services vs queries vs presenters). This should NOT be simply related files but other patterns that are adjacent or cover similar problems.
+
+For the follow-up block, add one pattern-specific suggestion — e.g. seeing how to implement this pattern for a new case, exploring a related pattern, or finding where this pattern is tested.
