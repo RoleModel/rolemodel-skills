@@ -1,6 +1,8 @@
 ---
 name: controller-patterns
 description: Review and update existing Rails controllers and generate new controllers following professional patterns and best practices. Covers RESTful conventions, authorization patterns, proper error handling, and maintainable code organization.
+metadata:
+  triggers: "rails controller, controller action, generate controller, review controller, RESTful controller, before_action, controller callback"
 ---
 
 # Rails Controller Patterns

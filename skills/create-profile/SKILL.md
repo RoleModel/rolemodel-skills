@@ -1,7 +1,7 @@
 ---
 name: create-profile
 description: Creates or updates a personal developer profile at ~/.claude/PROFILE.md. Run this once to tell Claude about your role, experience, and preferences so that explanations and other skills can tailor their output to you.
-allowed-tools: Read(~/.claude/PROFILE.md), Write(~/.claude/PROFILE.md), AskUserQuestion
+allowed-tools: Read(~/.claude/PROFILE.md) Write(~/.claude/PROFILE.md) AskUserQuestion
 compatibility: Designed for Claude Code (or similar products)
 metadata:
   author: rolemodel

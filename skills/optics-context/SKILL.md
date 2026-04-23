@@ -2,12 +2,7 @@
 name: optics-context
 description: Use the Optics design framework for styling applications. Apply Optics classes for layout, spacing, typography, colors, and components. Use when working on CSS, styling views, or implementing design system guidelines.
 metadata:
-  triggers:
-    - slim
-    - css
-    - frontend
-    - design-system
-    - optics
+  triggers: "slim, css, frontend, design-system, optics"
 ---
 
 # Optics Design Framework

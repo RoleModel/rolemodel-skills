@@ -2,13 +2,7 @@
 name: bem-structure
 description: Expert guidance for writing, refactoring, and structuring CSS using BEM (Block Element Modifier) methodology. Provides proper CSS class naming conventions, component structure, and Optics design system integration for maintainable, scalable stylesheets.
 metadata:
-  triggers:
-    - css review
-    - bem structure
-    - bem methodology
-    - css best practices
-    - refactor css
-    - bem-ify
+  triggers: "css review, bem structure, bem methodology, css best practices, refactor css, bem-ify"
 ---
 
 ## Overview

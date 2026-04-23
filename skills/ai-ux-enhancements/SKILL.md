@@ -2,13 +2,7 @@
 name: ai-ux-enhancements
 description: Automated UX review rules optimized for AI-driven design evaluations, addressing gaps in usability and user empowerment. Complementary to laws-of-ux skill, focusing on efficiency, control, cognitive workload, learnability, and personalization.
 metadata:
-  triggers:
-    - ux review
-    - automated ux
-    - ai ux
-    - ux heuristics
-    - ux automation
-    - accessibility review
+  triggers: "ux review, automated ux, ai ux, ux heuristics, ux automation, accessibility review"
 ---
 
 # SKILL: Automated UX Review Rules – AI-Optimized Subset (2026)

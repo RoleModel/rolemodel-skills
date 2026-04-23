@@ -2,15 +2,7 @@
 name: usability-heuristics
 description: Audit UI implementations against Nielsen's 10 Usability Heuristics for User Interface Design. Produces a structured issue log with severity ratings, heuristic mappings, and remediation guidance. Use when conducting heuristic evaluations, reviewing UI code for usability compliance, or auditing existing interfaces.
 metadata:
-  triggers:
-    - heuristic evaluation
-    - usability audit
-    - nielsen heuristics
-    - ui audit
-    - usability review
-    - heuristic review
-    - ux compliance
-    - usability issues
+  triggers: "heuristic evaluation, usability audit, nielsen heuristics, ui audit, usability review, heuristic review, ux compliance, usability issues"
 ---
 
 ## Overview
