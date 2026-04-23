@@ -29,19 +29,11 @@ Structure your test suite as a pyramid:
 - Conditional rendering branches
 - Integration with routing, stores, and API boundaries (mocked at network boundary)
 
-**Parent-renders-child coverage**: A parent component's test may render its child components and assert their behavior as part of the integration. When a child component has no dedicated test file but is rendered and meaningfully exercised by a parent's test, the child is considered **implicitly covered**. The audit should not flag it as untested.
-
-To determine implicit coverage:
-- Search parent test files for imports or renders of the child component
-- Check that the parent test asserts behavior produced by the child (e.g., text content, interactions, conditional rendering)
-- A child that is merely rendered without any assertions on its output is **not** considered covered
-
 **Audit Checks**:
-- [ ] Components with non-trivial logic have tests (directly or via a parent integration test)
+- [ ] Components with non-trivial logic have tests
 - [ ] Accessibility queries (`getByRole`, labels, names) are preferred over brittle selectors
 - [ ] Loading, empty, success, and error states are covered
 - [ ] Interaction tests assert user-visible outcomes, not internals
-- [ ] Child components with complex standalone logic have their own unit tests, even if also exercised by a parent
 
 ### API/Server Integration Tests (Node/Express/Fastify/Nest)
 **Required Coverage**:
@@ -235,35 +227,23 @@ describe("formatFullName", () => {
 
 ## Missing Test Detection
 
-For each JavaScript/TypeScript file in `app/javascript/` (or `app/assets/javascripts/`):
+For each JavaScript/TypeScript file in `src/` (or `app/javascript/`):
 
-1. Load the spec directory mapping (`assets/spec_directory_map.yml` merged with project `.rails-audit-spec-map.yml`):
-   - `javascript_mappings`: maps source directories to test directories (e.g., `app/javascript` → `spec/javascript`, `test/javascript`, `spec/frontend`)
-   - `javascript_co_located_patterns`: patterns for tests next to source files (e.g., `.test.js`, `.spec.js`, `__tests__/`)
+1. Check for corresponding test file:
+   - `src/utils/date.ts` -> `src/utils/date.test.ts`
+   - `src/components/UserCard.tsx` -> `src/components/UserCard.test.tsx`
+   - `src/api/users.ts` -> `src/api/users.test.ts`
 
-2. Check for corresponding test file across **all** mapped locations:
-   - **Co-located patterns first** (same directory as source):
-     - `app/javascript/utils/date.js` → `app/javascript/utils/date.test.js`, `date.spec.js`
-     - `app/javascript/utils/date.js` → `app/javascript/utils/__tests__/date.js`, `__tests__/date.test.js`
-   - **Mapped directories** (separate test trees):
-     - `app/javascript/utils/date.js` → `spec/javascript/utils/date.test.js`, `date.spec.js`
-     - `app/javascript/utils/date.js` → `test/javascript/utils/date.test.js`, `date.spec.js`
-     - `app/javascript/utils/date.js` → `spec/frontend/utils/date.test.js`, `date.spec.js`
-   - **Stimulus controllers** get additional checks:
-     - `app/javascript/controllers/search_controller.js` → also check `search_controller.test.js` and `search.test.js` (controller suffix stripped)
-   - **Parent component coverage** (React/Vue/Svelte): if no dedicated test file is found for a component, search parent component test files for imports of the child. If a parent test imports and renders the child **and** asserts behavior produced by it, the child is considered implicitly covered and should not be flagged as untested. Children with complex standalone logic should still be noted as **Medium** (recommend dedicated tests) rather than **High**.
-   - A file is considered tested if **any** of the above checks find coverage
-
-3. Check public exports are tested:
+2. Check public exports are tested:
    - Extract named/default exports
    - Search for behavior-oriented tests covering each export
 
-4. Check critical branches are tested:
+3. Check critical branches are tested:
    - Success, failure, empty, and permission/validation states
 
-5. Report:
-   - Files without any tests → **High** severity
-   - Files with partial path/branch coverage → **Medium** severity
+4. Report:
+   - Files without any tests -> **High** severity
+   - Files with partial path/branch coverage -> **Medium** severity
 
 ---
 

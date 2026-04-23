@@ -52,9 +52,7 @@ After both finish, clean up: `rm -rf coverage/` and/or `rm -rf tmp/rubycritic/` 
 
 ### Step 3: Load Reference Materials
 
-Before analyzing, load the spec directory mapping and read the relevant reference files:
-- `assets/spec_directory_map.yml` - Default app-to-spec directory mapping
-- `.rails-audit-spec-map.yml` (project root, if present) - Project-specific overrides; merge with defaults
+Before analyzing, read the relevant reference files:
 - `references/code_smells.md` - Code smell patterns to identify
 - `references/ruby_testing_guidelines.md` - Ruby testing best practices
 - `references/javascript_testing_guidelines.md` - Javascript testing best practices
@@ -96,9 +94,7 @@ When RubyCritic data was collected in Step 2, include the **Code Quality Metrics
 | **Low** | Style issues, minor improvements, suggestions |
 
 - **Find Ruby files by type**: Use the Glob tool with patterns like `app/models/**/*.rb`, `app/controllers/**/*.rb`, `app/services/**/*.rb`
-- **Find Ruby test files**: Use Glob with `spec/**/*_spec.rb` or `test/**/*_test.rb`
-- **Find JS/TS source files**: Use Glob with `app/javascript/**/*.{js,ts,jsx,tsx}` (exclude test files by filtering out `.test.`, `.spec.`, and `__tests__/`)
-- **Find JS/TS test files**: Use Glob with patterns like `spec/javascript/**/*.{test,spec}.{js,ts,jsx,tsx}`, `test/javascript/**/*`, and `app/javascript/**/*.{test,spec}.{js,ts,jsx,tsx}` for co-located tests
+- **Find test files**: Use Glob with `spec/**/*_spec.rb` or `test/**/*_test.rb`
 - **Search for patterns in code**: Use the Grep tool (e.g., search for `rescue\s*$`, `\.save\b`, `params\.permit!`)
 - **Read and count lines in files**: Use the Read tool to inspect files; count lines from the output
 - **Find long files**: Use Glob to list all `app/**/*.rb` files, then Read each to check line count
