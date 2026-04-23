@@ -1,0 +1,122 @@
+# Default mapping from source directories to test directories.
+#
+# Projects can override or extend these defaults by placing a
+# .rails-audit-spec-map.yml file in the project root. See SKILL.md for details.
+
+# ─── Ruby ────────────────────────────────────────────────────────────────────
+# Each app directory maps to one or more spec/test directories.
+#
+# Naming convention for spec lookup:
+#   Given source file  app/<type>/<path>/<name>.rb
+#   Look for spec file <mapped_dir>/<path>/<name>_spec.rb
+#                  or  <mapped_dir>/<path>/<name>_test.rb
+
+ruby_mappings:
+  app/models:
+    - spec/models
+    - test/models
+
+  app/controllers:
+    - spec/controllers
+    - spec/requests
+    - spec/integration
+    - test/controllers
+    - test/integration
+
+  app/helpers:
+    - spec/helpers
+    - test/helpers
+
+  app/mailers:
+    - spec/mailers
+    - test/mailers
+
+  app/jobs:
+    - spec/jobs
+    - test/jobs
+
+  app/services:
+    - spec/services
+    - spec/models
+    - test/services
+
+  app/views:
+    - spec/views
+    - test/views
+
+  app/channels:
+    - spec/channels
+    - test/channels
+
+  app/mailboxes:
+    - spec/mailboxes
+    - test/mailboxes
+
+  app/components:
+    - spec/components
+    - test/components
+
+  lib:
+    - spec/lib
+    - test/lib
+
+# ─── JavaScript / TypeScript ─────────────────────────────────────────────────
+# Each source directory maps to one or more test directories.
+# Tests may also be co-located with source files (see co_located_patterns).
+#
+# Naming convention for test lookup:
+#   Given source file  <source_dir>/<path>/<name>.<ext>
+#   In mapped dirs:    <mapped_dir>/<path>/<name>.test.<ext>
+#                  or  <mapped_dir>/<path>/<name>.spec.<ext>
+#                  or  <mapped_dir>/<path>/<name>_test.<ext>
+#                  or  <mapped_dir>/<path>/<name>_spec.<ext>
+#   Co-located:        <source_dir>/<path>/<name>.test.<ext>   (same directory)
+#                  or  <source_dir>/<path>/<name>.spec.<ext>
+#                  or  <source_dir>/<path>/__tests__/<name>.<ext>
+
+javascript_mappings:
+  app/javascript:
+    - spec/javascript
+    - test/javascript
+    - spec/frontend
+    - test/frontend
+    - app/javascript
+
+  app/javascript/controllers:
+    - spec/javascript/controllers
+    - test/javascript/controllers
+    - spec/frontend/controllers
+    - app/javascript/controllers
+
+  app/javascript/components:
+    - spec/javascript/components
+    - test/javascript/components
+    - spec/frontend/components
+    - app/javascript/components
+
+  app/javascript/channels:
+    - spec/javascript/channels
+    - test/javascript/channels
+    - app/javascript/channels
+
+  app/assets/javascripts:
+    - spec/javascripts
+    - test/javascripts
+    - spec/javascript
+    - test/javascript
+
+# Co-located test patterns recognized for JavaScript/TypeScript files.
+# When a source file is in a directory, these patterns are checked IN that
+# same directory before falling back to mapped directories above.
+#
+# Given source file: app/javascript/utils/date.js
+# Co-located checks:
+#   app/javascript/utils/date.test.js
+#   app/javascript/utils/date.spec.js
+#   app/javascript/utils/__tests__/date.js
+#   app/javascript/utils/__tests__/date.test.js
+javascript_co_located_patterns:
+  - "{name}.test.{ext}"
+  - "{name}.spec.{ext}"
+  - "__tests__/{name}.{ext}"
+  - "__tests__/{name}.test.{ext}"

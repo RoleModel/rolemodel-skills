@@ -260,12 +260,24 @@ For each Ruby file in `app/`:
    - `app/models/user.rb` → `spec/models/user_spec.rb`
    - `app/controllers/api/registrations_controller.rb` → `spec/controllers/api/registrations_controller_spec.rb` or `spec/api/registrations_controller_spec.rb` or `spec/requests/api/registrations_spec.rb`
      **Exception**: Controllers whose endpoints are accessed via the application UI do **not** require a controller or request spec — their coverage comes from system/feature specs. Only flag missing specs for API-only controllers, webhook receivers, or other endpoints not reachable through the UI.
+2. Load the spec directory mapping (`assets/spec_directory_map.yml` merged with project `.rails-audit-spec-map.yml`):
+   - For each app directory (e.g., `app/controllers`), the mapping lists candidate spec directories (e.g., `spec/controllers`, `spec/requests`, `spec/integration`)
 
-2. Check public methods are tested:
+3. Check for corresponding spec across **all** mapped directories:
+   - `app/models/user.rb` → check `spec/models/user_spec.rb`, `test/models/user_test.rb`
+   - `app/controllers/api/v1/users_controller.rb` → check:
+     - `spec/controllers/api/v1/users_controller_spec.rb`
+     - `spec/requests/api/v1/users_controller_spec.rb`
+     - `spec/requests/api/v1/users_spec.rb` (controller suffix stripped)
+     - `spec/integration/api/v1/users_controller_spec.rb`
+   - `app/services/payment_processor.rb` → check `spec/services/payment_processor_spec.rb`, `spec/models/payment_processor_spec.rb`
+   - A file is considered tested if **any** mapped location has a matching spec
+
+4. Check public methods are tested:
    - Extract public method names from source
-   - Search for those names in spec file
+   - Search for those names in the located spec file(s)
 
-3. Report:
+5. Report:
    - Files without any tests → **High** severity (skip this check for UI-facing controllers per the exception above)
    - Files with partial coverage → **Medium** severity
 
