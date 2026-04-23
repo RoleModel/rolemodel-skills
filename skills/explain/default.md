@@ -14,7 +14,7 @@
 
 Apply the **Output Format Rules** from SKILL.md (size, formatting constraints, file references). Omit sections that don't apply. Then follow this content structure per level:
 
-Start with the resolved term name as a heading so the user knows what you're explaining.
+Start by naming the resolved term so the user immediately knows what you're explaining. For **Novella** and **Novel**, use the resolved term name as a heading. For **Pamphlet**, do not use a heading; instead, begin the opening paragraph with the resolved term name.
 
 **If agent-triggered** (input began with `depth:`), skip all sections below and return this structured block instead:
 
