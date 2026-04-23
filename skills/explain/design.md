@@ -37,7 +37,11 @@ Use what you observed to infer the controller and action. Common patterns:
 - A detail view → likely `show`
 - A modal or partial overlay → look for a matching partial in the views directory
 
-Read `TERMINOLOGY.md` from the project root (if it exists) to resolve any ambiguous terms to model/controller names.
+**Check for generated documentation** — look for `generated-docs/` in the project root.
+
+- **If `generated-docs/` exists:** Read `generated-docs/ai-orientation.md` (Terminology/Glossary section) to resolve any ambiguous UI terms to model/controller names. Treat these as a starting point — the docs may be out of date, so verify against the actual source files.
+
+If no generated documentation was found, use grep and directory exploration to resolve ambiguous terms.
 
 #### Step 4: Locate the view files
 
@@ -93,9 +97,13 @@ If the screenshot cannot be matched with confidence, say so and ask the user for
 
 When the user wants a general description of the app's visual design rather than a specific screen:
 
-1. Search `app/assets/stylesheets/` for theme or token files that define brand colors, typography, and spacing.
-2. Look for any design system token definitions available in the project (e.g. a `tokens.json` or similar).
-3. Check for component override stylesheets that show where the app diverges from a base design system.
+1. **Check for generated documentation** — look for `generated-docs/` in the project root.
+
+   - **If `generated-docs/` exists:** Read `generated-docs/architecture.md` to see if the design system, theming approach, or visual conventions are described there. Treat these as a starting point — the docs may be out of date, so verify against the actual source files.
+
+2. If no generated documentation was found, search `app/assets/stylesheets/` for theme or token files that define brand colors, typography, and spacing.
+3. Look for any design system token definitions available in the project (e.g. a `tokens.json` or similar).
+4. Check for component override stylesheets that show where the app diverges from a base design system.
 
 **Pamphlet** — One plain paragraph covering the typeface(s) and the two or three most prominent brand colors. No file references, no token names.
 

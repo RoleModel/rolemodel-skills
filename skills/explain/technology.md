@@ -19,7 +19,11 @@ If docs are unavailable or inaccessible, fall back to what you know from trainin
 
 ### Step 3: Locate it in the codebase
 
-Search for evidence of setup and usage. The right places to look depend on the stack — use the signals below:
+1. **Check for generated documentation** — look for `generated-docs/` in the project root.
+
+   - **If `generated-docs/` exists:** Read `generated-docs/ai-orientation.md` (Terminology/Glossary section) to confirm the technology name and any project-specific aliases. Read `generated-docs/architecture.md` to see if the library's integration or role is already described there. Treat these as a starting point — the docs may be out of date, so verify against the actual source files.
+
+2. If no generated documentation was found, search for evidence of setup and usage directly. The right places to look depend on the stack — use the signals below:
 
 **Dependency manifest** — confirm the library is present and note the version:
 - Ruby/Rails: `Gemfile` / `Gemfile.lock`

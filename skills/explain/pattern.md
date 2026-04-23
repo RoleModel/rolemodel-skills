@@ -6,7 +6,9 @@ The goal is to describe the pattern itself (structure, why), then ground it in r
 
 ### Identify the pattern
 
-1. Read `TERMINOLOGY.md` and `ARCHITECTURE.md` from the project root (if they exist) to see if the pattern is named or described there.
+1. **Check for generated documentation** — look for `generated-docs/` in the project root.
+
+   - **If `generated-docs/` exists:** Read `generated-docs/ai-orientation.md` (Terminology/Glossary section) and `generated-docs/architecture.md` (Patterns & Conventions section) to see if the pattern is named or described there. Treat these as a starting point — the docs may be out of date, so verify against the actual source files before relying on them.
 
 2. If the pattern maps to a conventional directory (e.g. `app/services/`, `app/policies/`, `app/queries/`, `app/presenters/`, `app/decorators/`, `app/javascript/controllers/`, `spec/factories/`), list that directory to get a feel for scale and naming.
 

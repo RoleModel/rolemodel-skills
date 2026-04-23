@@ -24,7 +24,11 @@ Read the identified package file(s) to confirm the framework, version, and key d
 
 ### Check Existing Docs
 
-Before reading code, look for documentation that may already answer the question: `README.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `TERMINOLOGY.md`, `CONTRIBUTING.md`, `docs/`. Cite relevant sections in output rather than re-deriving from code.
+1. **Check for generated documentation** — look for `generated-docs/` in the project root.
+
+   - **If `generated-docs/` exists:** Read `generated-docs/ai-orientation.md` (Terminology/Glossary section) to resolve ambiguous terms and understand domain vocabulary. Read `generated-docs/architecture.md` for an overview of the system structure. Treat these as a starting point — the docs may be out of date, so verify key claims against the actual source files before including them in your output.
+
+2. If no generated documentation was found, look for: `README.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `TERMINOLOGY.md`, `CONTRIBUTING.md`, `docs/`. Cite relevant sections in output rather than re-deriving from code.
 
 ### Explore by Scope
 

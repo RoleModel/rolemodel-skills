@@ -1,10 +1,12 @@
 ## Explore
 
-1. Read `TERMINOLOGY.md` from the project root (if it exists). Match the user's input against known terms, acronyms, and aliases. If the term is ambiguous between multiple concepts, ask the user a single focused question to disambiguate before continuing.
+1. **Check for generated documentation** — look for `generated-docs/` in the project root.
 
-2. Read `ARCHITECTURE.md` from the project root (if it exists). Use it to identify the primary models, services, controllers, views, or other layers related to the resolved term.
+   - **If `generated-docs/` exists:** Read `generated-docs/ai-orientation.md` (Terminology/Glossary section) to resolve the user's input against known terms, acronyms, and aliases. Read `generated-docs/architecture.md` to identify the primary models, services, controllers, views, or other layers related to the resolved term. Treat these as a starting point — the docs may be out of date, so verify key claims against the actual source files before including them in your output.
 
-3. If neither file exists, use `grep`, `find`, and Rails conventions to locate relevant files from the resolved term name.
+   If the term is ambiguous between multiple concepts after consulting documentation, ask the user a single focused question to disambiguate before continuing.
+
+2. If no documentation was found, use `grep`, `find`, and framework conventions to locate relevant files from the resolved term name.
 
 4. Do a focused exploration of the key files you've identified — be surgical. For a Pamphlet you may only need the model and one service. For a Novel you'll need the full stack: data model, services, controller/view layer, background jobs, integrations, and non-obvious logic branches.
 
