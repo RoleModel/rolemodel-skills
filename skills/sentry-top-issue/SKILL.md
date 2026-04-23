@@ -49,14 +49,20 @@ Before calling any Sentry tool, confirm a Sentry MCP server is actually availabl
   - Do **not** call any tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
   - Exit cleanly. Like the missing-scope case, this is a normal outcome and must not be treated as an error.
 
-Phase 2 — Fetch candidate shortlist
+Phase 2 — Fetch candidate shortlist (priority-tiered)
 
-Call the Sentry MCP search_issues tool (tool name looks like mcp__<server>__search_issues — resolve via ToolSearch at runtime since the prefix varies by MCP server name) with:
+Resolve the Sentry MCP search_issues tool (tool name looks like mcp__<server>__search_issues — resolve via ToolSearch at runtime since the prefix varies by MCP server name).
+
+Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, call search_issues with:
 
 - the resolved scope (organizationSlug, projectSlugOrId, regionUrl)
-- query: "is:unresolved environment:<env>"
+- query: `is:unresolved environment:<env> issue.priority:<tier>`
 - sort set to Sentry's Trends sort — verify the exact parameter name and accepted value against the live tool schema before calling; fall back to user if Trends is rejected
 - limit: 10
+
+Run Phase 3 filters against that tier's results; stop at the first tier with surviving candidates and carry them into Phase 4. If all three tiers are empty after filtering, proceed to the "Nothing to pick." path.
+
+If Sentry rejects the `issue.priority:<tier>` syntax (schema drift), log a one-line warning and fall back to a single untiered call with query `is:unresolved environment:<env>` — don't block the pick on priority filtering.
 
 Phase 3 — Filter issues already being worked on or already fixed
 
@@ -96,7 +102,7 @@ Take the top remaining candidate. Print:
 Top issue: <ID> — <title>
 Users: <userCount>  Events: <count>
 First seen: <firstSeen>  Last seen: <lastSeen>
-Why: ranked #1 by Sentry Trends sort (unresolved, environment=<env>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
+Why: ranked #1 by Sentry Trends sort within the highest-priority tier that had surviving candidates (unresolved, environment=<env>, priority=<tier>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
 
 If the shortlist is empty after filtering, say "Nothing to pick." and stop.
 
