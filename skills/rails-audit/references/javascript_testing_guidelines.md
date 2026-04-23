@@ -1,4 +1,3 @@
-````markdown
 # Testing Guidelines Reference (JavaScript)
 
 ## Test Suite Quality Characteristics
