@@ -158,7 +158,7 @@ end
 # Check for missing before_action
 class AdminController < ApplicationController
   # Missing: before_action :authenticate_admin!
-  
+
   def destroy
     User.find(params[:id]).destroy
   end
@@ -225,7 +225,7 @@ ActiveSupport::MessageEncryptor
 ```ruby
 # Check session configuration
 # config/initializers/session_store.rb
-Rails.application.config.session_store :cookie_store, 
+Rails.application.config.session_store :cookie_store,
   key: '_app_session'
   # Missing: secure: true, httponly: true, same_site: :lax
 ```
@@ -302,13 +302,13 @@ redirect_to params[:return_to] if ALLOWED_REDIRECTS.include?(params[:return_to])
 **Detection**: Check whether `package.json` exists in the project root.
 
 If present, determine the package manager:
-- `yarn.lock` present → use `yarn audit`
+- `yarn.lock` present → use `yarn npm audit`
 - `package-lock.json` present → use `npm audit`
 - Neither lockfile → use `npm audit` as fallback
 
 **Run audit**:
 ```bash
-yarn audit --level moderate
+yarn npm audit --level moderate
 # or
 npm audit --audit-level=moderate
 ```
@@ -358,7 +358,7 @@ Include the advisory name, affected package, installed version, and recommended 
 ### Dependencies
 - [ ] Gemfile.lock reviewed for vulnerabilities
 - [ ] Using `bundler-audit` or similar
-- [ ] JavaScript dependencies audited (`yarn audit` / `npm audit`) if `package.json` present
+- [ ] JavaScript dependencies audited (`yarn npm audit` / `npm audit`) if `package.json` present
 
 ---
 
