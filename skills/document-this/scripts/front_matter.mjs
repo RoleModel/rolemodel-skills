@@ -5,7 +5,7 @@
 //
 // Usage: node front_matter.mjs [project-root]
 
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, resolve, basename } from 'node:path';
 
 const root = resolve(process.argv[2] ?? process.cwd());
