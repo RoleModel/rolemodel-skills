@@ -7,7 +7,7 @@
 //
 // Usage: node entities.mjs [project-root]
 
-import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 
 const root = resolve(process.argv[2] ?? process.cwd());
