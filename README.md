@@ -6,12 +6,6 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 ## Skills
 
-### General Purpose
-
-| Skill | Description |
-|-------|-------------|
-| **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of details. Great for onboarding into unfamiliar code. |
-
 ### CSS & Design System
 
 | Skill | Description |
@@ -47,6 +41,12 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | **[json-typed-attributes](skills/json-typed-attributes)** | Typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration. |
 | **[routing-patterns](skills/routing-patterns)** | RESTful resource routing, route concerns, and shallow nesting strategies. |
 | **[testing-patterns](skills/testing-patterns)** | Automated tests using RSpec, Capybara, and FactoryBot for Rails applications. |
+
+### Developer Workflow
+
+| Skill | Description |
+|-------|-------------|
+| **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of detail. Great for onboarding into unfamiliar code or orienting before making a change. |
 
 ### Process & Planning
 
