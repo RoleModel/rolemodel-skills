@@ -53,16 +53,23 @@ Phase 2 — Fetch candidate shortlist (priority-tiered)
 
 Resolve the Sentry MCP search_issues tool (tool name looks like mcp__<server>__search_issues — resolve via ToolSearch at runtime since the prefix varies by MCP server name).
 
+IMPORTANT — tool shape. `search_issues` takes a `naturalLanguageQuery` string and routes it through an AI translator; it does **not** accept raw Sentry search syntax or a `sort` parameter. Phrase every call in natural language, then verify the translation with `includeExplanation: true` on the first call of the run. Two quirks observed in prior runs that the phrasings below are designed to dodge:
+
+- The word "priority" alone is often translated as a **custom tag** (`priority:<tier>`) instead of the built-in `issue.priority:<tier>` field, which silently returns zero or wrong results. Use the phrase **"issue priority level <tier>"** to steer the translator onto the built-in field.
+- The word "trends" is translated to `sort:freq` (frequency). That is an acceptable proxy for the Issues-page "Trends" sort — use it and do not try to force a literal `sort:trends`.
+
 Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, call search_issues with:
 
-- the resolved scope (organizationSlug, projectSlugOrId, regionUrl)
-- query: `is:unresolved environment:<env> issue.priority:<tier>`
-- sort set to Sentry's Trends sort — verify the exact parameter name and accepted value against the live tool schema before calling; fall back to user if Trends is rejected
-- limit: 10
+- `organizationSlug`, `projectSlugOrId`, `regionUrl` from preflight
+- `naturalLanguageQuery`: `"unresolved issues with issue priority level <tier> in environment <env> sorted by trends"`
+- `limit: 10`
+- `includeExplanation: true` on the **first** call of the run only (to keep later calls quiet). Inspect the returned translation: it should include `is:unresolved`, `issue.priority:<tier>`, `environment:<env>`, and `sort:freq` (or `sort:trends`). If `priority:` appears without the `issue.` prefix, or the environment / unresolved filters are missing, rephrase once (e.g., add "built-in" before "issue priority level", or split env and priority into separate clauses) and retry. Do not loop more than once per tier.
+
+The translator may return **more than `limit`** results — silently truncate to the first 10 candidates yourself; do not retry, warn, or treat it as an error.
 
 Run Phase 3 filters against that tier's results; stop at the first tier with surviving candidates and carry them into Phase 4. If all three tiers are empty after filtering, proceed to the "Nothing to pick." path.
 
-If Sentry rejects the `issue.priority:<tier>` syntax (schema drift), log a one-line warning and fall back to a single untiered call with query `is:unresolved environment:<env>` — don't block the pick on priority filtering.
+If, after the one retry, the translation still cannot apply `issue.priority:<tier>`, log a one-line warning and fall back to a single untiered call with `naturalLanguageQuery: "unresolved issues in environment <env> sorted by trends"` — don't block the pick on priority filtering.
 
 Phase 3 — Filter issues already being worked on or already fixed
 
