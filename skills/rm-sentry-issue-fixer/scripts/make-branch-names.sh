@@ -30,6 +30,12 @@ done
 [[ -z "$ISSUE_ID"    ]] && { echo "--issue-id required" >&2; exit 2; }
 [[ -z "$DESCRIPTION" ]] && { echo "--description required" >&2; exit 2; }
 [[ "$DESCRIPTION" == *$'\n'* || "$DESCRIPTION" == *$'\r'* ]] && {
+  echo "--description must be a single line" >&2
+  exit 2
+}
+DESCRIPTION="$(printf '%s' "$DESCRIPTION" | LC_ALL=C sed -E 's/^[[:blank:]]+//; s/[[:blank:]]+$//')"
+[[ -z "$DESCRIPTION" ]] && { echo "--description required" >&2; exit 2; }
+[[ "$DESCRIPTION" == *$'\n'* || "$DESCRIPTION" == *$'\r'* ]] && {
   echo "--description must be a single line (no CR/LF)" >&2
   exit 2
 }
