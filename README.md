@@ -47,6 +47,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | Skill | Description |
 |-------|-------------|
 | **[explain](skills/explain)** | Explain a codebase or feature areas of any project in various levels of detail. Great for onboarding into unfamiliar code or orienting before making a change. |
+| **[trace](skills/trace)** | Trace code through the stack — upward to entry points, downward to data, laterally across callbacks and side effects. Outputs a stack diagram with clickable file references. |
 
 ### Process & Planning
 
