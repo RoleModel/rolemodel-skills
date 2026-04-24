@@ -51,25 +51,22 @@ Before calling any Sentry tool, confirm a Sentry MCP server is actually availabl
 
 Phase 2 — Fetch candidate shortlist (priority-tiered)
 
-Resolve the Sentry MCP search_issues tool (tool name looks like mcp__<server>__search_issues — resolve via ToolSearch at runtime since the prefix varies by MCP server name).
+Resolve the Sentry MCP search_issues tool via ToolSearch at runtime (tool name: `mcp__<server>__search_issues` — prefix varies by MCP server name).
 
-IMPORTANT — tool shape. `search_issues` takes a `naturalLanguageQuery` string and routes it through an AI translator; it does **not** accept raw Sentry search syntax or a `sort` parameter. Phrase every call in natural language, then verify the translation with `includeExplanation: true` on the first call of the run. Two quirks observed in prior runs that the phrasings below are designed to dodge:
+**Querying by priority.** Embed the literal Sentry filter syntax directly in the natural language query — this is the only reliable method to get the translator to emit `issue.priority:<tier>`. Phrases like "high priority" or "issue priority level high" cause the translator to drop the filter entirely. Use this exact template:
 
-- The word "priority" alone is often translated as a **custom tag** (`priority:<tier>`) instead of the built-in `issue.priority:<tier>` field, which silently returns zero or wrong results. Use the phrase **"issue priority level <tier>"** to steer the translator onto the built-in field.
-- The word "trends" is translated to `sort:freq` (frequency). That is an acceptable proxy for the Issues-page "Trends" sort — use it and do not try to force a literal `sort:trends`.
+`"unresolved issues with issue.priority:<tier> in environment <env> sorted by frequency"`
 
-Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, call search_issues with:
+Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, call `search_issues` with:
 
 - `organizationSlug`, `projectSlugOrId`, `regionUrl` from preflight
-- `naturalLanguageQuery`: `"unresolved issues with issue priority level <tier> in environment <env> sorted by trends"`
+- `naturalLanguageQuery` per the template above (substitute `<tier>` and `<env>`)
 - `limit: 10`
-- `includeExplanation: true` on the **first** call of the run only (to keep later calls quiet). Inspect the returned translation: it should include `is:unresolved`, `issue.priority:<tier>`, `environment:<env>`, and `sort:freq` (or `sort:trends`). If `priority:` appears without the `issue.` prefix, or the environment / unresolved filters are missing, rephrase once (e.g., add "built-in" before "issue priority level", or split env and priority into separate clauses) and retry. Do not loop more than once per tier.
+- `includeExplanation: true` on the **first** call of the run only. Verify the translation includes `issue.priority:<tier>` (not bare `priority:<tier>`), `is:unresolved`, and `environment:<env>`. If `issue.priority:` is missing, skip this tier and move to the next — do not retry.
 
-The translator may return **more than `limit`** results — silently truncate to the first 10 candidates yourself; do not retry, warn, or treat it as an error.
+The translator may return more than `limit` results — truncate to the first 10 yourself.
 
-Run Phase 3 filters against that tier's results; stop at the first tier with surviving candidates and carry them into Phase 4. If all three tiers are empty after filtering, proceed to the "Nothing to pick." path.
-
-If, after the one retry, the translation still cannot apply `issue.priority:<tier>`, log a one-line warning and fall back to a single untiered call with `naturalLanguageQuery: "unresolved issues in environment <env> sorted by trends"` — don't block the pick on priority filtering.
+Run Phase 3 filters against each tier's results; stop at the first tier with surviving candidates. If all three tiers are empty after filtering, fall back to one untiered call: `"unresolved issues in environment <env> sorted by frequency"`. If still empty after filtering, print "Nothing to pick." and stop.
 
 Phase 3 — Filter issues already being worked on or already fixed
 
@@ -101,6 +98,7 @@ Catches the case where the fixer skill has already merged a `[SENTRY <suffix>]` 
 Phase 3c — Stale-issue filter
 
 Filter out Sentry issues that have not occurred in the last 7 days to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant. This is a simple date filter based on the `lastSeen` field of the issue.
+If this filter results in zero candidates, ignore this filter and proceed with the original list of candidates. This ensures that we don't end up with "Nothing to pick." just because all issues are stale, while still preferring more recent issues when available.
 
 Phase 4 — Select and justify
 
