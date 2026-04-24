@@ -72,7 +72,7 @@ Phase 3 — Filter issues already being worked on or already fixed
 
 Unless no-pr-filter is set, drop any candidate that is already handled. Two sub-filters:
 
-Phase 3a — Open PR filter
+Phase 3a — Open PR and recent closed-PR filter
 
 Pipe the candidate IDs through `skills/sentry-top-issue/scripts/filter-candidates.sh`:
 
@@ -80,7 +80,12 @@ Pipe the candidate IDs through `skills/sentry-top-issue/scripts/filter-candidate
 bash skills/sentry-top-issue/scripts/filter-candidates.sh <id1> <id2> ... <id10>
 ```
 
-The script prints surviving IDs one per line (empty output = all filtered). Treat its stdout as authoritative. It degrades gracefully when `gh` is unauthenticated — passing inputs through with a stderr warning — so no extra handling is needed here. (Missing `gh` is already caught by Phase 1 preflight when the PR filter is on.)
+The script prints surviving IDs one per line (empty output = all filtered). Treat its stdout as authoritative. It applies two checks in one pass:
+
+1. **Open PR** — drops any candidate that already has an open `[SENTRY <suffix>]` PR (work already in flight).
+2. **Recent closed PR** — drops any candidate that has a closed `[SENTRY <suffix>]` PR within the last 30 days. A recently-closed PR indicates the automation previously attempted a fix and the PR was closed without merging (the fix didn't work or was rejected); handing the same issue back immediately would waste another PR.
+
+Both checks degrade gracefully when `gh` is unauthenticated or `jq` is missing — passing inputs through with a stderr warning — so no extra handling is needed here. (Missing `gh` is already caught by Phase 1 preflight when the PR filter is on.)
 
 Phase 3b — Merged-commit filter
 
@@ -157,6 +162,7 @@ Verification
 5. Scope discovery — missing. In a repo with no scope declaration and no scope args, invoke /sentry-top-issue dry-run. Expect the "No Sentry scope found …" line and a clean exit with no MCP calls and no fixer invocation.
 6. Trends sort vs UI. Compare the top pick against the project's Sentry Issues page sorted by Trends (minus any open-PR filter). They should match.
 7. Open-PR filter. Create a draft PR titled with one of the top candidate issue IDs; rerun in dry-run; confirm that candidate is skipped. Close the draft.
+7a. Closed-PR filter. After closing the draft PR from step 7, rerun in dry-run within the same 30-day window; confirm the candidate is still skipped (treated as a prior failed attempt). Re-open the PR and confirm the candidate is skipped again via the open-PR path.
 8. Merged-commit filter. On the default branch, land a commit with subject `[SENTRY <suffix>] test filter` where `<suffix>` matches a top candidate's ID suffix (e.g., ALMANAC-5 → `5`); rerun in dry-run; confirm that candidate is skipped. Revert the commit.
 9. Empty-result path. Use env=nonexistent to force zero results; confirm the skill prints "Nothing to pick." and does not invoke the fixer.
 10. Handoff path. Run /sentry-top-issue (no args, not dry-run) and confirm the fixer skill starts working on the chosen ID.

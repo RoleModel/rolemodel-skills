@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# filter-candidates.sh — Drop Sentry issue IDs that already have an open GitHub PR.
+# filter-candidates.sh — Drop Sentry issue IDs that already have an open GitHub PR
+# or a closed GitHub PR within the last 30 days (indicating a prior failed attempt).
 #
 # Usage: filter-candidates.sh <id1> [<id2> ...]
 # Output: surviving IDs, one per line. Empty output is valid (all filtered).
 #
-# Matches the fixer skill's PR title format `[SENTRY <suffix>] ...` where
-# <suffix> is everything after the first `-` in the issue ID (e.g.
-# ALMANAC-1G → 1G). Bare alphanumeric IDs (no prefix) are used as-is.
+# Matches both `[SENTRY <suffix>]` (canonical space form) and `[SENTRY-<suffix>]`
+# (legacy hyphen form) in PR titles, where <suffix> is everything after the
+# first `-` in the issue ID (e.g. ALMANAC-1G → 1G). Bare alphanumeric IDs
+# (no prefix) are used as-is.
 #
 # Degrades gracefully: if gh is missing or unauthenticated, prints a one-line
 # warning to stderr and echoes all inputs unchanged, matching the skill's
@@ -28,10 +30,37 @@ if ! open_titles="$(gh pr list --state open --limit 200 --json title --jq '.[].t
   exit 0
 fi
 
+# Fetch recently closed PR titles (last 30 days) to catch prior failed attempts.
+# Requires jq for date comparison; degrades gracefully if unavailable.
+closed_titles=""
+if command -v jq >/dev/null 2>&1; then
+  cutoff="$(date -u -v-30d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null \
+    || date -u -d '30 days ago' '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null \
+    || echo '')"
+  if [[ -n "$cutoff" ]]; then
+    if ! closed_titles="$(gh pr list --state closed --limit 200 --json title,closedAt 2>/dev/null \
+        | jq -r --arg cutoff "$cutoff" '.[] | select(.closedAt >= $cutoff) | .title')"; then
+      echo "warn: gh pr list (closed) failed; skipping closed-PR filter" >&2
+      closed_titles=""
+    fi
+  else
+    echo "warn: could not compute 30-day cutoff date; skipping closed-PR filter" >&2
+  fi
+fi
+
+_pr_matches() {
+  local titles="$1" suffix="$2"
+  # Match both "[SENTRY 49]" (canonical space form) and "[SENTRY-49]" (hyphen form).
+  grep -Fq -- "[SENTRY ${suffix}]" <<<"$titles" || grep -Fq -- "[SENTRY-${suffix}]" <<<"$titles"
+}
+
 for id in "$@"; do
   suffix="${id#*-}"   # strip through first `-`; bare IDs stay unchanged
-  marker="[SENTRY ${suffix}]"
-  if ! grep -Fq -- "$marker" <<<"$open_titles"; then
-    printf '%s\n' "$id"
+  if _pr_matches "$open_titles" "$suffix"; then
+    continue  # already has an open PR
   fi
+  if [[ -n "$closed_titles" ]] && _pr_matches "$closed_titles" "$suffix"; then
+    continue  # closed PR exists within last 30 days — prior failed attempt
+  fi
+  printf '%s\n' "$id"
 done
