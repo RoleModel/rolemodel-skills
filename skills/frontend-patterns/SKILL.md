@@ -198,21 +198,13 @@ See [references/EXAMPLES.md](references/EXAMPLES.md) for complete controller exa
 ## CSS & Optics
 
 ### Guidelines
-- **Use Optics utility classes** for spacing, typography, colors, layout
 - Keep custom CSS minimal and component-scoped
-- Follow BEM naming for custom components: `.block__element--modifier`
 - **Never use inline styles**
+- Use of utility classes is strongly discouraged. BEM (Block Element Modifier) structure should be used instead.
 - Use `class_names` helper for conditional classes
 
 ### Common Patterns
 ```slim
-/ Layout with Optics utilities
-.container.mt-4.mb-6
-  .grid.grid--2-col.gap-4
-    .card.p-4
-      h2.text-lg.font-bold Title
-      p.text-gray-600 Description
-
 / Custom component with BEM
 .time-entry.time-entry--running
   .time-entry__header
