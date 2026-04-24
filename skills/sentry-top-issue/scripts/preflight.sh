@@ -87,9 +87,9 @@ find_scope() {
   local key="$1"
   [[ ${#scope_files[@]} -eq 0 ]] && return 0
   # `|| true` keeps a no-match grep from tripping set -e / pipefail.
-  { grep -h -E "^[[:space:]]*[-*]?[[:space:]]*${key}[[:space:]]*[:=]" "${scope_files[@]}" 2>/dev/null || true; } \
+  { grep -h -E "^[[:space:]]*[-*]?[[:space:]]*[\`'\"]?${key}[\`'\"]?[[:space:]]*[:=]" "${scope_files[@]}" 2>/dev/null || true; } \
     | head -n 1 \
-    | sed -E "s/^[[:space:]]*[-*]?[[:space:]]*${key}[[:space:]]*[:=][[:space:]]*//" \
+    | sed -E "s/^[[:space:]]*[-*]?[[:space:]]*[\`'\"]?${key}[\`'\"]?[[:space:]]*[:=][[:space:]]*//" \
     | sed -E 's/^["'\''`]//; s/["'\''`][[:space:]]*$//'
 }
 
