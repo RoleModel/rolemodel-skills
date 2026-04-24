@@ -25,8 +25,6 @@ Ask user or infer from request:
 - Full audit: Analyze all of `app/`, `spec/` or `test/`, `config/`, `db/`, `lib/`
 - Targeted audit: Analyze specified paths only
 
-Check for `.rails-audit-override.md` at the project root — see `references/override_file.md` for format and application rules. Overrides are read first and govern scope, skipped categories, severity adjustments, custom checks, and report path.
-
 Check for `.rails-audit-ignore.yml` at the project root — see `references/ignore_file.md` for format and matching rules.
 
 ### Step 2: Collect Optional Metrics (SimpleCov + RubyCritic)
