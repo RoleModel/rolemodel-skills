@@ -32,21 +32,19 @@ if ! open_titles="$(gh pr list --state open --search '[SENTRY' --limit 200 --jso
 fi
 
 # Fetch recently closed PR titles (last 30 days) to catch prior failed attempts.
-# Requires jq for date comparison; degrades gracefully if unavailable.
+# Constrain the GitHub query by close date so the result limit applies only to
+# relevant PRs, avoiding false negatives in busy repositories.
 closed_titles=""
-if command -v jq >/dev/null 2>&1; then
-  cutoff="$(date -u -v-30d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null \
-    || date -u -d '30 days ago' '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null \
-    || echo '')"
-  if [[ -n "$cutoff" ]]; then
-    if ! closed_titles="$(gh pr list --state closed --search '[SENTRY' --limit 200 --json title,closedAt 2>/dev/null \
-        | jq -r --arg cutoff "$cutoff" '.[] | select(.closedAt >= $cutoff) | .title')"; then
-      echo "warn: gh pr list (closed) failed; skipping closed-PR filter" >&2
-      closed_titles=""
-    fi
-  else
-    echo "warn: could not compute 30-day cutoff date; skipping closed-PR filter" >&2
+cutoff="$(date -u -v-30d '+%Y-%m-%d' 2>/dev/null \
+  || date -u -d '30 days ago' '+%Y-%m-%d' 2>/dev/null \
+  || echo '')"
+if [[ -n "$cutoff" ]]; then
+  if ! closed_titles="$(gh pr list --state closed --search "[SENTRY closed:>=$cutoff" --limit 200 --json title --jq '.[].title' 2>/dev/null)"; then
+    echo "warn: gh pr list (closed) failed; skipping closed-PR filter" >&2
+    closed_titles=""
   fi
+else
+  echo "warn: could not compute 30-day cutoff date; skipping closed-PR filter" >&2
 fi
 
 _pr_matches() {
