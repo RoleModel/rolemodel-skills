@@ -83,7 +83,7 @@ bash skills/sentry-top-issue/scripts/filter-candidates.sh <id1> <id2> ... <id10>
 The script prints surviving IDs one per line (empty output = all filtered). Treat its stdout as authoritative. It applies two checks in one pass:
 
 1. **Open PR** — drops any candidate that already has an open `[SENTRY <suffix>]` PR (work already in flight).
-2. **Recent closed PR** — drops any candidate that has a closed `[SENTRY <suffix>]` PR within the last 30 days. A recently-closed PR indicates the automation previously attempted a fix and the PR was closed without merging (the fix didn't work or was rejected); handing the same issue back immediately would waste another PR.
+2. **Recent closed PR** — drops any candidate that has a closed `[SENTRY <suffix>]` PR within the last 30 days. A recently closed PR indicates the automation already acted on that issue recently; handing the same issue back immediately would risk wasting another PR before the prior attempt has been fully evaluated or deployed.
 
 Both checks degrade gracefully when `gh` is unauthenticated or `jq` is missing — passing inputs through with a stderr warning — so no extra handling is needed here. (Missing `gh` is already caught by Phase 1 preflight when the PR filter is on.)
 
