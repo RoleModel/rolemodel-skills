@@ -24,7 +24,8 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 # Single API call: fetch all open PR titles once, then filter locally.
-if ! open_titles="$(gh pr list --state open --limit 200 --json title --jq '.[].title' 2>/dev/null)"; then
+# --search '[SENTRY' narrows results to Sentry PRs so the 200-item limit is never a bottleneck.
+if ! open_titles="$(gh pr list --state open --search '[SENTRY' --limit 200 --json title --jq '.[].title' 2>/dev/null)"; then
   echo "warn: gh pr list failed; skipping PR filter" >&2
   printf '%s\n' "$@"
   exit 0
@@ -38,7 +39,7 @@ if command -v jq >/dev/null 2>&1; then
     || date -u -d '30 days ago' '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null \
     || echo '')"
   if [[ -n "$cutoff" ]]; then
-    if ! closed_titles="$(gh pr list --state closed --limit 200 --json title,closedAt 2>/dev/null \
+    if ! closed_titles="$(gh pr list --state closed --search '[SENTRY' --limit 200 --json title,closedAt 2>/dev/null \
         | jq -r --arg cutoff "$cutoff" '.[] | select(.closedAt >= $cutoff) | .title')"; then
       echo "warn: gh pr list (closed) failed; skipping closed-PR filter" >&2
       closed_titles=""
