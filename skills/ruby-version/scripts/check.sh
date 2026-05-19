@@ -21,12 +21,18 @@ ruby_build_version="$(rbenv install --version 2>/dev/null | awk '{print $NF}')"
 
 # Highest stable MRI version: lines that look like X.Y.Z with only digits and
 # dots, no suffixes like -dev, -preview, -rc, no jruby-/truffleruby-/mruby-.
+# Use awk for version comparison (portable, works on macOS/BSD and Linux).
 latest_stable="$(
   rbenv install -l 2>/dev/null \
     | awk '{$1=$1; print}' \
     | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
-    | sort -V \
-    | tail -n 1
+    | awk -F. '
+      {
+        v = sprintf("%05d.%05d.%05d", $1, $2, $3);
+        if (v > max) { max = v; version = $0 }
+      }
+      END { print version }
+    '
 )"
 
 if [ -z "$latest_stable" ]; then
@@ -34,7 +40,7 @@ if [ -z "$latest_stable" ]; then
   exit 1
 fi
 
-installed="$(rbenv versions --bare 2>/dev/null | grep -E '^[A-Za-z0-9][A-Za-z0-9._+-]*$' || true)"
+installed="$(rbenv versions --bare 2>/dev/null | grep -E '^[0-9]+\.[0-9]+\.[0-9]+' || true)"
 
 echo "latest-stable: $latest_stable"
 echo "ruby-build:    $ruby_build_version"
