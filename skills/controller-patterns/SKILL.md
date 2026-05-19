@@ -154,7 +154,7 @@ def resource_params
     resource: [
       :name,
       :description,
-      setting_attributes: %i[id name _destroy], # singular for has_one or or some kind of aggregate value object.
+      setting_attributes: %i[id name _destroy], # singular for has_one or some kind of aggregate value object.
       addresses_attributes: [%i[id street city state zip _destroy]], # plural for has_many, note the extra array for multiple nested records.
     ]
   )
