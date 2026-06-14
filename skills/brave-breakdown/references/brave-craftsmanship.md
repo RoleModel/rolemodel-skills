@@ -34,7 +34,7 @@ This reference highlights where BRAVE fits in RoleModel's Craftsmanship Radar, f
 
 Understanding who you're working with shapes how the BRAVE conversation should go:
 
-- **Resident**: You hand them a fully broken down, simple task. They can deliver it solo with review.
+- **Resident**: They can take on straightforward tasks, but will need help getting unblocked. You need a short feedback loop to ensure they're going in the right direction.
 - **Sr. Resident**: You point them in the right direction. They can follow patterns in the system.
 - **Developer I**: You set guardrails for the task and help them break it down.
 - **Developer II**: You can give them ill-defined tasks and they pull the information needed from the customer or another source to deliver well and not get blocked.
