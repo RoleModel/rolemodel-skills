@@ -6,12 +6,14 @@ set -euo pipefail
 #
 # Inputs (all optional):
 #   --org <slug>         Sentry organization slug
-#   --project <slug>     Sentry project slug or ID
+#   --project <slug>     Sentry project slug
 #   --region <url>       Sentry region URL
 #   --env <name>         environment filter (default: production)
 #   --no-pr-filter       skip gh install check + PR cap check
 #   --repo-root <dir>    directory to search for scope docs (default: cwd)
 #   --pr-cap <n>         max concurrent open [SENTRY ...] PRs (default: 3)
+#
+# Also checks: SENTRY_AUTH_TOKEN env var (required for API access).
 #
 # Scope precedence: explicit flags > AGENTS.md/CLAUDE.md/.claude/**/*.md.
 #
@@ -99,6 +101,12 @@ find_scope() {
 
 if [[ -z "$ORG" || -z "$PROJECT" ]]; then
   skip "No Sentry scope found in \$ARGUMENTS or project docs — skipping."
+fi
+
+[[ -z "$REGION" ]] && REGION="https://sentry.io"
+
+if [[ -z "${SENTRY_AUTH_TOKEN:-}" ]]; then
+  skip "SENTRY_AUTH_TOKEN environment variable is not set — skipping. Set this variable with a valid Sentry auth token."
 fi
 
 OPEN_PRS=0
