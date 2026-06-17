@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# fetch-issues.sh — Query Sentry REST API for unresolved issues, sorted by trends.
+# fetch-issues.sh — Query Sentry REST API for unresolved issues, sorted by event frequency.
 #
 # Emits exactly one JSON object on stdout. Always exits 0.
 #
@@ -63,7 +63,7 @@ HTTP_RESPONSE=$(curl -s -w '\n%{http_code}' \
   -G "$API_URL" \
   --data-urlencode "query=${QUERY}" \
   --data-urlencode "environment=${ENV_NAME}" \
-  --data-urlencode "sort=trends" \
+  --data-urlencode "sort=freq" \
   --data-urlencode "limit=${LIMIT}" \
   2>/dev/null) || error_exit "curl request failed"
 

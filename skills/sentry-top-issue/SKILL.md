@@ -11,7 +11,7 @@ Inputs ($ARGUMENTS)
 All optional, space-separated key=value tokens plus bare flags:
 
 - org=<slug> — Sentry organization slug
-- project=<slug> — Sentry project slug or ID
+- project=<slug> — Sentry project slug
 - region=<url> — Sentry region URL (default: https://sentry.io)
 - env=<name> — environment filter (default: production)
 - fixer=<skill-name> — override the handoff skill (default: sentry-issue-fixer)
@@ -41,7 +41,7 @@ Scope precedence (as implemented by the script): explicit flags first, then AGEN
 
 Phase 2 — Fetch candidate shortlist (priority-tiered)
 
-Use `fetch-issues.sh` to query the Sentry REST API directly. The script requires `SENTRY_AUTH_TOKEN` (already verified by preflight) and uses `curl` to call the Sentry Issues API with the search query `is:unresolved issue.priority:<tier>`, sorted by trends.
+Use `fetch-issues.sh` to query the Sentry REST API directly. The script requires `SENTRY_AUTH_TOKEN` (already verified by preflight) and uses `curl` to call the Sentry Issues API with the search query `is:unresolved issue.priority:<tier>`, sorted by event frequency (`sort=freq`).
 
 Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, run:
 
@@ -103,7 +103,7 @@ Take the top remaining candidate. Print:
 Top issue: <ID> — <title>
 Users: <userCount>  Events: <count>
 First seen: <firstSeen>  Last seen: <lastSeen>
-Why: ranked #1 by Sentry Trends sort within the highest-priority tier that had surviving candidates (unresolved, environment=<env>, priority=<tier>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
+Why: ranked #1 by Sentry frequency sort within the highest-priority tier that had surviving candidates (unresolved, environment=<env>, priority=<tier>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
 
 If the shortlist is empty after filtering, say "Nothing to pick." and stop.
 
@@ -149,7 +149,7 @@ Verification
 3. Scope discovery — doc-driven. In a repo whose CLAUDE.md contains the documented scope block, invoke /sentry-top-issue dry-run with no args. Expect the same behaviour.
 4. Scope discovery — missing. In a repo with no scope declaration and no scope args, invoke /sentry-top-issue dry-run. Expect the "No Sentry scope found …" line and a clean exit with no API calls and no fixer invocation.
 5. Missing auth token. Unset SENTRY_AUTH_TOKEN and invoke /sentry-top-issue dry-run with valid scope. Expect preflight to skip with a clear message about the missing token.
-6. Trends sort vs UI. Compare the top pick against the project's Sentry Issues page sorted by Trends (minus any open-PR filter). They should match.
+6. Frequency sort vs UI. Compare the top pick against the project's Sentry Issues page sorted by Events (minus any open-PR filter). They should match.
 7. Open-PR filter. Create a draft PR titled with one of the top candidate issue IDs; rerun in dry-run; confirm that candidate is skipped. Close the draft.
 8. Merged-commit filter. On the default branch, land a commit with subject `[SENTRY <suffix>] test filter` where `<suffix>` matches a top candidate's ID suffix (e.g., ALMANAC-5 → `5`); rerun in dry-run; confirm that candidate is skipped. Revert the commit.
 9. Empty-result path. Use env=nonexistent to force zero results; confirm the skill prints "Nothing to pick." and does not invoke the fixer.

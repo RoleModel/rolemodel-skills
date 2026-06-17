@@ -6,7 +6,7 @@ set -euo pipefail
 #
 # Inputs (all optional):
 #   --org <slug>         Sentry organization slug
-#   --project <slug>     Sentry project slug or ID
+#   --project <slug>     Sentry project slug
 #   --region <url>       Sentry region URL
 #   --env <name>         environment filter (default: production)
 #   --no-pr-filter       skip gh install check + PR cap check
