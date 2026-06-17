@@ -11,8 +11,8 @@ Inputs ($ARGUMENTS)
 All optional, space-separated key=value tokens plus bare flags:
 
 - org=<slug> — Sentry organization slug
-- project=<slug> — Sentry project slug or ID
-- region=<url> — Sentry region URL (default: whatever the MCP returns)
+- project=<slug> — Sentry project slug
+- region=<url> — Sentry region URL (default: https://sentry.io)
 - env=<name> — environment filter (default: production)
 - fixer=<skill-name> — override the handoff skill (default: sentry-issue-fixer)
 - dry-run — pick and print only; do not invoke the fixer
@@ -34,39 +34,30 @@ bash skills/sentry-top-issue/scripts/preflight.sh \
 
 Then read the JSON and branch:
 
-- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **exit cleanly**. Do not call any Sentry MCP tools, do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
+- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **exit cleanly**. Do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `SENTRY_AUTH_TOKEN`, missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
 - `{"status":"ok","org":...,"project":...,"region":...,"env":...,"prFilter":<bool>,"openSentryPrs":<n>}` — carry these values into Phase 2. `openSentryPrs` is informational; the cap has already been enforced by the script.
 
-Scope precedence (as implemented by the script): explicit flags first, then AGENTS.md / CLAUDE.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `gh` (when PR filter is on), missing `jq`, PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.
-
-Phase 1b — Verify Sentry MCP is connected
-
-Before calling any Sentry tool, confirm a Sentry MCP server is actually available in this session:
-
-- Use ToolSearch with a Sentry-flavoured query (e.g. `+sentry search_issues`) and confirm that `search_issues`, `find_organizations`, and `find_projects` resolve to real tool names under some `mcp__*Sentry*__` prefix.
-- If none of the expected Sentry MCP tools resolve, **do nothing**:
-  - Print a single line: `Sentry MCP is not connected — skipping.`
-  - Do **not** call any tools, do **not** invoke AskUserQuestion, do **not** invoke the fixer, and do **not** proceed to Phase 2.
-  - Exit cleanly. Like the missing-scope case, this is a normal outcome and must not be treated as an error.
+Scope precedence (as implemented by the script): explicit flags first, then AGENTS.md / CLAUDE.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `SENTRY_AUTH_TOKEN`, missing `gh` (when PR filter is on), missing `jq`, PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.
 
 Phase 2 — Fetch candidate shortlist (priority-tiered)
 
-Resolve the Sentry MCP search_issues tool via ToolSearch at runtime (tool name: `mcp__<server>__search_issues` — prefix varies by MCP server name).
+Use `fetch-issues.sh` to query the Sentry REST API directly. The script requires `SENTRY_AUTH_TOKEN` (already verified by preflight) and uses `curl` to call the Sentry Issues API with the search query `is:unresolved issue.priority:<tier>`, sorted by event frequency (`sort=freq`).
 
-**Querying by priority.** Embed the literal Sentry filter syntax directly in the natural language query — this is the only reliable method to get the translator to emit `issue.priority:<tier>`. Phrases like "high priority" or "issue priority level high" cause the translator to drop the filter entirely. Use this exact template:
+Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, run:
 
-`"unresolved issues with issue.priority:<tier> in environment <env> sorted by frequency"`
+```bash
+bash skills/sentry-top-issue/scripts/fetch-issues.sh \
+  --org "$ORG" --project "$PROJECT" --region "$REGION" --env "$ENV" \
+  --priority <tier>
+```
 
-Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, call `search_issues` with:
+The script outputs JSON on stdout:
+- `{"status":"ok","issues":[...]}` — each issue object contains: `id` (shortId like PROJECT-123), `title`, `userCount`, `count`, `firstSeen`, `lastSeen`.
+- `{"status":"error","reason":"..."}` — print the reason and stop.
 
-- `organizationSlug`, `projectSlugOrId`, `regionUrl` from preflight
-- `naturalLanguageQuery` per the template above (substitute `<tier>` and `<env>`)
-- `limit: 10`
-- `includeExplanation: true` on the **first** call of the run only. Verify the translation includes `issue.priority:<tier>` (not bare `priority:<tier>`), `is:unresolved`, and `environment:<env>`. If `issue.priority:` is missing, skip this tier and move to the next — do not retry.
+**Always echo the script's raw JSON output back to the user verbatim** (as a fenced ```json block) so the fetch result is visible in the transcript.
 
-The translator may return more than `limit` results — truncate to the first 10 yourself.
-
-Run Phase 3 filters against each tier's results; stop at the first tier with surviving candidates. If all three tiers are empty after filtering, fall back to one untiered call: `"unresolved issues in environment <env> sorted by frequency"`. If still empty after filtering, print "Nothing to pick." and stop.
+Run Phase 3 filters against each tier's results; stop at the first tier with surviving candidates. If all three tiers are empty after filtering, fall back to one untiered call (omit `--priority`). If still empty after filtering, print "Nothing to pick." and stop.
 
 Phase 3 — Filter issues already being worked on or already fixed
 
@@ -112,7 +103,7 @@ Take the top remaining candidate. Print:
 Top issue: <ID> — <title>
 Users: <userCount>  Events: <count>
 First seen: <firstSeen>  Last seen: <lastSeen>
-Why: ranked #1 by Sentry Trends sort within the highest-priority tier that had surviving candidates (unresolved, environment=<env>, priority=<tier>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
+Why: ranked #1 by Sentry frequency sort within the highest-priority tier that had surviving candidates (unresolved, environment=<env>, priority=<tier>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
 
 If the shortlist is empty after filtering, say "Nothing to pick." and stop.
 
@@ -124,7 +115,7 @@ references/SCOPE_DISCOVERY.md content (summary)
 
 - Documents the recommended way for a project to declare its Sentry scope in CLAUDE.md / AGENTS.md (the three-line pattern: organizationSlug, projectSlugOrId, regionUrl).
 - Shows the regex/parse the skill uses (tolerant of YAML-ish and Markdown bullet formats).
-- Notes that this pattern is compatible with any Sentry MCP server (first-party @sentry/mcp-server, Anthropic-hosted, self-hosted).
+- Notes that this pattern is compatible with the Sentry REST API and any Sentry deployment (SaaS regions, self-hosted).
 
 Files to create / modify
 
@@ -144,8 +135,7 @@ Install location during development: /Users/joshmcleod/.claude/skills/sentry-top
 
 Reused existing pieces
 
-- Whatever Sentry MCP server the user has configured — the skill looks up tool names at runtime via ToolSearch rather than hardcoding a server prefix, so it works with any MCP server that exposes
-  find_organizations, find_projects, search_issues.
+- Sentry REST API — queried directly via `curl` and `SENTRY_AUTH_TOKEN`. No MCP server dependency; works in any environment with network access and a valid auth token.
 - sentry-issue-fixer skill — invoked as-is for all diagnosis/fix work. The handoff mechanism is a plain Skill tool call, so any drop-in replacement with the same name works too (overridable via fixer=
   arg).
 - gh CLI — used only for the "open PR already exists" best-effort filter; skill degrades gracefully when missing.
@@ -155,12 +145,11 @@ Verification
 
 1. Skill-creation validation. Run the skill-creation checklist against the finished SKILL.md: frontmatter valid, name matches directory, description has what + when + trigger keywords, body under 500
    lines, references only one level deep. If skills-ref validate is available in the environment, run it too.
-2. Tool-name resolution. At the top of the run, call ToolSearch with a Sentry-flavoured query and confirm the resolved tool names for search_issues, find_organizations, find_projects exist. Adjust the
-   skill text if the MCP server prefix differs from the assumed pattern.
-3. Scope discovery — explicit. Invoke /sentry-top-issue org=<real-slug> project=<real-slug> dry-run. Expect a top pick printed; no handoff.
-4. Scope discovery — doc-driven. In a repo whose CLAUDE.md contains the documented scope block, invoke /sentry-top-issue dry-run with no args. Expect the same behaviour.
-5. Scope discovery — missing. In a repo with no scope declaration and no scope args, invoke /sentry-top-issue dry-run. Expect the "No Sentry scope found …" line and a clean exit with no MCP calls and no fixer invocation.
-6. Trends sort vs UI. Compare the top pick against the project's Sentry Issues page sorted by Trends (minus any open-PR filter). They should match.
+2. Scope discovery — explicit. Invoke /sentry-top-issue org=<real-slug> project=<real-slug> dry-run. Expect a top pick printed; no handoff.
+3. Scope discovery — doc-driven. In a repo whose CLAUDE.md contains the documented scope block, invoke /sentry-top-issue dry-run with no args. Expect the same behaviour.
+4. Scope discovery — missing. In a repo with no scope declaration and no scope args, invoke /sentry-top-issue dry-run. Expect the "No Sentry scope found …" line and a clean exit with no API calls and no fixer invocation.
+5. Missing auth token. Unset SENTRY_AUTH_TOKEN and invoke /sentry-top-issue dry-run with valid scope. Expect preflight to skip with a clear message about the missing token.
+6. Frequency sort vs UI. Compare the top pick against the project's Sentry Issues page sorted by Events (minus any open-PR filter). They should match.
 7. Open-PR filter. Create a draft PR titled with one of the top candidate issue IDs; rerun in dry-run; confirm that candidate is skipped. Close the draft.
 8. Merged-commit filter. On the default branch, land a commit with subject `[SENTRY <suffix>] test filter` where `<suffix>` matches a top candidate's ID suffix (e.g., ALMANAC-5 → `5`); rerun in dry-run; confirm that candidate is skipped. Revert the commit.
 9. Empty-result path. Use env=nonexistent to force zero results; confirm the skill prints "Nothing to pick." and does not invoke the fixer.
