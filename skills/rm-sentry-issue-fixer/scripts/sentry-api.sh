@@ -24,6 +24,7 @@ set -euo pipefail
 #   --region <url>     Sentry region URL (default: https://sentry.io)
 #   --output <path>    File path for latest-event and summary modes (default: /tmp/sentry-latest-event.json)
 #   --summary-text <text>  Body text for summary mode (e.g. "already resolved in codebase")
+#   --status <status>  Summary outcome: fixed (PR created), info (no action needed), warn (needs attention, default)
 #
 # Output: JSON on stdout (except latest-event which writes to a file and prints a summary).
 # Exit codes: 0 success, 1 API/network error, 2 invalid args, 3 shortId resolution failed.
@@ -40,6 +41,7 @@ SHORT_ID=""
 MODE=""
 OUTPUT="/tmp/sentry-latest-event.json"
 SUMMARY_TEXT=""
+STATUS="warn"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -49,6 +51,7 @@ while [[ $# -gt 0 ]]; do
     --mode)          MODE="$2"; shift 2 ;;
     --output)        OUTPUT="$2"; shift 2 ;;
     --summary-text)  SUMMARY_TEXT="$2"; shift 2 ;;
+    --status)        STATUS="$2"; shift 2 ;;
     *)               echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
@@ -126,11 +129,17 @@ case "$MODE" in
 
     [[ -z "$SUMMARY_TEXT" ]] && SUMMARY_TEXT="Investigation complete."
 
+    case "$STATUS" in
+      fixed) HEADING="### ✅ Sentry Issue Fixed: ${SHORT_ID}" ;;
+      info)  HEADING="### ℹ️ Sentry Issue: ${SHORT_ID}" ;;
+      *)     HEADING="### ⚠️ Sentry Issue: ${SHORT_ID}" ;;
+    esac
+
     SUMMARY_DIR="$(dirname "$OUTPUT")"
     mkdir -p "$SUMMARY_DIR"
 
     cat > "$OUTPUT" <<SUMMARY_EOF
-### ⚠️ Sentry Issue: ${SHORT_ID}
+${HEADING}
 
 **${TITLE}**
 
@@ -144,7 +153,7 @@ ${SUMMARY_TEXT}
 | First seen | ${FIRST_SEEN} |
 | Last seen | ${LAST_SEEN} |
 
-👉 [**Open in Sentry**](${PERMALINK}) to resolve manually.
+👉 [**Open in Sentry**](${PERMALINK})
 SUMMARY_EOF
 
     echo "wrote summary to ${OUTPUT}"

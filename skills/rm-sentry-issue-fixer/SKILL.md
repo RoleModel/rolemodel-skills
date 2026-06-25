@@ -36,7 +36,7 @@ bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh \
   --short-id <PROJECT-SHORTID> --mode <mode>
 ```
 
-Modes: `issue` (summary JSON), `latest-event` (writes event to file, prints summary), `events-list` (recent events), `tags` (tag distributions), `summary` (writes a markdown summary file for CI job summary).
+Modes: `issue` (summary JSON), `latest-event` (writes event to file, prints summary), `events-list` (recent events), `tags` (tag distributions), `summary` (writes a markdown summary file for CI job summary — pass `--status fixed` when a PR was created, `--status info` when no action was needed, or omit for a warning).
 
 If Sentry MCP tools are available in the environment, they may be used as a supplement for interactive exploration (e.g., `analyze_issue_with_seer`). But do not depend on MCP availability — always fall back to `sentry-api.sh` when MCP tools are not found or fail.
 
@@ -160,7 +160,7 @@ Before writing code, confirm your fix will:
 ```bash
 bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh \
   --org "$ORG" --region "$REGION" \
-  --short-id <PROJECT-SHORTID> --mode summary \
+  --short-id <PROJECT-SHORTID> --mode summary --status info \
   --output .claude-output/sentry-summary.md \
   --summary-text "This issue has already been resolved in the codebase. A regression test is present. No code changes are necessary. Please resolve this issue in Sentry."
 ```
@@ -220,6 +220,16 @@ git -c push.default=simple push -u origin sentry-<suffix>-<slug>
 Never run `git push --force` against the default branch under any circumstances, even to undo an accidental direct push.
 
 ## Phase 7: Report Results
+
+After pushing the branch and creating the PR, write a CI-visible summary:
+
+```bash
+bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh \
+  --org "$ORG" --region "$REGION" \
+  --short-id <PROJECT-SHORTID> --mode summary --status fixed \
+  --output .claude-output/sentry-summary.md \
+  --summary-text "<one-line root cause>. Fix: <what changed>. PR: <PR URL>"
+```
 
 Format:
 ```
