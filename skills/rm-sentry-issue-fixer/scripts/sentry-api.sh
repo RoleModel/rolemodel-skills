@@ -6,7 +6,7 @@ set -euo pipefail
 # Uses SENTRY_AUTH_TOKEN and curl, matching the pattern of the sentry-top-issue scripts.
 #
 # Usage:
-#   bash sentry-api.sh --org <slug> --project <slug> --region <url> --short-id <ID> --mode <mode> [options]
+#   bash sentry-api.sh --org <slug> --region <url> --short-id <ID> --mode <mode> [options]
 #
 # Modes:
 #   issue          Print issue summary JSON (id, title, culprit, status, counts, permalink, metadata)
@@ -18,8 +18,7 @@ set -euo pipefail
 # Required for all modes:
 #   SENTRY_AUTH_TOKEN env var
 #   --org <slug>       Sentry organization slug
-#   --project <slug>   Sentry project slug (used only for shortId resolution)
-#   --short-id <id>    Sentry short ID (e.g. THUNDERCLOUD-F)
+#   --short-id <id>    Sentry short ID (e.g. PROJECT-F)
 #
 # Optional:
 #   --region <url>     Sentry region URL (default: https://sentry.io)
@@ -36,7 +35,6 @@ done
 [[ -z "${SENTRY_AUTH_TOKEN:-}" ]] && { echo "SENTRY_AUTH_TOKEN is not set" >&2; exit 2; }
 
 ORG=""
-PROJECT=""
 REGION="https://sentry.io"
 SHORT_ID=""
 MODE=""
@@ -46,7 +44,6 @@ SUMMARY_TEXT=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --org)           ORG="$2"; shift 2 ;;
-    --project)       PROJECT="$2"; shift 2 ;;
     --region)        REGION="$2"; shift 2 ;;
     --short-id)      SHORT_ID="$2"; shift 2 ;;
     --mode)          MODE="$2"; shift 2 ;;
@@ -57,7 +54,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z "$ORG" ]]      && { echo "--org is required" >&2; exit 2; }
-[[ -z "$PROJECT" ]]  && { echo "--project is required" >&2; exit 2; }
 [[ -z "$SHORT_ID" ]] && { echo "--short-id is required" >&2; exit 2; }
 [[ -z "$MODE" ]]     && { echo "--mode is required" >&2; exit 2; }
 
@@ -110,13 +106,13 @@ case "$MODE" in
           id: (.id // .eventID),
           dateCreated,
           release: (.release // null),
-          environment: ((.tags // [])[] | select(.key=="environment") | .value) // null
+          environment: (first((.tags // [])[] | select(.key=="environment") | .value) // null)
         }]'
     ;;
 
   tags)
     _api_get "${BASE_URL}/api/0/organizations/${ORG}/issues/${ISSUE_ID}/tags/" \
-      | jq '[.[] | {key, totalValues, topValues: [.topValues[:3][] | {value, count}]}]'
+      | jq '[.[] | {key, totalValues, topValues: [(.topValues // [])[:3][] | {value, count}]}]'
     ;;
 
   summary)

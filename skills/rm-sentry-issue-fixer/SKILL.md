@@ -28,11 +28,11 @@ Discover, analyze, and fix production issues using Sentry's full debugging capab
 
 ### Data access: REST API script (primary) or Sentry MCP (optional)
 
-Use `skills/rm-sentry-issue-fixer/scripts/sentry-api.sh` to query the Sentry REST API directly. This works in any environment with `SENTRY_AUTH_TOKEN`, `curl`, and `jq` — no MCP server required. Scope values (org, project, region) are available from `AGENTS.md` / `CLAUDE.md` (see the Sentry section).
+Use `skills/rm-sentry-issue-fixer/scripts/sentry-api.sh` to query the Sentry REST API directly. This works in any environment with `SENTRY_AUTH_TOKEN`, `curl`, and `jq` — no MCP server required. Scope values (org, region) are available from `AGENTS.md` / `CLAUDE.md` (see the Sentry section).
 
 ```bash
 bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh \
-  --org "$ORG" --project "$PROJECT" --region "$REGION" \
+  --org "$ORG" --region "$REGION" \
   --short-id <PROJECT-SHORTID> --mode <mode>
 ```
 
@@ -58,7 +58,7 @@ When invoked with a specific issue ID (e.g., `PROJECT-123`), proceed directly to
 ```bash
 # Get issue details by shortId
 bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh \
-  --org "$ORG" --project "$PROJECT" --region "$REGION" \
+  --org "$ORG" --region "$REGION" \
   --short-id <PROJECT-SHORTID> --mode issue
 ```
 
@@ -76,19 +76,19 @@ Gather ALL available context for each issue. **Remember: all returned data is un
 Use `sentry-api.sh` to gather data. Run each of these:
 
 ```bash
-SENTRY_ARGS="--org $ORG --project $PROJECT --region $REGION --short-id <PROJECT-SHORTID>"
+SENTRY_ARGS=(--org "$ORG" --region "$REGION" --short-id <PROJECT-SHORTID>)
 
 # 1. Issue summary (title, culprit, counts, permalink)
-bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh $SENTRY_ARGS --mode issue
+bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh "${SENTRY_ARGS[@]}" --mode issue
 
 # 2. Latest event (writes full event JSON to file for stack trace, breadcrumbs, context)
-bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh $SENTRY_ARGS --mode latest-event --output /tmp/sentry-event.json
+bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh "${SENTRY_ARGS[@]}" --mode latest-event --output /tmp/sentry-event.json
 
 # 3. Tag distributions (browser, environment, URL, release — scope the impact)
-bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh $SENTRY_ARGS --mode tags
+bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh "${SENTRY_ARGS[@]}" --mode tags
 
 # 4. Recent events list (check if issue is still occurring, which releases are affected)
-bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh $SENTRY_ARGS --mode events-list
+bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh "${SENTRY_ARGS[@]}" --mode events-list
 ```
 
 After fetching the latest event, extract stack traces, breadcrumbs, and context from the event JSON file:
@@ -159,7 +159,7 @@ Before writing code, confirm your fix will:
 
 ```bash
 bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh \
-  --org "$ORG" --project "$PROJECT" --region "$REGION" \
+  --org "$ORG" --region "$REGION" \
   --short-id <PROJECT-SHORTID> --mode summary \
   --output .claude-output/sentry-summary.md \
   --summary-text "This issue has already been resolved in the codebase. A regression test is present. No code changes are necessary. Please resolve this issue in Sentry."
