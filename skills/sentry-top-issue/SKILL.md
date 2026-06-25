@@ -94,7 +94,8 @@ Catches the case where the fixer skill has already merged a `[SENTRY <suffix>]` 
 Phase 3c — Stale-issue filter
 
 Filter out Sentry issues that have not occurred in the last 7 days to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant. This is a simple date filter based on the `lastSeen` field of the issue.
-If this filter results in zero candidates, ignore this filter and proceed with the original list of candidates. This ensures that we don't end up with "Nothing to pick." just because all issues are stale, while still preferring more recent issues when available.
+
+If this filter results in zero candidates, **stop cleanly** — print "Nothing actionable — all surviving candidates are stale (not seen in 7 days). Stale issues are likely already fixed or no longer relevant." and exit. Do **not** bypass the filter and proceed with stale issues. A no-op run is far cheaper than spending 10+ minutes investigating an already-fixed bug. If stale issues genuinely need attention, a human can invoke `/rm-sentry-issue-fixer <ID>` directly.
 
 Phase 4 — Select and justify
 
