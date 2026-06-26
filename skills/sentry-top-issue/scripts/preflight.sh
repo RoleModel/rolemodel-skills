@@ -44,7 +44,7 @@ write_pr_cap_summary() {
   local matching_prs="$1"
   [[ -z "$OUTPUT" ]] && return 0
   local pr_table
-  pr_table="$(jq -r '.[] | "| #\(.number) | \(.title | gsub("\\|"; "\\\\|") | gsub("\\r?\\n"; " ")) |"' <<<"$matching_prs")"
+  pr_table="$(jq -r '.[] | "| #\(.number) | \(.title | gsub("\\|"; "\\|") | gsub("\\r?\\n"; " ")) |"' <<<"$matching_prs")"
   cat > "$OUTPUT" <<SUMMARY_EOF
 ### ℹ️ Sentry Triage Skipped
 
