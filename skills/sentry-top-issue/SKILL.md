@@ -34,7 +34,7 @@ bash skills/sentry-top-issue/scripts/preflight.sh \
 
 Then read the JSON and branch:
 
-- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **exit cleanly**. Do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `SENTRY_AUTH_TOKEN`, missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
+- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **stop — this is a successful completion** (see "Terminal states" below). Do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `SENTRY_AUTH_TOKEN`, missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
 - `{"status":"ok","org":...,"project":...,"region":...,"env":...,"prFilter":<bool>,"openSentryPrs":<n>}` — carry these values into Phase 2. `openSentryPrs` is informational; the cap has already been enforced by the script.
 
 Scope precedence (as implemented by the script): explicit flags first, then AGENTS.md / CLAUDE.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `SENTRY_AUTH_TOKEN`, missing `gh` (when PR filter is on), missing `jq`, PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.
@@ -115,6 +115,17 @@ If no tier produced fresh candidates, print "Nothing to pick — all candidates 
 Phase 5 — Handoff
 
 Unless dry-run is set, invoke the fixer skill (default rm-sentry-issue-fixer) via the Skill tool. Pass the selected issue ID **plus `automatic=true`** as args — for example: `PROJECT-123 automatic=true`. The existing fixer's Phase 1 already handles a direct ID input, and a fixer such as `rm-sentry-issue-fixer` reads the `automatic` flag to run fully non-interactively and always open a PR. Callers who want a more manual run should invoke the fixer skill directly with `automatic=false` instead of going through `sentry-top-issue`.
+
+Terminal states and CI completion
+
+Every exit path below is a **successful completion** of the skill — the skill ran its logic and reached a definitive outcome. When the caller provides a completion signal (e.g., `touch SKILL_COMPLETE`), execute it on **any** of these terminal states:
+
+- **Preflight skip** — scope missing, auth token absent, `gh` missing, PR cap reached, `jq` missing. The skill determined it cannot or should not proceed.
+- **Nothing to pick** — all tiers exhausted with zero fresh candidates surviving the filters.
+- **Dry-run print** — a candidate was selected and printed, but `dry-run` prevented handoff.
+- **Handoff complete** — the fixer skill was invoked successfully.
+
+Only withhold the completion signal if the skill errors unexpectedly mid-execution (e.g., an API call fails partway through fetching/filtering). A preflight skip is not an error — it is the skill doing its job and finding that no action is warranted.
 
 references/SCOPE_DISCOVERY.md content (summary)
 
