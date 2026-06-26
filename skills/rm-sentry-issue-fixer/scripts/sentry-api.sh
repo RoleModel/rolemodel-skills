@@ -26,7 +26,8 @@ set -euo pipefail
 #   --summary-text <text>  Body text for summary mode (e.g. "already resolved in codebase")
 #   --status <status>  Summary outcome: fixed (PR created), info (no action needed), warn (needs attention, default)
 #
-# Output: JSON on stdout (except latest-event which writes to a file and prints a summary).
+# Output: JSON on stdout for issue/events-list/tags. latest-event writes to --output and prints a summary line.
+#         summary writes markdown to --output and prints a confirmation line.
 # Exit codes: 0 success, 1 API/network error, 2 invalid args, 3 shortId resolution failed.
 
 for cmd in curl jq; do

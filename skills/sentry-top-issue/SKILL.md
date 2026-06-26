@@ -44,7 +44,7 @@ Phase 2 & 3 — Fetch, filter, and select across priority tiers
 
 Use `fetch-issues.sh` to query the Sentry REST API directly. The script requires `SENTRY_AUTH_TOKEN` (already verified by preflight) and uses `curl` to call the Sentry Issues API with the search query `is:unresolved issue.priority:<tier>`, sorted by event frequency (`sort=freq`).
 
-**Iterate priority tiers in order: `high`, then `medium`, then `low`.** For each tier, fetch candidates and run all three filters. Stop at the first tier that produces a fresh (non-stale) survivor. If a tier's candidates are all filtered out or all stale, move to the next tier. After exhausting all three tiers, make one final untiered call (omit `--priority`). If that also yields nothing fresh, print "Nothing to pick." and stop — this is a **successful completion**, not an error.
+**Iterate priority tiers in order: `high`, then `medium`, then `low`.** For each tier, fetch candidates and run all three filters. Stop at the first tier that produces a fresh (non-stale) survivor. If a tier's candidates are all filtered out or all stale, move to the next tier. After exhausting all three tiers, make one final untiered call (omit `--priority`). If that also yields nothing fresh, print "Nothing to pick — all candidates are either already handled or stale." and stop — this is a **successful completion**, not an error.
 
 For each tier:
 
