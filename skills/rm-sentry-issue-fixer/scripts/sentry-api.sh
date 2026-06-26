@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# sentry-api.sh — Query the Sentry REST API for issue details, events, and state changes.
+# sentry-api.sh — Query the Sentry REST API for issue details and events.
 #
 # Provides the data-access layer the fixer skill needs without requiring a Sentry MCP server.
 # Uses SENTRY_AUTH_TOKEN and curl, matching the pattern of the sentry-top-issue scripts.
