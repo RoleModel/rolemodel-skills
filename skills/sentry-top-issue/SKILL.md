@@ -27,14 +27,15 @@ Phase 1a — Run preflight
 ```bash
 bash skills/sentry-top-issue/scripts/preflight.sh \
   [--org <slug>] [--project <slug>] [--region <url>] [--env <name>] \
-  [--no-pr-filter] --repo-root "$PWD"
+  [--no-pr-filter] --repo-root "$PWD" \
+  --output .claude-output/sentry-summary.md
 ```
 
 **Always echo the script's raw JSON output back to the user verbatim** (as a fenced ```json block) so the preflight result is visible in the transcript — regardless of whether the status is `ok` or `skip`. This is the preflight's audit trail; do not paraphrase or summarize it away.
 
 Then read the JSON and branch:
 
-- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **stop — this is a successful completion** (see "Terminal states" below). Do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `SENTRY_AUTH_TOKEN`, missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
+- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **stop — this is a successful completion** (see "Terminal states" below). Do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. When `--output` was passed and the skip reason is PR cap, the script has already written a CI-visible summary to the output path. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `SENTRY_AUTH_TOKEN`, missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
 - `{"status":"ok","org":...,"project":...,"region":...,"env":...,"prFilter":<bool>,"openSentryPrs":<n>}` — carry these values into Phase 2. `openSentryPrs` is informational; the cap has already been enforced by the script.
 
 Scope precedence (as implemented by the script): explicit flags first, then AGENTS.md / CLAUDE.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `SENTRY_AUTH_TOKEN`, missing `gh` (when PR filter is on), missing `jq`, PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.

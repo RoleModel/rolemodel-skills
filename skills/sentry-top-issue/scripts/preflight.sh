@@ -12,6 +12,7 @@ set -euo pipefail
 #   --no-pr-filter       skip gh install check + PR cap check
 #   --repo-root <dir>    directory to search for scope docs (default: cwd)
 #   --pr-cap <n>         max concurrent open [SENTRY ...] PRs (default: 3)
+#   --output <path>      write a markdown summary here on PR-cap skip (CI job summary)
 #
 # Also checks: SENTRY_AUTH_TOKEN env var (required for API access).
 #
@@ -39,6 +40,25 @@ require_arg_value() {
   fi
 }
 
+write_pr_cap_summary() {
+  local matching_prs="$1"
+  [[ -z "$OUTPUT" ]] && return 0
+  local pr_table
+  pr_table="$(jq -r '.[] | "| #\(.number) | \(.title) |"' <<<"$matching_prs")"
+  mkdir -p "$(dirname "$OUTPUT")"
+  cat > "$OUTPUT" <<SUMMARY_EOF
+### ℹ️ Sentry Triage Skipped
+
+**PR cap reached (${OPEN_PRS}/${PR_CAP} open Sentry PRs)**
+
+No new Sentry issues were triaged because the maximum number of concurrent Sentry PRs (${PR_CAP}) has been reached. Close or merge existing PRs before running again.
+
+| PR | Title |
+|----|-------|
+${pr_table}
+SUMMARY_EOF
+}
+
 ORG=""
 PROJECT=""
 REGION=""
@@ -46,6 +66,7 @@ ENV_NAME="production"
 PR_FILTER=1
 REPO_ROOT="$(pwd)"
 PR_CAP=3
+OUTPUT=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -72,6 +93,9 @@ while [[ $# -gt 0 ]]; do
         skip "invalid --pr-cap: must be a non-negative integer"
       fi
       PR_CAP="$2"; shift 2 ;;
+    --output)
+      require_arg_value "$1" "${2-}"
+      OUTPUT="$2"; shift 2 ;;
     *)
       skip "unknown arg: $1" ;;
   esac
@@ -115,8 +139,10 @@ if [[ $PR_FILTER -eq 1 ]]; then
     skip "GitHub CLI (gh) is not installed — skipping. Re-run with no-pr-filter to bypass this check."
   fi
   if gh_json="$(cd "$REPO_ROOT" && gh pr list --state open --search '[SENTRY' --json number,title 2>/dev/null)"; then
-    OPEN_PRS="$(jq '[.[] | select(.title | test("^\\[SENTRY [A-Za-z0-9]+\\]"))] | length' <<<"$gh_json")"
+    MATCHING_PRS="$(jq '[.[] | select(.title | test("^\\[SENTRY [A-Za-z0-9]+\\]"))]' <<<"$gh_json")"
+    OPEN_PRS="$(jq 'length' <<<"$MATCHING_PRS")"
     if [[ "$OPEN_PRS" -ge "$PR_CAP" ]]; then
+      write_pr_cap_summary "$MATCHING_PRS"
       skip "Sentry PR cap reached ($OPEN_PRS open) — skipping. Close or merge existing Sentry PRs before running again."
     fi
   else
