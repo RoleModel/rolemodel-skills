@@ -27,23 +27,28 @@ Phase 1a — Run preflight
 ```bash
 bash skills/sentry-top-issue/scripts/preflight.sh \
   [--org <slug>] [--project <slug>] [--region <url>] [--env <name>] \
-  [--no-pr-filter] --repo-root "$PWD"
+  [--no-pr-filter] --repo-root "$PWD" \
+  --output .claude-output/sentry-summary.md
 ```
 
 **Always echo the script's raw JSON output back to the user verbatim** (as a fenced ```json block) so the preflight result is visible in the transcript — regardless of whether the status is `ok` or `skip`. This is the preflight's audit trail; do not paraphrase or summarize it away.
 
 Then read the JSON and branch:
 
-- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **exit cleanly**. Do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `SENTRY_AUTH_TOKEN`, missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
+- `{"status":"skip","reason":"..."}` — after printing the JSON, print `reason` verbatim on its own line and **stop — this is a successful completion** (see "Terminal states" below). Do not invoke AskUserQuestion, do not invoke the fixer, do not proceed to Phase 2. When `--output` was passed and the skip reason is PR cap, the script has already written a CI-visible summary to the output path. Common skip reasons: missing scope (add `organizationSlug`/`projectSlugOrId` to `AGENTS.md`, or pass `org=<slug> project=<slug>` as arguments), missing `SENTRY_AUTH_TOKEN`, missing `gh` when PR filter is on, PR cap reached, or missing `jq`.
 - `{"status":"ok","org":...,"project":...,"region":...,"env":...,"prFilter":<bool>,"openSentryPrs":<n>}` — carry these values into Phase 2. `openSentryPrs` is informational; the cap has already been enforced by the script.
 
 Scope precedence (as implemented by the script): explicit flags first, then AGENTS.md / CLAUDE.md / `.claude/**/*.md` under `--repo-root`, matching the three-line pattern (organizationSlug, projectSlugOrId, regionUrl) described in references/SCOPE_DISCOVERY.md. Skip reasons the script can emit: missing scope, missing `SENTRY_AUTH_TOKEN`, missing `gh` (when PR filter is on), missing `jq`, PR cap reached (default 3, overridable via `--pr-cap`). `gh` auth failures are logged to stderr and do not block.
 
-Phase 2 — Fetch candidate shortlist (priority-tiered)
+Phase 2 & 3 — Fetch, filter, and select across priority tiers
 
 Use `fetch-issues.sh` to query the Sentry REST API directly. The script requires `SENTRY_AUTH_TOKEN` (already verified by preflight) and uses `curl` to call the Sentry Issues API with the search query `is:unresolved issue.priority:<tier>`, sorted by event frequency (`sort=freq`).
 
-Iterate priority tiers in order: `high`, then `medium`, then `low`. For each tier, run:
+**Iterate priority tiers in order: `high`, then `medium`, then `low`.** For each tier, fetch candidates and run all three filters. Stop at the first tier that produces a fresh (non-stale) survivor. If a tier's candidates are all filtered out or all stale, move to the next tier. After exhausting all three tiers, make one final untiered call (omit `--priority`). If that also yields nothing fresh, print "Nothing to pick — all candidates are either already handled or stale." and stop — this is a **successful completion**, not an error.
+
+For each tier:
+
+**Step 1 — Fetch:**
 
 ```bash
 bash skills/sentry-top-issue/scripts/fetch-issues.sh \
@@ -57,15 +62,11 @@ The script outputs JSON on stdout:
 
 **Always echo the script's raw JSON output back to the user verbatim** (as a fenced ```json block) so the fetch result is visible in the transcript.
 
-Run Phase 3 filters against each tier's results; stop at the first tier with surviving candidates. If all three tiers are empty after filtering, fall back to one untiered call (omit `--priority`). If still empty after filtering, print "Nothing to pick." and stop.
+If the tier returns zero issues, skip to the next tier.
 
-Phase 3 — Filter issues already being worked on or already fixed
+**Step 2 — Filter (3a): Open PR and recent closed-PR filter**
 
-Unless no-pr-filter is set, drop any candidate that is already handled. Two sub-filters:
-
-Phase 3a — Open PR and recent closed-PR filter
-
-Pipe the candidate IDs through `skills/sentry-top-issue/scripts/filter-candidates.sh`:
+Unless no-pr-filter is set, pipe the candidate IDs through `skills/sentry-top-issue/scripts/filter-candidates.sh`:
 
 ```bash
 bash skills/sentry-top-issue/scripts/filter-candidates.sh <id1> <id2> ... <id10>
@@ -78,7 +79,9 @@ The script prints surviving IDs one per line (empty output = all filtered). Trea
 
 Both checks degrade gracefully when `gh` is unauthenticated or `jq` is missing — passing inputs through with a stderr warning — so no extra handling is needed here. (Missing `gh` is already caught by Phase 1 preflight when the PR filter is on.)
 
-Phase 3b — Merged-commit filter
+If zero survive, skip to the next tier.
+
+**Step 3 — Filter (3b): Merged-commit filter**
 
 Catches the case where the fixer skill has already merged a `[SENTRY <suffix>]` commit but the Sentry issue is still marked unresolved because the release hasn't deployed yet. Without this filter, the skill hands the same issue to the fixer again and wastes a PR.
 
@@ -91,25 +94,39 @@ Catches the case where the fixer skill has already merged a `[SENTRY <suffix>]` 
 - Run: `git log <default-branch> --fixed-strings -i --grep "[SENTRY <suffix>]" -n 1 --format=%H`. A non-empty result means a merged commit already targets this issue; drop the candidate. This catches squash merges (PR title on the commit), rebase merges (original commits linearized), and regular merges (feature-branch commits are still in the log).
 - If no default-branch ref can be resolved, log a one-line warning and continue without this sub-filter — never block the pick on this check.
 
-Phase 3c — Stale-issue filter
+If zero survive, skip to the next tier.
 
-Filter out Sentry issues that have not occurred in the last 7 days to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant. This is a simple date filter based on the `lastSeen` field of the issue.
-If this filter results in zero candidates, ignore this filter and proceed with the original list of candidates. This ensures that we don't end up with "Nothing to pick." just because all issues are stale, while still preferring more recent issues when available.
+**Step 4 — Filter (3c): Stale-issue filter**
+
+Filter out Sentry issues whose `lastSeen` is more than 7 days ago to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant.
+
+If zero fresh candidates survive, **do not bypass the filter** — skip to the next tier instead. Only after all tiers (high, medium, low, and untiered) produce zero fresh candidates should you stop with "Nothing to pick."
 
 Phase 4 — Select and justify
 
-Take the top remaining candidate. Print:
+Take the top remaining candidate from the first tier that produced fresh survivors. Print:
 
 Top issue: <ID> — <title>
 Users: <userCount>  Events: <count>
 First seen: <firstSeen>  Last seen: <lastSeen>
-Why: ranked #1 by Sentry frequency sort within the highest-priority tier that had surviving candidates (unresolved, environment=<env>, priority=<tier>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch).
+Why: ranked #1 by Sentry frequency sort within the highest-priority tier that had surviving candidates (unresolved, environment=<env>, priority=<tier>, no open PR, no merged `[SENTRY <suffix>]` commit on the default branch, seen within 7 days).
 
-If the shortlist is empty after filtering, say "Nothing to pick." and stop.
+If no tier produced fresh candidates, print "Nothing to pick — all candidates are either already handled or stale." and stop. This is a **successful completion** — the skill did its job and found nothing actionable. If stale issues genuinely need attention, a human can invoke `/rm-sentry-issue-fixer <ID>` directly.
 
 Phase 5 — Handoff
 
 Unless dry-run is set, invoke the fixer skill (default rm-sentry-issue-fixer) via the Skill tool. Pass the selected issue ID **plus `automatic=true`** as args — for example: `PROJECT-123 automatic=true`. The existing fixer's Phase 1 already handles a direct ID input, and a fixer such as `rm-sentry-issue-fixer` reads the `automatic` flag to run fully non-interactively and always open a PR. Callers who want a more manual run should invoke the fixer skill directly with `automatic=false` instead of going through `sentry-top-issue`.
+
+Terminal states and CI completion
+
+Every exit path below is a **successful completion** of the skill — the skill ran its logic and reached a definitive outcome. When the caller provides a completion signal (e.g., `touch SKILL_COMPLETE`), execute it on **any** of these terminal states:
+
+- **Preflight skip** — scope missing, auth token absent, `gh` missing, PR cap reached, `jq` missing. The skill determined it cannot or should not proceed.
+- **Nothing to pick** — all tiers exhausted with zero fresh candidates surviving the filters.
+- **Dry-run print** — a candidate was selected and printed, but `dry-run` prevented handoff.
+- **Handoff complete** — the fixer skill was invoked successfully.
+
+Only withhold the completion signal if the skill errors unexpectedly mid-execution (e.g., an API call fails partway through fetching/filtering). A preflight skip is not an error — it is the skill doing its job and finding that no action is warranted.
 
 references/SCOPE_DISCOVERY.md content (summary)
 
