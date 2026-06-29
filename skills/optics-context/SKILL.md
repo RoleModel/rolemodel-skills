@@ -30,9 +30,9 @@ Search for components in this order:
 
 **Always use CSS custom properties from `assets/tokens.json`:**
 
-- **Colors**: `var(--op-color-primary)`, `var(--op-color-background)`
+- **Colors**: `var(--op-color-primary-base)`, `var(--op-color-background)`
 - **Spacing**: `var(--op-space-small)`, `var(--op-space-medium)`, `var(--op-space-large)`
-- **Typography**: `var(--op-font-size-base)`, `var(--op-line-height-normal)`
+- **Typography**: `var(--op-font-medium)`, `var(--op-line-height-base)`
 - **Borders**: `var(--op-radius-small)`, `var(--op-border-width)`
 - **Shadows**: `var(--op-shadow-small)`, `var(--op-shadow-medium)`
 
@@ -144,7 +144,7 @@ Search for components in this order:
   align-items: center;
   justify-content: center;
   padding: var(--op-space-small) var(--op-space-medium);
-  font-size: var(--op-font-size-base);
+  font-size: var(--op-font-medium);
   font-weight: var(--op-font-weight-medium);
   border-radius: var(--op-radius-small);
   border: var(--op-border-width) solid transparent;
@@ -157,12 +157,12 @@ Search for components in this order:
 
   &.btn--large {
     padding: var(--op-space-medium) var(--op-space-large);
-    font-size: var(--op-font-size-large);
+    font-size: var(--op-font-large);
   }
 
   &.btn--small {
-    padding: var(--op-space-xsmall) var(--op-space-small);
-    font-size: var(--op-font-size-small);
+    padding: var(--op-space-x-small) var(--op-space-small);
+    font-size: var(--op-font-small);
   }
 
   &.btn--disabled,
@@ -173,31 +173,33 @@ Search for components in this order:
   }
 }
 
-.btn.btn--primary {
-  background-color: var(--op-color-primary);
-  color: var(--op-color-on-primary);
+&.btn--primary {
+  background-color: var(--op-color-primary-base);
+  color: var(--op-color-primary-on-base);
 
   &:hover {
-    background-color: var(--op-color-primary-hover);
+    background-color: var(--op-color-primary-plus-two);
+    color: var(--op-color-primary-on-plus-two);
   }
 }
 
-.btn.btn--secondary {
-  background-color: var(--op-color-secondary);
-  color: var(--op-color-on-secondary);
+&.btn--secondary {
+  background-color: var(--op-color-neutral-base);
+  color: var(--op-color-neutral-on-base);
 
   &:hover {
-    background-color: var(--op-color-secondary-hover);
+    background-color: var(--op-color-neutral-plus-two);
+    color: var(--op-color-neutral-on-plus-two);
   }
 }
 
-.btn.btn--outline {
+&.btn--outline {
   background-color: transparent;
   border-color: var(--op-color-border);
-  color: var(--op-color-text);
+  color: var(--op-color-neutral-on-plus-max);
 
   &:hover {
-    background-color: var(--op-color-background-hover);
+    border-color: var(--op-color-primary-base);
   }
 }
 ```
