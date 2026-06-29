@@ -2,6 +2,7 @@
   "optics_component_classes": {
     "meta": {
       "description": "Complete list of Optics Design System CSS component classes. This does not include app specific overrides or app components.",
+      "optics_version": "2.4.0",
       "source_files": [
         "node_modules/@rolemodel/optics/dist/css/components/accordion.css",
         "node_modules/@rolemodel/optics/dist/css/components/alert.css",
