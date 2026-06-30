@@ -45,6 +45,10 @@ write_pr_cap_summary() {
   [[ -z "$SUMMARY_OUTPUT" ]] && return 0
   local pr_table
   pr_table="$(jq -r '.[] | "| #\(.number) | \(.title | gsub("\\|"; "\\|") | gsub("\\r?\\n"; " ")) |"' <<<"$matching_prs")"
+
+  SUMMARY_DIR="$(dirname "$SUMMARY_OUTPUT")"
+  mkdir -p "$SUMMARY_DIR"
+
   cat > "$SUMMARY_OUTPUT" <<SUMMARY_EOF
 ### ℹ️ Sentry Triage Skipped
 

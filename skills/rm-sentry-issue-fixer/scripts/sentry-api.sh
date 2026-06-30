@@ -100,7 +100,7 @@ case "$MODE" in
 
   latest-event)
     EVENT_OUTPUT="/tmp/sentry-latest-event.json"
-    _api_get "${BASE_URL}/api/0/organizations/${ORG}/issues/${ISSUE_ID}/events/latest/" > "$EVENT_OUTPUT"
+    ( umask 077; rm -f "$EVENT_OUTPUT"; _api_get "${BASE_URL}/api/0/organizations/${ORG}/issues/${ISSUE_ID}/events/latest/" > "$EVENT_OUTPUT" )
     EVENT_ID=$(jq -r '.id // .eventID // "unknown"' "$EVENT_OUTPUT" 2>/dev/null)
     FILE_SIZE=$(wc -c < "$EVENT_OUTPUT" | tr -d ' ')
     echo "wrote ${EVENT_OUTPUT} (${FILE_SIZE} bytes), eventId=${EVENT_ID}"
