@@ -12,7 +12,7 @@ set -euo pipefail
 #   --no-pr-filter       skip gh install check + PR cap check
 #   --repo-root <dir>    directory to search for scope docs (default: cwd)
 #   --pr-cap <n>         max concurrent open [SENTRY ...] PRs (default: 3)
-#   --output <path>      write a markdown summary here on PR-cap skip (CI job summary)
+#   --summary-output <path>  write a markdown summary here on PR-cap skip (CI job summary)
 #
 # Also checks: SENTRY_AUTH_TOKEN env var (required for API access).
 #
@@ -42,10 +42,10 @@ require_arg_value() {
 
 write_pr_cap_summary() {
   local matching_prs="$1"
-  [[ -z "$OUTPUT" ]] && return 0
+  [[ -z "$SUMMARY_OUTPUT" ]] && return 0
   local pr_table
   pr_table="$(jq -r '.[] | "| #\(.number) | \(.title | gsub("\\|"; "\\|") | gsub("\\r?\\n"; " ")) |"' <<<"$matching_prs")"
-  cat > "$OUTPUT" <<SUMMARY_EOF
+  cat > "$SUMMARY_OUTPUT" <<SUMMARY_EOF
 ### ℹ️ Sentry Triage Skipped
 
 **PR cap reached (${OPEN_PRS}/${PR_CAP} open Sentry PRs)**
@@ -65,7 +65,7 @@ ENV_NAME="production"
 PR_FILTER=1
 REPO_ROOT="$(pwd)"
 PR_CAP=3
-OUTPUT=""
+SUMMARY_OUTPUT=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -92,9 +92,9 @@ while [[ $# -gt 0 ]]; do
         skip "invalid --pr-cap: must be a non-negative integer"
       fi
       PR_CAP="$2"; shift 2 ;;
-    --output)
+    --summary-output)
       require_arg_value "$1" "${2-}"
-      OUTPUT="$2"; shift 2 ;;
+      SUMMARY_OUTPUT="$2"; shift 2 ;;
     *)
       skip "unknown arg: $1" ;;
   esac
