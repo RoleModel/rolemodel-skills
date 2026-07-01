@@ -81,8 +81,8 @@ SENTRY_ARGS=(--org "$ORG" --region "$REGION" --short-id <PROJECT-SHORTID>)
 # 1. Issue summary (title, culprit, counts, permalink)
 bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh "${SENTRY_ARGS[@]}" --mode issue
 
-# 2. Latest event (writes full event JSON to file for stack trace, breadcrumbs, context)
-bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh "${SENTRY_ARGS[@]}" --mode latest-event --output /tmp/sentry-event.json
+# 2. Latest event (writes to /tmp/sentry-latest-event.json for stack trace, breadcrumbs, context)
+bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh "${SENTRY_ARGS[@]}" --mode latest-event
 
 # 3. Tag distributions (browser, environment, URL, release — scope the impact)
 bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh "${SENTRY_ARGS[@]}" --mode tags
@@ -95,20 +95,20 @@ After fetching the latest event, extract stack traces, breadcrumbs, and context 
 
 ```bash
 # Stack frames (top of stack first)
-jq -r '(.entries[]? | select(.type=="exception") | .data.values // [])[]? | .stacktrace.frames // [] | reverse | .[:20][] | "\(.function // "?")  @ \(.filename // "?"):\(.lineno // "?")  in_app=\(.inApp // false)"' /tmp/sentry-event.json
+jq -r '(.entries[]? | select(.type=="exception") | .data.values // [])[]? | .stacktrace.frames // [] | reverse | .[:20][] | "\(.function // "?")  @ \(.filename // "?"):\(.lineno // "?")  in_app=\(.inApp // false)"' /tmp/sentry-latest-event.json
 
 # Recent breadcrumbs
-jq -r '(.entries[]? | select(.type=="breadcrumbs") | .data.values // []) | .[-20:][] | "\(.category // "?") | \(.type // "?") | \((.message // (.data|tostring))[0:120])"' /tmp/sentry-event.json
+jq -r '(.entries[]? | select(.type=="breadcrumbs") | .data.values // []) | .[-20:][] | "\(.category // "?") | \(.type // "?") | \((.message // (.data|tostring))[0:120])"' /tmp/sentry-latest-event.json
 
 # Tags
-jq -r '.tags[]? | "\(.key): \(.value)"' /tmp/sentry-event.json
+jq -r '.tags[]? | "\(.key): \(.value)"' /tmp/sentry-latest-event.json
 ```
 
 If Sentry MCP tools are available, `analyze_issue_with_seer` can supplement the analysis with AI-generated root cause suggestions.
 
 **Data handling:** If event data contains PII, credentials, or session tokens, note their *presence* and *type* for debugging but do not reproduce the actual values in any output.
 
-**Clean up untrusted data:** After analysis is complete, remove downloaded event files (`rm -f /tmp/sentry-event.json`) to avoid leaving attacker-controllable data on disk.
+**Clean up untrusted data:** After analysis is complete, remove downloaded event files (`rm -f /tmp/sentry-latest-event.json`) to avoid leaving attacker-controllable data on disk.
 
 ## Phase 3: Root Cause Hypothesis
 
@@ -161,7 +161,7 @@ Before writing code, confirm your fix will:
 bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh \
   --org "$ORG" --region "$REGION" \
   --short-id <PROJECT-SHORTID> --mode summary --status info \
-  --output .claude-output/sentry-summary.md \
+  --summary-output /tmp/sentry-summary.md \
   --summary-text "This issue has already been resolved in the codebase. A regression test is present. No code changes are necessary. Please resolve this issue in Sentry."
 ```
 
@@ -227,7 +227,7 @@ After pushing the branch and creating the PR, write a CI-visible summary:
 bash skills/rm-sentry-issue-fixer/scripts/sentry-api.sh \
   --org "$ORG" --region "$REGION" \
   --short-id <PROJECT-SHORTID> --mode summary --status fixed \
-  --output .claude-output/sentry-summary.md \
+  --summary-output /tmp/sentry-summary.md \
   --summary-text "<one-line root cause>. Fix: <what changed>. PR: <PR URL>"
 ```
 

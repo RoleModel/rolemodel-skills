@@ -10,7 +10,7 @@ set -euo pipefail
 #
 # Modes:
 #   issue          Print issue summary JSON (id, title, culprit, status, counts, permalink, metadata)
-#   latest-event   Fetch latest event, write to --output file, print summary line
+#   latest-event   Fetch latest event, write to /tmp/sentry-latest-event.json, print summary line
 #   events-list    Print JSON array of the 5 most recent events (id, dateCreated, release, environment)
 #   tags           Print tag key/value distributions for the issue
 #   summary        Write a markdown summary file (used by CI to surface results in job summary)
@@ -22,12 +22,13 @@ set -euo pipefail
 #
 # Optional:
 #   --region <url>     Sentry region URL (default: https://sentry.io)
-#   --output <path>    File path for latest-event and summary modes (default: /tmp/sentry-latest-event.json)
-#   --summary-text <text>  Body text for summary mode (e.g. "already resolved in codebase")
-#   --status <status>  Summary outcome: fixed (PR created), info (no action needed), warn (needs attention, default)
+#   --summary-output <path>  File path for summary mode (required when --mode summary)
+#   --summary-text <text>    Body text for summary mode (e.g. "already resolved in codebase")
+#   --status <status>        Summary outcome: fixed (PR created), info (no action needed), warn (needs attention, default)
 #
-# Output: JSON on stdout for issue/events-list/tags. latest-event writes to --output and prints a summary line.
-#         summary writes markdown to --output and prints a confirmation line.
+# Output: JSON on stdout for issue/events-list/tags.
+#         latest-event writes to /tmp/sentry-latest-event.json and prints a summary line.
+#         summary writes markdown to --summary-output and prints a confirmation line.
 # Exit codes: 0 success, 1 API/network error, 2 invalid args, 3 shortId resolution failed.
 
 for cmd in curl jq; do
@@ -40,20 +41,20 @@ ORG=""
 REGION="https://sentry.io"
 SHORT_ID=""
 MODE=""
-OUTPUT="/tmp/sentry-latest-event.json"
+SUMMARY_OUTPUT=""
 SUMMARY_TEXT=""
 STATUS="warn"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --org)           ORG="$2"; shift 2 ;;
-    --region)        REGION="$2"; shift 2 ;;
-    --short-id)      SHORT_ID="$2"; shift 2 ;;
-    --mode)          MODE="$2"; shift 2 ;;
-    --output)        OUTPUT="$2"; shift 2 ;;
-    --summary-text)  SUMMARY_TEXT="$2"; shift 2 ;;
-    --status)        STATUS="$2"; shift 2 ;;
-    *)               echo "unknown arg: $1" >&2; exit 2 ;;
+    --org)              ORG="$2"; shift 2 ;;
+    --region)           REGION="$2"; shift 2 ;;
+    --short-id)         SHORT_ID="$2"; shift 2 ;;
+    --mode)             MODE="$2"; shift 2 ;;
+    --summary-output)   SUMMARY_OUTPUT="$2"; shift 2 ;;
+    --summary-text)     SUMMARY_TEXT="$2"; shift 2 ;;
+    --status)           STATUS="$2"; shift 2 ;;
+    *)                  echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
 
@@ -98,10 +99,11 @@ case "$MODE" in
     ;;
 
   latest-event)
-    _api_get "${BASE_URL}/api/0/organizations/${ORG}/issues/${ISSUE_ID}/events/latest/" > "$OUTPUT"
-    EVENT_ID=$(jq -r '.id // .eventID // "unknown"' "$OUTPUT" 2>/dev/null)
-    FILE_SIZE=$(wc -c < "$OUTPUT" | tr -d ' ')
-    echo "wrote ${OUTPUT} (${FILE_SIZE} bytes), eventId=${EVENT_ID}"
+    EVENT_OUTPUT="/tmp/sentry-latest-event.json"
+    ( umask 077; rm -f "$EVENT_OUTPUT"; _api_get "${BASE_URL}/api/0/organizations/${ORG}/issues/${ISSUE_ID}/events/latest/" > "$EVENT_OUTPUT" )
+    EVENT_ID=$(jq -r '.id // .eventID // "unknown"' "$EVENT_OUTPUT" 2>/dev/null)
+    FILE_SIZE=$(wc -c < "$EVENT_OUTPUT" | tr -d ' ')
+    echo "wrote ${EVENT_OUTPUT} (${FILE_SIZE} bytes), eventId=${EVENT_ID}"
     ;;
 
   events-list)
@@ -120,6 +122,7 @@ case "$MODE" in
     ;;
 
   summary)
+    [[ -z "$SUMMARY_OUTPUT" ]] && { echo "--summary-output is required for summary mode" >&2; exit 2; }
     ISSUE_JSON=$(_api_get "${BASE_URL}/api/0/organizations/${ORG}/issues/${ISSUE_ID}/") || exit 1
     TITLE=$(jq -r '.title // "Unknown"' <<< "$ISSUE_JSON")
     PERMALINK=$(jq -r '.permalink // ""' <<< "$ISSUE_JSON")
@@ -136,10 +139,10 @@ case "$MODE" in
       *)     HEADING="### ⚠️ Sentry Issue: ${SHORT_ID}" ;;
     esac
 
-    SUMMARY_DIR="$(dirname "$OUTPUT")"
+    SUMMARY_DIR="$(dirname "$SUMMARY_OUTPUT")"
     mkdir -p "$SUMMARY_DIR"
 
-    cat > "$OUTPUT" <<SUMMARY_EOF
+    cat > "$SUMMARY_OUTPUT" <<SUMMARY_EOF
 ${HEADING}
 
 **${TITLE}**
@@ -157,7 +160,7 @@ ${SUMMARY_TEXT}
 👉 [**Open in Sentry**](${PERMALINK})
 SUMMARY_EOF
 
-    echo "wrote summary to ${OUTPUT}"
+    echo "wrote summary to ${SUMMARY_OUTPUT}"
     ;;
 
   *)
