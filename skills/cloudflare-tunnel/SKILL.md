@@ -96,7 +96,7 @@ cloudflared tunnel list | awk '$2 == "<username>" { print $1 }'   # the ID
 ```
 
 ```yaml
-tunnel: <username>
+tunnel: <tunnel-id>
 credentials-file: /Users/<username>/.cloudflared/<TUNNEL-ID>.json
 
 ingress:
@@ -123,7 +123,7 @@ covering the whole domain to `config/environments/development.rb` so every
 project's hostname is accepted without editing config per app:
 
 ```ruby
-config.hosts << /.*\.<your-domain-escaped>/   # e.g. /.*\.rolemodel\.dev/
+config.hosts << /\A.*\.<your-domain-escaped>\z/   # e.g. /\A.*\.rolemodel\.dev\z/
 ```
 
 Other frameworks have an equivalent (Vite's `server.allowedHosts`, Next.js
