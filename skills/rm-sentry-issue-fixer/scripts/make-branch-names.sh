@@ -5,6 +5,8 @@ set -euo pipefail
 # Required: --issue-id <ID>       (e.g. "PROJECT-123", "ALMANAC-1G", or "1G")
 #           --description <text>  (imperative short description)
 # Optional: --permalink <url>     (added to commit body when provided)
+#           --linear-branch <name> (override generated branch with Linear's branch name)
+#           --linear-id <ID>      (e.g. "ENG-123"; added to commit body when provided)
 #
 # Output: JSON with {branch, commitSubject, commitBody}.
 # Exit codes: 0 success, 2 invalid args, 3 subject failed /^\[SENTRY [A-Za-z0-9]+\] .+/.
@@ -17,13 +19,17 @@ fi
 ISSUE_ID=""
 DESCRIPTION=""
 PERMALINK=""
+LINEAR_BRANCH=""
+LINEAR_ID=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --issue-id)    ISSUE_ID="$2"; shift 2 ;;
-    --description) DESCRIPTION="$2"; shift 2 ;;
-    --permalink)   PERMALINK="$2"; shift 2 ;;
-    *)             echo "unknown arg: $1" >&2; exit 2 ;;
+    --issue-id)       ISSUE_ID="$2"; shift 2 ;;
+    --description)    DESCRIPTION="$2"; shift 2 ;;
+    --permalink)      PERMALINK="$2"; shift 2 ;;
+    --linear-branch)  LINEAR_BRANCH="$2"; shift 2 ;;
+    --linear-id)      LINEAR_ID="$2"; shift 2 ;;
+    *)                echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
 
@@ -60,7 +66,11 @@ SLUG="$(printf '%s' "$DESCRIPTION" \
 
 [[ -z "$SLUG" ]] && { echo "description produced empty slug" >&2; exit 2; }
 
-BRANCH="sentry-$(printf '%s' "$SUFFIX" | LC_ALL=C tr '[:upper:]' '[:lower:]')-${SLUG}"
+if [[ -n "$LINEAR_BRANCH" ]]; then
+  BRANCH="$LINEAR_BRANCH"
+else
+  BRANCH="sentry-$(printf '%s' "$SUFFIX" | LC_ALL=C tr '[:upper:]' '[:lower:]')-${SLUG}"
+fi
 SUBJECT="[SENTRY ${SUFFIX}] ${DESCRIPTION}"
 
 if [[ ! "$SUBJECT" =~ ^\[SENTRY\ [A-Za-z0-9]+\]\ .+ ]]; then
@@ -79,6 +89,10 @@ fi
 
 if [[ -n "$PERMALINK" ]]; then
   BODY="$(printf '%s\n\nSentry: %s' "$BODY" "$PERMALINK")"
+fi
+
+if [[ -n "$LINEAR_ID" ]]; then
+  BODY="$(printf '%s\n\nLinear: %s' "$BODY" "$LINEAR_ID")"
 fi
 
 jq -cn \
