@@ -66,7 +66,7 @@ SLUG="$(printf '%s' "$DESCRIPTION" \
 
 [[ -z "$SLUG" ]] && { echo "description produced empty slug" >&2; exit 2; }
 
-if [[ -n "$LINEAR_BRANCH" ]]; then
+if [[ -n "$LINEAR_BRANCH" && "$LINEAR_BRANCH" != "null" ]]; then
   BRANCH="$LINEAR_BRANCH"
 else
   BRANCH="sentry-$(printf '%s' "$SUFFIX" | LC_ALL=C tr '[:upper:]' '[:lower:]')-${SLUG}"

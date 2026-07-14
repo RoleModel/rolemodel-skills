@@ -227,10 +227,10 @@ LINEAR_RESULT="$(bash skills/rm-sentry-issue-fixer/scripts/linear-api.sh \
   --title "[SENTRY <suffix>] <short description>" \
   --description "<composed markdown description>")"
 
-LINEAR_ISSUE_UUID="$(echo "$LINEAR_RESULT" | jq -r '.id')"
-LINEAR_BRANCH="$(echo "$LINEAR_RESULT" | jq -r '.branchName')"
-LINEAR_ID="$(echo "$LINEAR_RESULT" | jq -r '.identifier')"
-LINEAR_URL="$(echo "$LINEAR_RESULT" | jq -r '.url')"
+LINEAR_ISSUE_UUID="$(echo "$LINEAR_RESULT" | jq -r '.id // empty')"
+LINEAR_BRANCH="$(echo "$LINEAR_RESULT" | jq -r '.branchName // empty')"
+LINEAR_ID="$(echo "$LINEAR_RESULT" | jq -r '.identifier // empty')"
+LINEAR_URL="$(echo "$LINEAR_RESULT" | jq -r '.url // empty')"
 ```
 
 3. Pass `LINEAR_BRANCH` and `LINEAR_ID` to `make-branch-names.sh` via `--linear-branch` and `--linear-id` so the branch name matches what Linear expects for automatic state tracking. The commit subject and body format remain unchanged — the `[SENTRY <suffix>]` prefix is still required.
@@ -299,7 +299,7 @@ bash skills/rm-sentry-issue-fixer/scripts/linear-api.sh \
   --mode update-state \
   --issue-id "$LINEAR_ISSUE_UUID" \
   --team-key "<linearTeam from project config>" \
-  --state-name "In Progress"
+  --state-name "In Progress" || echo "Warning: could not update Linear issue state" >&2
 ```
 
 If the state update fails (e.g., the team uses a different state name), log a warning but do not fail the skill — the fix and PR are already created.

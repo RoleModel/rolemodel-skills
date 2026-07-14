@@ -100,7 +100,7 @@ case "$MODE" in
       '{teamId:$teamId, title:$title, description:$desc}')"
 
     ISSUE_RESPONSE="$(graphql '
-      mutation($teamId: String!, $title: String!, $description: String) {
+      mutation($teamId: ID!, $title: String!, $description: String) {
         issueCreate(input: {
           teamId: $teamId
           title: $title
@@ -158,15 +158,15 @@ case "$MODE" in
 
     STATE_ID="$(echo "$STATES_RESPONSE" | jq -r \
       --arg name "$STATE_NAME" \
-      '.data.workflowStates.nodes[] | select(.name == $name) | .id' | head -1)"
+      '[.data.workflowStates.nodes[] | select(.name == $name) | .id] | first // empty')"
     [[ -z "$STATE_ID" ]] && {
-      AVAILABLE="$(echo "$STATES_RESPONSE" | jq -r '.data.workflowStates.nodes[].name' | paste -sd', ' -)"
+      AVAILABLE="$(echo "$STATES_RESPONSE" | jq -r '[.data.workflowStates.nodes[].name] | join(", ")')"
       echo "no workflow state named '$STATE_NAME' for team $TEAM_KEY. Available: $AVAILABLE" >&2
       exit 1
     }
 
     UPDATE_RESPONSE="$(graphql '
-      mutation($issueId: String!, $stateId: String!) {
+      mutation($issueId: ID!, $stateId: ID!) {
         issueUpdate(id: $issueId, input: { stateId: $stateId }) {
           success
           issue { state { name } }
