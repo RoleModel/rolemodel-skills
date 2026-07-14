@@ -42,8 +42,7 @@ If Sentry MCP tools are available in the environment, they may be used as a supp
 
 ### Linear integration (optional — for automatic issue tracking)
 
-When configured, the skill creates a Linear issue before branching so that PR progress automatically updates the Linear issue state (e.g., "In Progress" when a PR is opened, "Done" when merged).
-
+When configured, the skill creates a Linear issue before branching so that PR progress can update the Linear issue state (e.g., transitioning to "In Progress" when a PR is opened). Automatic merge-to-"Done" requires Linear↔GitHub automation to be enabled for the team.
 **Requirements:**
 - `LINEAR_API_KEY` environment variable set with a valid Linear personal API key
 - `linearTeam` declared in the consuming project's `AGENTS.md` / `CLAUDE.md` (the team key, e.g., `ENG`)
