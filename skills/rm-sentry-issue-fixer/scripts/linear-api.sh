@@ -57,11 +57,11 @@ graphql() {
   local variables="${2:-{\}}"
 
   local response
-  response="$(curl -sS --fail-with-body -X POST "$LINEAR_API_URL" \
+response="$(curl -sS --fail-with-body -X POST "$LINEAR_API_URL" \
     -H "Content-Type: application/json" \
     -H "Authorization: $LINEAR_API_KEY" \
     -d "$(jq -cn --arg q "$query" --argjson v "$variables" '{query:$q,variables:$v}')")" || {
-    echo "Linear API request failed (HTTP error)" >&2
+    echo "Linear API request failed (HTTP error): ${response:-<no response body>}" >&2
     exit 1
   }
 

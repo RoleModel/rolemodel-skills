@@ -91,7 +91,7 @@ if [[ -n "$PERMALINK" ]]; then
   BODY="$(printf '%s\n\nSentry: %s' "$BODY" "$PERMALINK")"
 fi
 
-if [[ -n "$LINEAR_ID" ]]; then
+if [[ -n "$LINEAR_ID" && "$LINEAR_ID" != "null" ]]; then
   BODY="$(printf '%s\n\nLinear: %s' "$BODY" "$LINEAR_ID")"
 fi
 

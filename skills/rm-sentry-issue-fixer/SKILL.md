@@ -232,7 +232,7 @@ LINEAR_ID="$(echo "$LINEAR_RESULT" | jq -r '.identifier // empty')"
 LINEAR_URL="$(echo "$LINEAR_RESULT" | jq -r '.url // empty')"
 ```
 
-3. Pass `LINEAR_BRANCH` and `LINEAR_ID` to `make-branch-names.sh` via `--linear-branch` and `--linear-id` so the branch name matches what Linear expects for automatic state tracking. The commit subject and body format remain unchanged — the `[SENTRY <suffix>]` prefix is still required.
+3. Pass `LINEAR_BRANCH` and `LINEAR_ID` to `make-branch-names.sh` via `--linear-branch` and `--linear-id` so the branch name matches what Linear expects for automatic state tracking. The commit subject format remains unchanged; the commit body may include an additional `Linear: <id>` line when `--linear-id` is provided — the `[SENTRY <suffix>]` prefix is still required.
 
 ## PR & Commit Title Format
 
