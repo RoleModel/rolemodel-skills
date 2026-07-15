@@ -100,7 +100,7 @@ case "$MODE" in
       '{teamId:$teamId, title:$title, description:$desc}')"
 
     ISSUE_RESPONSE="$(graphql '
-      mutation($teamId: ID!, $title: String!, $description: String) {
+      mutation($teamId: String!, $title: String!, $description: String) {
         issueCreate(input: {
           teamId: $teamId
           title: $title
@@ -166,7 +166,7 @@ case "$MODE" in
     }
 
     UPDATE_RESPONSE="$(graphql '
-      mutation($issueId: ID!, $stateId: ID!) {
+      mutation($issueId: String!, $stateId: String) {
         issueUpdate(id: $issueId, input: { stateId: $stateId }) {
           success
           issue { state { name } }
