@@ -42,7 +42,7 @@ Scope precedence (as implemented by the script): explicit flags first, then AGEN
 
 Phase 2 & 3 — Fetch, filter, and select across priority tiers
 
-Use `fetch-issues.sh` to query the Sentry REST API directly. The script requires `SENTRY_AUTH_TOKEN` (already verified by preflight) and uses `curl` to call the Sentry Issues API with the search query `is:unresolved issue.priority:<tier>`, sorted by event frequency (`sort=freq`).
+Use `fetch-issues.sh` to query the Sentry REST API directly. The script requires `SENTRY_AUTH_TOKEN` (already verified by preflight) and uses `curl` to call the Sentry Issues API with the search query `is:unresolved issue.priority:<tier> lastSeen:>-7d`, sorted by event frequency (`sort=freq`).
 
 **Iterate priority tiers in order: `high`, then `medium`, then `low`.** For each tier, fetch candidates and run all three filters. Stop at the first tier that produces a fresh (non-stale) survivor. If a tier's candidates are all filtered out or all stale, move to the next tier. After exhausting all three tiers, make one final untiered call (omit `--priority`). If that also yields nothing fresh, print "Nothing to pick — all candidates are either already handled or stale." and stop — this is a **successful completion**, not an error.
 
@@ -55,6 +55,8 @@ bash skills/sentry-top-issue/scripts/fetch-issues.sh \
   --org "$ORG" --project "$PROJECT" --region "$REGION" --env "$ENV" \
   --priority <tier>
 ```
+
+The script includes `lastSeen:>-7d` in the Sentry search query so only recently-active issues consume result slots. This prevents stale high-frequency issues from crowding out fresh lower-frequency ones within the 10-result limit.
 
 The script outputs JSON on stdout:
 - `{"status":"ok","issues":[...]}` — each issue object contains: `id` (shortId like PROJECT-123), `title`, `userCount`, `count`, `firstSeen`, `lastSeen`.
@@ -98,7 +100,7 @@ If zero survive, skip to the next tier.
 
 **Step 4 — Filter (3c): Stale-issue filter**
 
-Filter out Sentry issues whose `lastSeen` is more than 7 days ago to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant.
+Safety net: filter out any Sentry issues whose `lastSeen` is more than 7 days ago. The API query already includes `lastSeen:>-7d`, so this filter should be a no-op in practice — it exists only to catch edge cases where the API returns an issue right at the boundary.
 
 If zero fresh candidates survive, **do not bypass the filter** — skip to the next tier instead. Only after all tiers (high, medium, low, and untiered) produce zero fresh candidates should you stop with "Nothing to pick."
 
