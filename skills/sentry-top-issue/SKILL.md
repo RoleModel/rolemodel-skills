@@ -56,6 +56,8 @@ bash skills/sentry-top-issue/scripts/fetch-issues.sh \
   --priority <tier>
 ```
 
+The script includes `lastSeen:>-7d` in the Sentry search query so only recently-active issues consume result slots. This prevents stale high-frequency issues from crowding out fresh lower-frequency ones within the 10-result limit.
+
 The script outputs JSON on stdout:
 - `{"status":"ok","issues":[...]}` — each issue object contains: `id` (shortId like PROJECT-123), `title`, `userCount`, `count`, `firstSeen`, `lastSeen`.
 - `{"status":"error","reason":"..."}` — print the reason and stop.
@@ -98,7 +100,7 @@ If zero survive, skip to the next tier.
 
 **Step 4 — Filter (3c): Stale-issue filter**
 
-Filter out Sentry issues whose `lastSeen` is more than 7 days ago to avoid picking stale issues that may have been resolved in a hotfix or are no longer relevant.
+Safety net: filter out any Sentry issues whose `lastSeen` is more than 7 days ago. The API query already includes `lastSeen:>-7d`, so this filter should be a no-op in practice — it exists only to catch edge cases where the API returns an issue right at the boundary.
 
 If zero fresh candidates survive, **do not bypass the filter** — skip to the next tier instead. Only after all tiers (high, medium, low, and untiered) produce zero fresh candidates should you stop with "Nothing to pick."
 
