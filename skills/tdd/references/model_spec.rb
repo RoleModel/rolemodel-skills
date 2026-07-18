@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # Reference: Model spec patterns
-# - Use build for validation tests (no DB writes)
-# - Test scopes with let! records covering include AND exclude cases
-# - Use contain_exactly for order-independent scope assertions
-# - Test methods by verifying return values
+# - Test scopes, validations, and methods with meaningful logic
 # - Skip testing Rails mechanics (associations, enums, delegations)
+# - Use build for validation tests (no DB writes)
+# - Structure: describe the method, context for each scenario, it for the assertion
+# - Test names should read as documentation: rspec --format documentation
 
 require 'rails_helper'
 
@@ -21,13 +21,21 @@ RSpec.describe Member do
       expect(member).not_to be_valid
       expect(member.errors[:name]).to include("can't be blank")
     end
+
+    it 'requires a unique email' do
+      create(:member, email: 'alice@example.com')
+      member = build(:member, email: 'alice@example.com')
+
+      expect(member).not_to be_valid
+      expect(member.errors[:email]).to include('has already been taken')
+    end
   end
 
   describe '.active' do
     let!(:active) { create(:member) }
     let!(:archived) { create(:member, :archived) }
 
-    it 'returns only active members' do
+    it 'returns members who are not archived' do
       expect(described_class.active).to contain_exactly(active)
     end
   end
@@ -42,10 +50,20 @@ RSpec.describe Member do
   end
 
   describe '#days_since_joining' do
-    it 'returns the number of days since the member joined' do
-      member = build(:member, joined_at: 10.days.ago)
+    context 'when the member joined 10 days ago' do
+      it 'returns 10' do
+        member = build(:member, joined_at: 10.days.ago)
 
-      expect(member.days_since_joining).to eq(10)
+        expect(member.days_since_joining).to eq(10)
+      end
+    end
+
+    context 'when the member joined today' do
+      it 'returns 0' do
+        member = build(:member, joined_at: Time.current)
+
+        expect(member.days_since_joining).to eq(0)
+      end
     end
   end
 end

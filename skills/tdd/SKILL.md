@@ -1,20 +1,31 @@
 ---
 name: tdd
-description: Test-driven development workflow for Rails features. Drives implementation from tests through models, controllers, and views. Use when building new features, adding functionality, or when the user asks to work in TDD style.
+description: >
+  Test-driven development and testing patterns for Rails applications. Drives
+  implementation from tests using an outside-in approach with RSpec, Capybara,
+  and FactoryBot. Use when building new features with TDD, writing or improving
+  tests, adding test coverage, fixing bugs with a test-first workflow, or when
+  the user mentions TDD, test-driven, test-first, outside-in, spec plan, RSpec,
+  Capybara, system specs, model specs, testing patterns, writing tests, or
+  improving test coverage.
 compatibility: Requires Ruby on Rails, RSpec, Capybara, and FactoryBot
 metadata:
   author: rolemodelsoftware
-  version: "1.0"
+  version: "2.0"
 allowed-tools: Bash(bundle exec rspec:*) Read
 ---
 
 # TDD Workflow
 
-Drive feature implementation using the red-green loop: write a failing test, write the minimum code to make it pass, then move to the next slice.
+Drive feature implementation from the outside in: start with what the user sees, work inward to the models and logic, writing a failing test before every piece of implementation.
+
+If asked to implement a feature or fix a bug without tests, write the test first. Always.
 
 ## Philosophy
 
-Tests verify **behavior**, not implementation. A good test answers "does this work?" not "does this method exist?" If a test breaks when you refactor internals without changing behavior, it's testing the wrong thing.
+### Outside-in
+
+Start at the outermost seam (system test) and let failures pull you inward. A system test fails because a route is missing. Adding the route fails because the controller action is missing. The controller fails because the model has no scope. At each layer, the failure tells you what to build next. This is the outside-in progression: the tests drive the design rather than the other way around.
 
 ### Seams
 
@@ -26,11 +37,26 @@ A seam is the public boundary you test at: the interface where you observe behav
 
 Test at the seam. Don't reach past it into private methods or internal state.
 
-### Vertical Slices
+### Tests as documentation
+
+Tests serve two purposes: confidence that the code works, and documentation of what the code does. A well-named describe/context/it structure should read like a specification when run with `--format documentation`. Write test names that express business behavior, not implementation details.
+
+Structure every test with a clear Given/When/Then shape:
+- **Given:** the setup (factories, state, preconditions)
+- **When:** the action (visit, click, call)
+- **Then:** the assertion (expect)
+
+Separate these three sections with blank lines so the structure is visible at a glance.
+
+### DAMP over DRY
+
+Tests should be Descriptive And Meaningful. Duplication across tests is acceptable when it makes each test independently readable. A reader should understand what a test does without scrolling to shared setup or tracing through helper methods. Optimize for clarity, not for removing repetition.
+
+### Vertical slices
 
 Work in vertical slices: one feature, one test, one implementation, then the next. Do not write all your tests first and then implement. That tests imagined behavior instead of actual behavior.
 
-### Anti-Patterns
+### Anti-patterns
 
 Avoid these:
 
@@ -42,7 +68,7 @@ Avoid these:
 
 ### 1. Plan the test coverage (the spec plan)
 
-Before writing any code, create a spec plan at `docs/plans/<feature>-spec-plan.md`. This is where you (the student) decide **what to test and why**. The AI helps you write the test code, but you own the plan.
+Before writing any code, create a spec plan at `docs/plans/<feature>-spec-plan.md`. This is where you decide **what to test and why**. If you've done a BRAVE breakdown, the Brainstorm section is your feature summary and the Approach section tells you which seams to test at.
 
 Start with a **Feature summary** that describes what the user can do and any key constraints. Then organize by spec file and test name, with a checklist of requirements each test verifies.
 
@@ -87,7 +113,7 @@ Each test should trace back to the feature summary. If a behavior in the summary
 Write one test. Run it. Confirm it fails for the right reason (missing route, missing method, missing template), not a syntax error or typo.
 
 ```bash
-bundle exec rspec spec/system/game_histories_spec.rb
+bundle exec rspec spec/system/rosters_spec.rb
 ```
 
 **Stop and let the user review the test before implementing.**
@@ -114,8 +140,17 @@ Once all planned tests pass:
 
 ```bash
 # Run the related specs
-bundle exec rspec spec/system/dashboard_spec.rb spec/models/player_spec.rb
+bundle exec rspec spec/system/dashboard_spec.rb spec/models/user_spec.rb
 ```
+
+## Bug fixes: the Prove-It pattern
+
+When fixing a bug, always start with a reproduction test:
+
+1. **Write a test that reproduces the bug.** The test should fail, demonstrating the broken behavior.
+2. **Run it and confirm it fails.** If it passes, your test doesn't capture the actual bug.
+3. **Fix the bug.** Write the minimum code to make the test pass.
+4. **Run the full suite.** Confirm the fix doesn't break anything else.
 
 ## What gets its own spec
 
@@ -145,9 +180,9 @@ bundle exec rspec
 
 Always run the focused spec while developing, not the full suite. Only run broader specs when checking for regressions.
 
-## Spec patterns
+## Spec patterns and conventions
 
-Reference files in this skill's `references/` directory contain examples of each spec type. Read the appropriate reference before writing a new spec.
+Reference files in this skill's `references/` directory contain examples and conventions. Read the appropriate reference before writing a new spec.
 
 ### System specs (`references/system_spec.rb`)
 
@@ -165,3 +200,13 @@ Reference files in this skill's `references/` directory contain examples of each
 - Use `contain_exactly` for scope assertions (order doesn't matter)
 - Test methods by verifying return values
 - Skip testing Rails mechanics (associations, enums, delegations)
+
+### RSpec conventions (`references/spec_conventions.md`)
+
+Read this reference for detailed guidance on:
+- `let` vs `let!` (lazy vs eager evaluation) with common pitfalls
+- Validation testing patterns
+- Element selection with `data-testid` and `dom_id`
+- Scoping with `within` blocks
+- Turbo confirm dialog testing
+- FactoryBot conventions
