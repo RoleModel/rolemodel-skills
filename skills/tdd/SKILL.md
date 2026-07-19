@@ -127,7 +127,7 @@ Write the minimum code to make the failing test pass. Follow this loop:
 3. **If the missing piece is mechanical** (a route, a simple controller action, a view template), implement it directly.
 4. **Re-run the test.** It should get further. Repeat until green.
 
-After the test passes, briefly summarize what was implemented. Ask the user upfront (during spec plan review) whether they want to review each implementation before moving on or prefer continuous flow. Default to a brief checkpoint: "Here's what I implemented to make it pass. Moving to the next test unless you want to adjust."
+After the test passes, briefly summarize what was implemented. Ask the user upfront (during spec plan review) whether they want to review each test and sub-spec before moving on or prefer continuous flow. This applies to both the outer system tests and any focused specs written in the inner loop (step 3.2). Default to a brief checkpoint: "Here's what I implemented to make it pass. Moving to the next test unless you want to adjust."
 
 ### 4. Mark progress and continue
 
