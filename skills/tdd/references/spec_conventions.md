@@ -112,30 +112,18 @@ Use `within` blocks when:
 
 ## Turbo Confirm Dialogs
 
-When testing actions that trigger Turbo confirm dialogs, use helper methods:
+When testing actions that trigger Turbo confirm dialogs, use a helper that clicks the confirm button by text. This avoids brittle CSS selectors and works with both Rack and JS drivers:
 
 **Setup:**
 ```ruby
-# spec/support/turbo_confirm_helper.rb
+# spec/support/helpers/turbo_confirm_helper.rb
 module TurboConfirmHelper
-  def accept_turbo_confirm
-    yield
-    expect(page).to have_css '.confirm-dialog-wrapper--active', wait: 5
-    sleep(0.5)
-    within '.confirm-dialog-wrapper--active' do
-      find('#confirm-accept').click
-    end
-    expect(page).to_not have_css '.confirm-dialog-wrapper--active', wait: 5
-  end
+  def accept_turbo_confirm(button_text = "Yes, I'm Sure")
+    yield if block_given?
+    return unless supports_javascript?
 
-  def deny_turbo_confirm
-    yield
-    expect(page).to have_css '.confirm-dialog-wrapper--active', wait: 5
-    sleep(0.5)
-    within '.confirm-dialog-wrapper--active' do
-      find('#confirm-cancel').click
-    end
-    expect(page).to_not have_css '.confirm-dialog-wrapper--active', wait: 5
+    expect(page).to have_button(button_text)
+    click_on button_text
   end
 end
 ```

@@ -3,7 +3,7 @@ name: tdd
 description: >
   Test-driven development and testing patterns for Rails applications. Drives
   implementation from tests using an outside-in approach with RSpec, Capybara,
-  and FactoryBot. Use when building new features with TDD, writing or improving
+  and FactoryBot. Use when building new features, writing or improving
   tests, adding test coverage, fixing bugs with a test-first workflow, or when
   the user mentions TDD, test-driven, test-first, outside-in, spec plan, RSpec,
   Capybara, system specs, model specs, testing patterns, writing tests, or
@@ -127,6 +127,8 @@ Write the minimum code to make the failing test pass. Follow this loop:
 3. **If the missing piece is mechanical** (a route, a simple controller action, a view template), implement it directly.
 4. **Re-run the test.** It should get further. Repeat until green.
 
+After the test passes, briefly summarize what was implemented. Ask the user upfront (during spec plan review) whether they want to review each implementation before moving on or prefer continuous flow. Default to a brief checkpoint: "Here's what I implemented to make it pass. Moving to the next test unless you want to adjust."
+
 ### 4. Mark progress and continue
 
 After each test passes, check off the requirements in your spec plan (`[x]`). Move to the next test in the plan and repeat steps 2-3.
@@ -148,7 +150,7 @@ bundle exec rspec spec/system/dashboard_spec.rb spec/models/user_spec.rb
 When fixing a bug, always start with a reproduction test:
 
 1. **Write a test that reproduces the bug.** The test should fail, demonstrating the broken behavior.
-2. **Run it and confirm it fails.** If it passes, your test doesn't capture the actual bug.
+2. **Run it and confirm it fails.** If it passes, your test doesn't capture the actual bug and it needs to be rewritten. In that case, consider if you've correctly diagnosed the problem.
 3. **Fix the bug.** Write the minimum code to make the test pass.
 4. **Run the full suite.** Confirm the fix doesn't break anything else.
 

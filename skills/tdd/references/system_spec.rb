@@ -11,9 +11,9 @@
 require 'rails_helper'
 
 RSpec.describe 'Team roster', type: :system do
-  let(:admin) { create(:user, :admin) }
+  let(:user) { create(:user, :admin) }
 
-  before { sign_in admin }
+  before { sign_in user }
 
   describe 'viewing the roster' do
     let!(:active_member) do
@@ -28,17 +28,14 @@ RSpec.describe 'Team roster', type: :system do
       create(:member, :archived, name: 'Charlie')
     end
 
-    it 'shows active members with their role and join date' do
+    it 'shows active members ordered by most recently joined' do
       visit roster_path
+      expect(page).to have_content('Team Roster')
 
       expect(page).to have_content('Alice')
       expect(page).to have_content('Developer')
       expect(page).to have_content('Bob')
       expect(page).to have_no_content('Charlie')
-    end
-
-    it 'lists most recently joined members first' do
-      visit roster_path
 
       rows = page.all(data_test('member-row'))
       expect(rows.first).to have_content('Bob')
@@ -51,6 +48,7 @@ RSpec.describe 'Team roster', type: :system do
 
     it 'reveals archived members when the filter is toggled' do
       visit roster_path
+      expect(page).to have_content('Team Roster')
 
       click_on 'Show Archived'
 
@@ -61,6 +59,8 @@ RSpec.describe 'Team roster', type: :system do
   describe 'adding a new member' do
     it 'creates a member and returns to the roster' do
       visit roster_path
+      expect(page).to have_content('Team Roster')
+
       click_on 'Add Member'
 
       fill_in 'Name', with: 'Dana'
@@ -73,9 +73,7 @@ RSpec.describe 'Team roster', type: :system do
   end
 
   context 'when the user is not an admin' do
-    let(:regular_user) { create(:user) }
-
-    before { sign_in regular_user }
+    let(:user) { create(:user) }
 
     it 'redirects to the dashboard' do
       visit roster_path
