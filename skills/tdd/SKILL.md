@@ -68,7 +68,7 @@ Avoid these:
 
 ### 1. Plan the test coverage (the spec plan)
 
-Before writing any code, create a spec plan at `docs/plans/<feature>-spec-plan.md`. This is where you decide **what to test and why**. If you've done a BRAVE breakdown, the Brainstorm section is your feature summary and the Approach section tells you which seams to test at.
+Unless the user provides a spec plan, before writing any code, create one at `docs/plans/<feature>-spec-plan.md`. This is where you decide **what to test and why**. If you've done a BRAVE breakdown, the Brainstorm section is your feature summary and the Approach section tells you which seams to test at.
 
 Start with a **Feature summary** that describes what the user can do and any key constraints. Then organize by spec file and test name, with a checklist of requirements each test verifies.
 
@@ -106,7 +106,7 @@ Admins can view a roster of team members showing name, role, and join date. The 
 
 Each test should trace back to the feature summary. If a behavior in the summary has no test, add one. If a test doesn't trace back, cut it.
 
-**Stop and let the user review the plan before proceeding.** They may adjust scope, reorder priorities, or cut tests.
+**Stop and let the user review the plan before proceeding.** They may adjust scope, reorder priorities, or cut tests. Only move to step 2 after they confirm.
 
 ### 2. Write the first failing test
 
@@ -116,7 +116,7 @@ Write one test. Run it. Confirm it fails for the right reason (missing route, mi
 bundle exec rspec spec/system/rosters_spec.rb
 ```
 
-**Stop and let the user review the test before implementing.**
+**Stop and let the user review the test before implementing.** They may adjust assertions, rename examples, or restructure the test. When the user continues, re-read the spec file to pick up any changes they made, then proceed to step 3.
 
 ### 3. Make it pass
 
