@@ -1,0 +1,194 @@
+{
+  "_comment": "RoleModel '<App> SHM' dashboard template. Replace {{APP_NAME}} and {{PROJECT_ID}} (numeric Sentry project ID), remove this _comment key, then: sentry api organizations/rolemodel-software/dashboards/ -X POST --input <file>. If the app has send_default_pii=true, see SKILL.md for the 'Affected Users' widget that replaces 'Errors by Transaction'.",
+  "title": "{{APP_NAME}} SHM",
+  "projects": ["{{PROJECT_ID}}"],
+  "environment": ["production"],
+  "period": "30d",
+  "filters": {},
+  "widgets": [
+    {
+      "title": "Errors",
+      "displayType": "big_number",
+      "widgetType": "error-events",
+      "interval": "5m",
+      "layout": { "x": 0, "y": 0, "w": 1, "h": 1, "minH": 1 },
+      "queries": [
+        { "name": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "conditions": "", "orderby": "" }
+      ]
+    },
+    {
+      "title": "Unique Issues",
+      "displayType": "big_number",
+      "widgetType": "error-events",
+      "interval": "5m",
+      "layout": { "x": 1, "y": 0, "w": 1, "h": 1, "minH": 1 },
+      "queries": [
+        { "name": "", "fields": ["count_unique(issue)"], "aggregates": ["count_unique(issue)"], "columns": [], "conditions": "", "orderby": "" }
+      ]
+    },
+    {
+      "title": "p95 Latency",
+      "displayType": "big_number",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 2, "y": 0, "w": 1, "h": 1, "minH": 1 },
+      "queries": [
+        { "name": "", "fields": ["p95(span.duration)"], "aggregates": ["p95(span.duration)"], "columns": [], "conditions": "is_transaction:true", "orderby": "" }
+      ]
+    },
+    {
+      "title": "Throughput (epm)",
+      "displayType": "big_number",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 3, "y": 0, "w": 1, "h": 1, "minH": 1 },
+      "queries": [
+        { "name": "", "fields": ["epm()"], "aggregates": ["epm()"], "columns": [], "conditions": "is_transaction:true", "orderby": "" }
+      ]
+    },
+    {
+      "title": "Failed Requests",
+      "displayType": "big_number",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 4, "y": 0, "w": 1, "h": 1, "minH": 1 },
+      "queries": [
+        { "name": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "conditions": "is_transaction:true !span.status:ok", "orderby": "" }
+      ]
+    },
+    {
+      "title": "Failure Rate",
+      "displayType": "big_number",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 5, "y": 0, "w": 1, "h": 1, "minH": 1 },
+      "queries": [
+        { "name": "", "fields": ["failure_rate()"], "aggregates": ["failure_rate()"], "columns": [], "conditions": "", "orderby": "" }
+      ]
+    },
+    {
+      "title": "Errors Over Time",
+      "displayType": "line",
+      "widgetType": "error-events",
+      "interval": "5m",
+      "layout": { "x": 0, "y": 1, "w": 3, "h": 2, "minH": 2 },
+      "queries": [
+        { "name": "Events", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "conditions": "", "orderby": "count()" }
+      ]
+    },
+    {
+      "title": "Latency Over Time",
+      "displayType": "line",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 3, "y": 1, "w": 3, "h": 2, "minH": 2 },
+      "queries": [
+        { "name": "", "fields": ["p50(span.duration)", "p95(span.duration)"], "aggregates": ["p50(span.duration)", "p95(span.duration)"], "columns": [], "conditions": "is_transaction:true", "orderby": "" }
+      ]
+    },
+    {
+      "title": "Handled vs. Unhandled",
+      "displayType": "line",
+      "widgetType": "error-events",
+      "interval": "5m",
+      "layout": { "x": 0, "y": 3, "w": 2, "h": 2, "minH": 2 },
+      "queries": [
+        { "name": "Handled", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "conditions": "error.handled:true", "orderby": "count()" },
+        { "name": "Unhandled", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "conditions": "error.handled:false", "orderby": "count()" }
+      ]
+    },
+    {
+      "title": "Errors by Transaction",
+      "displayType": "table",
+      "widgetType": "error-events",
+      "interval": "1h",
+      "layout": { "x": 2, "y": 3, "w": 2, "h": 2, "minH": 2 },
+      "queries": [
+        { "name": "", "fields": ["transaction", "count()", "count_unique(issue)"], "aggregates": ["count()", "count_unique(issue)"], "columns": ["transaction"], "conditions": "", "orderby": "-count()" }
+      ]
+    },
+    {
+      "title": "Throughput Over Time",
+      "displayType": "area",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 4, "y": 3, "w": 2, "h": 2, "minH": 2 },
+      "queries": [
+        { "name": "", "fields": ["epm()"], "aggregates": ["epm()"], "columns": [], "conditions": "is_transaction:true", "orderby": "" }
+      ]
+    },
+    {
+      "title": "Endpoints - Response Time & Throughput",
+      "displayType": "table",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 0, "y": 5, "w": 6, "h": 4, "minH": 2 },
+      "queries": [
+        {
+          "name": "",
+          "fields": ["transaction", "count()", "epm()", "p50(span.duration)", "p75(span.duration)", "p95(span.duration)", "p99(span.duration)"],
+          "aggregates": ["count()", "epm()", "p50(span.duration)", "p75(span.duration)", "p95(span.duration)", "p99(span.duration)"],
+          "columns": ["transaction"],
+          "conditions": "is_transaction:true",
+          "orderby": "-p95(span.duration)"
+        }
+      ]
+    },
+    {
+      "title": "Slowest DB Queries (by total time)",
+      "displayType": "table",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 0, "y": 9, "w": 6, "h": 4, "minH": 2 },
+      "queries": [
+        {
+          "name": "",
+          "fields": ["span.description", "count()", "avg(span.duration)", "sum(span.duration)"],
+          "aggregates": ["count()", "avg(span.duration)", "sum(span.duration)"],
+          "columns": ["span.description"],
+          "conditions": "span.op:db*",
+          "orderby": "-sum(span.duration)"
+        }
+      ]
+    },
+    {
+      "title": "Where Time Is Spent (by operation)",
+      "displayType": "bar",
+      "widgetType": "spans",
+      "interval": "5m",
+      "limit": 10,
+      "layout": { "x": 0, "y": 13, "w": 6, "h": 3, "minH": 2 },
+      "queries": [
+        { "name": "", "fields": ["span.op", "sum(span.duration)"], "aggregates": ["sum(span.duration)"], "columns": ["span.op"], "conditions": "", "orderby": "-sum(span.duration)" }
+      ]
+    },
+    {
+      "title": "Transactions by Failure Rate",
+      "displayType": "table",
+      "widgetType": "spans",
+      "interval": "5m",
+      "layout": { "x": 0, "y": 16, "w": 3, "h": 4, "minH": 2 },
+      "queries": [
+        {
+          "name": "",
+          "fields": ["transaction", "failure_rate()", "count()"],
+          "aggregates": ["failure_rate()", "count()"],
+          "columns": ["transaction"],
+          "conditions": "is_transaction:true",
+          "orderby": "-failure_rate()"
+        }
+      ]
+    },
+    {
+      "title": "Issues For Review",
+      "displayType": "table",
+      "widgetType": "issue",
+      "interval": "5m",
+      "layout": { "x": 3, "y": 16, "w": 3, "h": 4, "minH": 2 },
+      "description": "Most recently seen unresolved issues for review.",
+      "queries": [
+        { "name": "", "fields": ["issue", "assignee", "events", "title"], "aggregates": [], "columns": ["issue", "assignee", "events", "title"], "conditions": "is:unresolved is:for_review", "orderby": "date" }
+      ]
+    }
+  ]
+}
