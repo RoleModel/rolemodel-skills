@@ -43,7 +43,7 @@ Skills may also include a `references/` directory for supporting markdown files 
 - **json-typed-attributes**: Define typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration.
 
 ### Documentation
-- **document-this**: Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document-this <file-path>`, or wants fresh documentation reflecting the current codebase state.
+- **document-this**: Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document-this <file-path>`, runs `/document-this --focus "<Feature Name>"` for a deep-dive on one subsystem in a named subfolder, or wants fresh documentation reflecting the current codebase state.
 
 ### Testing & TDD
 - **tdd**: Test-driven development and testing patterns for Rails applications. Drives implementation from tests using an outside-in approach with RSpec, Capybara, and FactoryBot. Covers the TDD workflow (spec plans, red-green loop, Prove-It pattern for bugs) and RSpec conventions (system specs, model specs, let/let!, validation patterns, FactoryBot, Capybara helpers).

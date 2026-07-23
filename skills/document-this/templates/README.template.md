@@ -22,6 +22,21 @@
 - [Data Model](./diagrams/data-model.mmd) — Entity relationships
 - [Architecture Overview](./diagrams/architecture.mmd) — High-level component map
 
+{{#if FOCUS_SUBFOLDERS}}
+## Deep dives
+
+Feature-scoped documentation generated with `/document-this --focus`. Each subfolder contains its own `workflows.md`, `architecture.md`, and diagrams.
+
+{{FOCUS_SUBFOLDERS}}
+
+<!--
+Render one bullet per focus subfolder. The link text is the human-readable feature name;
+the path is the slugged folder, e.g.:
+- [Materials Management](./materials/) — workflows, architecture, and diagrams for the materials subsystem
+- [Stripe Webhooks](./stripe-webhooks/) — end-to-end webhook handling
+-->
+{{/if}}
+
 ---
 
-*To regenerate: `/document-this` (full) or `/document-this <file-path>` (targeted)*
+*To regenerate: `/document-this` (full), `/document-this <file-path>` (targeted), or `/document-this --focus "<Feature Name>"` (deep dive on one subsystem)*
