@@ -1,7 +1,7 @@
 {
-  "_comment": "RoleModel '<App> SHM' dashboard template. Replace {{APP_NAME}} and {{PROJECT_ID}} (numeric Sentry project ID), remove this _comment key, then: sentry api organizations/rolemodel-software/dashboards/ -X POST --input <file>. Widget set is derived from what SHM report writers actually cite (Almanac product health report summaries, Jan-Jul 2026). If the app has send_default_pii=true, see SKILL.md for the additional 'Affected Users' widget.",
-  "title": "{{APP_NAME}} SHM",
-  "projects": ["{{PROJECT_ID}}"],
+  "_comment": "RoleModel shared 'RoleModel SHM' dashboard template — ONE org-wide dashboard for all apps, not per-app. No substitution needed: post as-is after removing this _comment key. The empty 'projects' array means 'All Projects' so the dashboard's project selector re-scopes every widget per app at view time; do the same for 'environment' (production is the default filter, chosen at view time). Create it only once per org (audit step 3a). Post: sentry api organizations/rolemodel-software/dashboards/ -X POST --input <file>. Widget set is derived from what SHM report writers actually cite (Almanac product health report summaries, Jan-Jul 2026).",
+  "title": "RoleModel SHM",
+  "projects": [],
   "environment": ["production"],
   "period": "30d",
   "filters": {},

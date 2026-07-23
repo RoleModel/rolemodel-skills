@@ -12,9 +12,17 @@ context, and sourcemap upload — if those are missing, tell the user to run
 
 1. Project + team setup
 2. Alert rules (new issue, regression, error spike → team Slack channel)
-3. The `<App> SHM` dashboard
+3. The shared `RoleModel SHM` dashboard (one org-wide dashboard, not per-app)
 4. Cron monitor validation
 5. Uptime monitor validation
+
+**One dashboard for the whole org.** A Sentry dashboard's project filter is
+switched at view time, so a single `RoleModel SHM` dashboard serves every app —
+open it, pick the project (and environment) from the selector, and the widgets
+re-scope. This skill ensures that one dashboard exists and matches the template;
+it does **not** create a dashboard per app. (This replaces the earlier per-app
+`<App> SHM` model — if you find leftover per-app SHM dashboards, treat them as
+deprecated and offer to delete them once the shared one is in place.)
 
 **Org constants:** organization `rolemodel-software`, region `https://us.sentry.io`.
 
@@ -56,13 +64,11 @@ The Sentry MCP tools work as an alternative when the CLI isn't installed.
 Determine, asking the user only for what can't be derived:
 
 - **Project slug + numeric ID** — match the repo to a project via `find_projects`.
-  If ambiguous, ask.
-- **App display name** — for the dashboard title (`<App> SHM`).
+  If ambiguous, ask. (Used for alerts, cron/uptime monitors — the dashboard is
+  org-wide and not scoped to this project.)
 - **Team + Slack channel** — teams map 1:1 to Linear teams (some partners have one
   team covering several apps). Find the Sentry team via `find_teams`; ask the user
   for the Slack channel name.
-- **PII flag** — read `config/initializers/sentry.rb` in the repo:
-  `send_default_pii = true` means user-based widgets are allowed (see dashboard step).
 - **Production URL** — for the uptime check; usually derivable from the repo
   (README, `production.rb` hosts) — confirm with the user if guessing.
 - **Scheduled jobs** — enumerate from the repo: GoodJob cron config
@@ -82,8 +88,8 @@ Check each item and classify: ✅ compliant · 🔧 auto-fixable · 📋 needs a
 | 2a | Issue alert: new issue → team Slack | `sentry alert issues list rolemodel-software/<slug> --json`; inspect actions target the right channel |
 | 2b | Issue alert: regression → team Slack | same |
 | 2c | Metric alert: error-volume spike | `sentry alert metrics list rolemodel-software --json`; threshold ≈ 10× the app's average hourly error count over 30d (min 50) — get the baseline with `sentry explore` or `sentry event list` |
-| 3a | Dashboard `<App> SHM` exists | `sentry dashboard list rolemodel-software/ --json` |
-| 3b | Dashboard widgets match the template | `sentry dashboard view <id> --json`, diff against `references/dashboard_template.json` (widget titles + queries; layout drift is fine) |
+| 3a | Shared `RoleModel SHM` dashboard exists (org-wide, one for all apps) | `sentry api 'organizations/rolemodel-software/dashboards/?query=RoleModel SHM'` (dashboard list paginates — search by title) |
+| 3b | Dashboard widgets match the template | `sentry dashboard view rolemodel-software/ <id> --json`, diff against `references/dashboard_template.json` (widget titles + queries; layout drift is fine). Confirm its project filter is **not** pinned to one project (empty `projects`/"All Projects") so the selector can re-scope it |
 | 4a | Every scheduled job in the repo has a cron monitor | repo job list vs `sentry monitor list rolemodel-software/<slug> --json` |
 | 4b | Every monitor is active/green and creates issues on failure | monitor details: status ok, `failure_issue_threshold` set (`sentry api organizations/rolemodel-software/monitors/<monitor-slug>/`) |
 | 4c | No orphan monitors (monitor exists, job deleted from repo) | reverse diff — report, don't auto-delete |
@@ -98,16 +104,18 @@ which 🔧 items to apply (one confirmation for the batch, not per item).
   `sentry alert metrics create` per `references/alert_templates.md` — run with
   `--dry-run` first, then for real. Cron/uptime failures surface as issues, so rule
   2a is what routes them to Slack — never add an issue-category filter to it.
-- **Dashboard**: substitute `{{APP_NAME}}` and `{{PROJECT_ID}}` into
-  `references/dashboard_template.json`, then post the whole thing:
+- **Dashboard**: create the shared `RoleModel SHM` dashboard **once for the whole
+  org** — only if 3a found none. Post `references/dashboard_template.json` as-is
+  (no substitution — it has a fixed title and an empty project filter so the
+  selector re-scopes it per app):
   `sentry api organizations/rolemodel-software/dashboards/ -X POST --input <file>`.
   (One `sentry api` call, not 12 `dashboard widget add` calls — several widgets are
-  multi-series, which `widget add` can't express.) If the app has PII enabled,
-  **add** an "Affected Users" widget (line, error-events, two queries:
-  `has:user.email` and `!has:user.email`, both `count_unique(user)`) alongside
-  "Errors by Transaction". If a dashboard exists but drifts, PUT the merged widget
-  list back the same way — **add** missing widgets; ask before removing custom
-  ones someone added deliberately. Exception: widgets from the pre-July-2026
+  multi-series, which `widget add` can't express.) Because it's org-wide, the PII
+  and per-project decisions are made at **view** time via the project selector, not
+  baked in — do not add a project-specific "Affected Users" widget here. If the
+  dashboard exists but drifts, PUT the merged widget list back the same way —
+  **add** missing widgets; ask before removing custom ones someone added
+  deliberately. Exception: widgets from the pre-July-2026
   template revision — Throughput (epm), Failed Requests, Handled vs. Unhandled,
   Throughput Over Time, Where Time Is Spent (by operation), Transactions by
   Failure Rate — are deprecated, not custom; remove them as part of the confirmed
@@ -177,9 +185,12 @@ strings into job classes. For GoodJob (reference implementation:
 
 ## Step 3 — Report
 
-End with: the check table (final state), links to the dashboard and alert pages,
-and a short 📋 list of anything requiring a human (Heroku dyno metadata, generator
-re-run, Slack channel creation, orphan monitors to consider deleting).
+End with: the check table (final state), links to the alert pages and to the
+shared `RoleModel SHM` dashboard (link it with this project + production
+pre-selected so the reader lands on the right view), and a short 📋 list of
+anything requiring a human (Heroku dyno metadata, generator re-run, Slack channel
+creation, orphan monitors to consider deleting, leftover per-app SHM dashboards
+to retire).
 
 Include the app's 30-day uptime percentage (it can't live on the dashboard — no
 uptime dataset exists for widgets). Get the monitor id from
