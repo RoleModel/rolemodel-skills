@@ -37,6 +37,17 @@ CLI gotchas (learned on the c12 pilot):
 - `sentry dashboard view` needs the org as a separate arg: `sentry dashboard view rolemodel-software/ <id>`.
 - `sentry alert metrics create` can 403 for member-role users (org restricts
   metric-alert creation). If it does, classify 2c as 📋 for an org admin.
+- `sentry dashboard list` paginates — a dashboard can be absent from the first
+  page. To find one by title, use
+  `sentry api 'organizations/rolemodel-software/dashboards/?query=<title>'`.
+- Uptime and cron failures both have `issue.category:outage`
+  (types `uptime_domain_failure` / `monitor_check_in_failure`). The legacy
+  `uptime` and `cron` category values still parse without error but match
+  nothing — a widget or search using them silently returns empty.
+- Dashboards have no uptime dataset (valid widgetTypes as of 2026-07:
+  error-events, spans, issue, logs, discover, metrics, transaction-like), so
+  uptime **percentage** can't be a widget — pull it from the API instead (see
+  Step 3).
 
 The Sentry MCP tools work as an alternative when the CLI isn't installed.
 
@@ -90,13 +101,20 @@ which 🔧 items to apply (one confirmation for the batch, not per item).
 - **Dashboard**: substitute `{{APP_NAME}}` and `{{PROJECT_ID}}` into
   `references/dashboard_template.json`, then post the whole thing:
   `sentry api organizations/rolemodel-software/dashboards/ -X POST --input <file>`.
-  (One `sentry api` call, not 16 `dashboard widget add` calls — several widgets are
+  (One `sentry api` call, not 12 `dashboard widget add` calls — several widgets are
   multi-series, which `widget add` can't express.) If the app has PII enabled,
-  replace the "Errors by Transaction" widget with "Affected Users" (line,
-  error-events, two queries: `has:user.email` and `!has:user.email`, both
-  `count_unique(user)`). If a dashboard exists but drifts, PUT the merged widget
+  **add** an "Affected Users" widget (line, error-events, two queries:
+  `has:user.email` and `!has:user.email`, both `count_unique(user)`) alongside
+  "Errors by Transaction". If a dashboard exists but drifts, PUT the merged widget
   list back the same way — **add** missing widgets; ask before removing custom
-  ones someone added deliberately.
+  ones someone added deliberately. Exception: widgets from the pre-July-2026
+  template revision — Throughput (epm), Failed Requests, Handled vs. Unhandled,
+  Throughput Over Time, Where Time Is Spent (by operation), Transactions by
+  Failure Rate — are deprecated, not custom; remove them as part of the confirmed
+  fix batch. (The current widget set is data-driven: it keeps only what SHM report
+  writers actually cited across seven months of Almanac health report summaries,
+  and adds issue-widgets for uptime/cron failures and performance issues, the two
+  most-written-about topics that previously required leaving the dashboard.)
 - **Cron monitors**: missing monitors are a repo problem (job lacks
   `sentry_monitor_check_ins`) — never create monitors API-side for jobs that never
   check in. Instead, provision them in code (see "Cron provisioning" below), with
@@ -162,3 +180,14 @@ strings into job classes. For GoodJob (reference implementation:
 End with: the check table (final state), links to the dashboard and alert pages,
 and a short 📋 list of anything requiring a human (Heroku dyno metadata, generator
 re-run, Slack channel creation, orphan monitors to consider deleting).
+
+Include the app's 30-day uptime percentage (it can't live on the dashboard — no
+uptime dataset exists for widgets). Get the monitor id from
+`sentry api 'organizations/rolemodel-software/uptime/'`, then:
+
+```
+sentry api 'organizations/rolemodel-software/uptime-summary/?uptimeDetectorId=<id>&statsPeriod=30d'
+```
+
+uptime % = 1 − downtimeChecks/totalChecks. Link the monitor page next to the
+dashboard link — it's the SHM uptime section's source of truth.
