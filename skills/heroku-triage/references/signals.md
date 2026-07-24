@@ -46,15 +46,33 @@ right now"; every historical question goes to Papertrail.
 
 ## 3. Papertrail (history — the agent's primary time-series source)
 
-Token: `heroku config:get PAPERTRAIL_API_TOKEN -a $APP` (provisioned by the addon).
-Fetch with the bundled script — it paginates the search API, dedupes, and emits
-TSV (`received_at`, `source`, `program`, `message`) oldest-first:
+Papertrail holds the log history. **The old `heroku config:get PAPERTRAIL_API_TOKEN`
+config var is legacy and no longer grants access** — don't rely on it. There are two
+ways to get history into the agent's hands; pick whichever fits the situation, and
+neither should be assumed available without asking the user:
+
+**Option A — user creates a Papertrail API token.** Ask the user to create an API
+token for this project in Papertrail (Settings → Profile → "API token"), then export
+it so the bundled script can query the search API directly. This unlocks the full
+recipe cookbook below (narrow-window fetches, hourly buckets, percentiles):
 
 ```bash
+export PAPERTRAIL_API_TOKEN=<token the user created>
 bash skills/heroku-triage/scripts/papertrail-search.sh \
   --app $APP --query '"Error R14"' \
   --from $(date -v-7d +%s) --out /tmp/heroku-triage/$APP/r14.tsv
 ```
+
+**Option B — user downloads logs for a date range.** If the user would rather not
+create a token, ask them for the specific time window that matters (e.g. the incident
+hour, plus the same hour a day earlier as a control), have them download those logs
+from the Papertrail UI, and hand you the file. Parse it locally with the same
+grep/awk/`cut` recipes below — they operate on TSV/plaintext regardless of how it was
+obtained. Give the user a *narrow, purposeful* window rather than "all of it": a few
+targeted hours answers the question and keeps the download small.
+
+Either way the bundled script emits (or the download should be reduced to) TSV
+(`received_at`, `source`, `program`, `message`) oldest-first before the recipes run.
 
 **Sampling strategy — do not fetch the firehose.** Router lines on a busy app run to
 millions per week. Instead fetch narrow windows and compare: the incident hour, the
@@ -99,9 +117,11 @@ scripts/papertrail-search.sh --app $APP --query 'web.2' --from <step_epoch-90> -
 ```
 
 Searchable retention on small Papertrail plans is about a week; older history lives in
-archives: `curl -sH "X-Papertrail-Token: $TOKEN"
+archives. With the user-created API token (Option A) exported as `$PAPERTRAIL_API_TOKEN`:
+`curl -sH "X-Papertrail-Token: $PAPERTRAIL_API_TOKEN"
 https://papertrailapp.com/api/v1/archives.json` lists daily `.tsv.gz` files with
-download URLs — `zgrep`/`awk` them locally, never into context.
+download URLs — `zgrep`/`awk` them locally, never into context. (Under Option B, ask
+the user to pull the relevant archive day from the Papertrail UI instead.)
 
 ## 4. log-runtime-metrics (the machine-readable memory/CPU source)
 
