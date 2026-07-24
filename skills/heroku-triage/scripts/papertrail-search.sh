@@ -4,9 +4,14 @@
 # Emits TSV (received_at, source_name, program, message), oldest-first, deduped,
 # to --out FILE (or stdout). Progress and totals go to stderr.
 #
-# Requires: curl, jq, heroku CLI (unless PAPERTRAIL_API_TOKEN is already exported).
+# Requires: curl, jq, and PAPERTRAIL_API_TOKEN exported.
+#
+# The token is a Papertrail *API* token, created by the user in Papertrail
+# (Settings -> Profile -> "API token"). The old PAPERTRAIL_API_TOKEN Heroku
+# config var is legacy and no longer grants API access — do not use it.
 #
 # Usage:
+#   PAPERTRAIL_API_TOKEN=<token> \
 #   papertrail-search.sh --app <heroku-app> --query '<papertrail query>' \
 #     --from <epoch-seconds> [--to <epoch-seconds>] [--max-events N] [--out FILE]
 #
@@ -35,10 +40,9 @@ case "$TO" in ''|*[!0-9]*) echo "--to must be epoch seconds" >&2; exit 2 ;; esac
 
 TOKEN=${PAPERTRAIL_API_TOKEN:-}
 if [ -z "$TOKEN" ]; then
-  TOKEN=$(heroku config:get PAPERTRAIL_API_TOKEN -a "$APP" 2>/dev/null || true)
-fi
-if [ -z "$TOKEN" ]; then
-  echo "no PAPERTRAIL_API_TOKEN on $APP (is the papertrail addon installed?)" >&2
+  echo "PAPERTRAIL_API_TOKEN not set. Create a Papertrail API token in the Papertrail" >&2
+  echo "UI (Settings -> Profile -> API token) and export it before running this script." >&2
+  echo "The heroku PAPERTRAIL_API_TOKEN config var is legacy and does not work here." >&2
   exit 3
 fi
 

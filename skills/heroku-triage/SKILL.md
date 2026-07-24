@@ -58,8 +58,12 @@ Space-separated `key=value` tokens plus bare words, all optional except the app:
 2. Resolve the app repo: use `repo=`, else check whether the cwd's git remotes or
    `heroku git:remote` match the app. Code-level steps degrade gracefully without it
    (`heroku run cat <file> -a $APP` reads one file from the slug — uses a one-off dyno).
-3. Papertrail: `heroku config:get PAPERTRAIL_API_TOKEN -a $APP`. If empty, history is
-   limited to `heroku logs` (~1,500 lines) — say so and lower confidence accordingly.
+3. Papertrail history: the legacy `heroku config:get PAPERTRAIL_API_TOKEN` no longer
+   works. Two ways in (signals.md §3), neither assumed — ask the user: (A) they create
+   a Papertrail API token and export it so `scripts/papertrail-search.sh` can query the
+   search API, or (B) they download logs for a date range you specify and hand you the
+   file to parse locally. Without either, history is limited to `heroku logs` (~1,500
+   lines) — say so and lower confidence accordingly.
 4. `heroku labs -a $APP | grep log-runtime-metrics`. If disabled and the investigation
    needs memory/CPU data, this is the first proposed change (see signals.md §4 for the
    restart caveat). Memory diagnosis needs a few hours of samples after enabling.

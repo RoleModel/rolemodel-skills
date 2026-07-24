@@ -137,7 +137,8 @@ Rules of thumb:
   diagnostics and followers — growing apps outgrow them operationally, not just on
   size.
 - **Papertrail plan**: check usage vs. plan in the Papertrail account (API:
-  `/api/v1/accounts.json`); chronic overage or truncated retention → one plan up is
+  `/api/v1/accounts.json`, needs the user-created API token — signals.md §3 Option A);
+  chronic overage or truncated retention → one plan up is
   usually cheap insurance for exactly the debugging this skill does.
 - **Scheduler vs. always-on worker**: a worker dyno that's idle outside a few
   scheduled jobs can often become Heroku Scheduler one-off runs (pay per second).
