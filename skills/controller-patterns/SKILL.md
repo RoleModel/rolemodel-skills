@@ -108,8 +108,13 @@ Need to add controller functionality?
 ├─ Bulk operations (bulk submit, bulk delete)?
 │  └─ Use: Namespaced Bulk Controller (create action only)
 │
-├─ Nested under parent resource?
+├─ Nested under a single parent resource?
 │  └─ Use: Nested RESTful Controller Pattern
+│
+├─ Child resource that hangs off several different parents?
+│  (comments, reports, duplications, attachments)
+│  └─ Use: polymorphic-parent-resources skill
+│     (one route concern + one controller, not one controller per parent)
 │
 └─ Complex authorization rules?
    └─ Add: Policy scopes and explicit authorization checks
@@ -393,6 +398,8 @@ end
 
 ### Nested Resource Controller
 
+Use this when the child has exactly one kind of parent. If the child can hang off several different parents (comments, reports, duplications, attachments), do **not** copy this per parent — read the `polymorphic-parent-resources` skill instead.
+
 ```ruby
 class OrderItemsController < ApplicationController
   before_action :set_order
@@ -456,6 +463,8 @@ end
 | `redirect_to @product, notice: 'Product created!'`<br>`redirect_to @product, notice: 'Success!'` | `redirect_to @product, notice: 'Successfully Created Product'` |
 | `before_action :set_product` (no scope) | `before_action :set_product, only: %i[show edit update destroy]` |
 | Custom action for state changes | Namespaced controller with RESTful actions |
+| A namespaced controller per parent (`Estimates::CommentsController`, `Widgets::CommentsController`) | One controller for every parent — see the `polymorphic-parent-resources` skill |
+| `add_comment` / `create_report` action on the parent controller | Separate RESTful child controller — see the `polymorphic-parent-resources` skill |
 
 ## Advanced Patterns
 
@@ -610,7 +619,8 @@ end
    - Standard CRUD → Use Simple CRUD pattern
    - State transitions → Use Namespaced State pattern
    - Bulk operations → Use Bulk Operation pattern
-   - Nested resource → Use Nested Resource pattern
+   - Nested resource under one parent → Use Nested Resource pattern
+   - Child resource with several possible parents → Read the `polymorphic-parent-resources` skill
 
 2. **Apply patterns:**
    - Start with appropriate template
@@ -636,5 +646,6 @@ end
 - [ ] Consistent flash messages: `Successfully [Action] [Resource]`
 - [ ] Proper naming conventions
 - [ ] State validations in before_actions (not in main actions)
+- [ ] No sibling controllers that differ only by which parent they load (see `polymorphic-parent-resources`)
 
 **Priority order:** Security (authorization, params) → RESTful patterns → Status codes → Messaging

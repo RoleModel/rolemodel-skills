@@ -52,7 +52,9 @@ end
 - Use `parent_resource.name.classify` to dynamically pass the parent context type to controllers
 - Specify `only:` or `except:` to limit actions when appropriate
 - Custom parameters (like `commentable_type`, `resource_type`) are passed as metadata to controllers
-- Controllers can access these via `params[:commentable_type]` or routing metadata
+- Controllers turn that metadata back into the parent record with `resource_for(:commentable_type)`, provided by the `rolemodel_rails` gem (>= 2.4.0)
+
+**Read the `polymorphic-parent-resources` skill before writing the controller.** Passing a `*_type` default is only half the pattern — that skill covers the controller side, the required `before_action` scoping under shallow nesting (member routes inherit the wrong `*_type`), and how to consolidate existing per-parent controllers.
 
 ## 2. Applying Concerns to Resources
 
@@ -112,6 +114,8 @@ concern :assembly do
   resources :assembly_items, only: %i[show], param: :kind, shallow: false
 end
 ```
+
+**Caveat — shallow member routes and per-parent defaults.** When a concern with member actions is applied to several parents, Rails draws the shallow member path (`/tasks/:id`) once per parent. Only the first keeps the route name; the rest are unreachable duplicates. Any custom default on that concern — such as `commentable_type` — therefore resolves to the **first-drawn parent** on every member request, regardless of the record's real parent. Controllers must not read a `*_type` param on member actions; scope that `before_action` to the collection actions only. See `polymorphic-parent-resources`.
 
 ## 4. Limiting Actions with only: and except:
 
@@ -366,6 +370,7 @@ When reviewing or generating routes, verify:
 - [ ] Concerns are defined at the top of the file
 - [ ] Concerns are DRY and reusable across multiple resources
 - [ ] Custom parameters (like `commentable_type`) use `parent_resource.name.classify`
+- [ ] A concern passing a `*_type` default has a matching controller using `resource_for` (see `polymorphic-parent-resources`)
 - [ ] Shallow nesting is enabled with `scope shallow: true`
 - [ ] Resources explicitly use `only:` or `except:` to limit actions
 - [ ] Nested resources follow the pattern (often no index/show)
