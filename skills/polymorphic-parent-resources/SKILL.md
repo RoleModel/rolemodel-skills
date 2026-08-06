@@ -30,12 +30,9 @@ This pattern uses one route concern plus one controller to serve every parent. T
 
 ```bash
 bundle info rolemodel_rails    # confirm >= 2.4.0
-
-# Authoritative runtime check — the engine adds it as a private method to every controller
-bin/rails runner 'puts ActionController::Base.private_method_defined?(:resource_for)'
 ```
 
-If it is missing, **bump the gem** — that is the fix. Only if the version is pinned for an unrelated reason, add the equivalent locally and delete it when the gem is upgraded:
+If the test fails, **bump the gem** — that is the fix. Only if the version is pinned for an unrelated reason, add the equivalent locally and delete it when the gem is upgraded:
 
 ```ruby
 # app/controllers/concerns/resource_for.rb
