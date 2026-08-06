@@ -39,6 +39,7 @@ Skills may also include a `references/` directory for supporting markdown files 
 ### Rails Backend
 - **controller-patterns**: Review, update, and generate Rails controllers following RESTful conventions, authorization patterns, and proper error handling.
 - **routing-patterns**: Review, generate, and update Rails routes with RESTful resource routing, route concerns, and shallow nesting strategies.
+- **polymorphic-parent-resources**: Serve a child resource that hangs off many different parents (comments, reports, duplications, attachments) from a single controller, instead of one namespaced controller per parent. Pairs a route concern passing `commentable_type: parent_resource.name.classify` with `resource_for` from the `rolemodel_rails` gem (>= 2.4.0). Documents the shallow-nesting trap where member routes inherit the first-drawn parent's `*_type` default. `references/retrofit.md` covers auditing and consolidating existing per-parent controllers.
 - **action-cable**: Setup and use ActionCable for real-time features using WebSockets, broadcasting, and Turbo Streams over cable.
 - **json-typed-attributes**: Define typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration.
 
