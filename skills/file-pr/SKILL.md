@@ -80,14 +80,14 @@ Use these headings, in this order. **Why**, **What Changed**, and **Screenshots*
 
 ## Post-merge
 
-- ...
+- [ ] ...
 
 ## Screenshots
 ```
 
 Every box under **What Changed** ships checked. Each line is work that is already done, so an unchecked box would read as unfinished.
 
-**Post-merge** lists work someone has to do after the merge — a data backfill, a re-import, a config change, a manual migration step. Use plain bullets, not checkboxes: none of it is done yet. One line per item, saying what to run and what stays broken until it runs. Omit the heading entirely when there is none.
+**Post-merge** lists work someone has to do after the merge — a data backfill, a re-import, a config change, a manual migration step. Every box ships unchecked: it is a list to work through once the PR lands. One line per item, saying what to run and what stays broken until it runs. Omit the heading entirely when there is none.
 
 Leave **Screenshots** empty — the user fills it in. When the PR changes nothing visible, keep the heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
 
@@ -140,8 +140,8 @@ Delivery status comes from the mail provider's webhook rather than our own send 
 
 ## Post-merge
 
-- Run `rake invites:backfill_status` — existing invites show no status until it runs.
-- Point the provider's webhook at `/webhooks/mail` in the provider dashboard; no new events record until then.
+- [ ] Run `rake invites:backfill_status` — existing invites show no status until it runs.
+- [ ] Point the provider's webhook at `/webhooks/mail` in the provider dashboard; no new events record until then.
 
 ## Screenshots
 ```
