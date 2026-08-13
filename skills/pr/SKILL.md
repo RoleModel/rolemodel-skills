@@ -7,7 +7,7 @@ description: >
 metadata:
   author: Justin Wiebe
   version: "1.0"
-allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
+allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
 ---
 
 # Opening a Pull Request
@@ -22,7 +22,11 @@ git fetch origin
 git log --oneline origin/HEAD..HEAD
 git diff origin/HEAD...HEAD --stat
 git diff origin/HEAD...HEAD
+gh pr list --head "$(git branch --show-current)" --state open --json number,url,title
 ```
+
+That last command decides which path you are on. An open PR means updating the
+existing one — `gh pr create` fails outright on a branch that already has a PR.
 
 Never commit on the default branch. Check first:
 
@@ -68,6 +72,28 @@ gh pr create --draft --title "<title>" --body-file <path> --assignee @me
 ```
 
 After creating, print the PR URL.
+
+## Updating an existing PR
+
+When the branch already has an open PR, read its current description first, so
+the rewrite starts from what is there:
+
+```bash
+gh pr view <pr> --json title,body
+```
+
+Write the full replacement description to a file and edit in place. Never
+assign or add reviewers again — the PR already has both.
+
+```bash
+gh pr edit <pr> --title "<title>" --body-file <path>
+```
+
+`--body-file` replaces the whole body, so the file must carry all three
+headings, not just the changed part. Preserve whatever the user wrote under
+**Screenshots** — that content is theirs, and a careless edit drops it.
+
+Print the PR URL when done.
 
 ## Assignment
 
