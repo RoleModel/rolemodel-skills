@@ -2,8 +2,9 @@
 name: file-pr
 description: >
   Opens pull requests with a consistent description format and assignment. Use when the user asks to open, create, or draft a PR or pull request, push a branch for review, or write a PR description.
+
 metadata:
-  author: Justin Wiebe
+  author: rolemodelsoftware
   version: "1.0"
   triggers: "open a PR, create a PR, file a PR, draft a PR, pull request, PR description, write the PR body, update the PR description, push this for review, put this up for review, ready for review"
 allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
@@ -24,8 +25,7 @@ git diff origin/HEAD...HEAD
 gh pr list --head "$(git branch --show-current)" --state open --json number,url,title
 ```
 
-That last command decides which path you are on. An open PR means updating the
-existing one — `gh pr create` fails outright on a branch that already has a PR.
+That last command decides which path you are on. An open PR means updating the existing one — `gh pr create` fails outright on a branch that already has a PR.
 
 Never commit on the default branch. Check first:
 
@@ -74,23 +74,19 @@ After creating, print the PR URL.
 
 ## Updating an existing PR
 
-When the branch already has an open PR, read its current description first, so
-the rewrite starts from what is there:
+When the branch already has an open PR, read its current description first, so the rewrite starts from what is there:
 
 ```bash
 gh pr view <pr> --json title,body
 ```
 
-Write the full replacement description to a file and edit in place. Never
-assign or add reviewers again — the PR already has both.
+Write the full replacement description to a file and edit in place. Never assign or add reviewers again — the PR already has both.
 
 ```bash
 gh pr edit <pr> --title "<title>" --body-file <path>
 ```
 
-`--body-file` replaces the whole body, so the file must carry all three
-headings, not just the changed part. Preserve whatever the user wrote under
-**Screenshots** — that content is theirs, and a careless edit drops it.
+`--body-file` replaces the whole body, so the file must carry all three headings, not just the changed part. Preserve whatever the user wrote under **Screenshots** — that content is theirs, and a careless edit drops it.
 
 Print the PR URL when done.
 
@@ -150,7 +146,7 @@ Leave **Screenshots** empty — the user fills it in. When the PR changes nothin
 **Title**
 
 - One line, imperative mood, no trailing period.
-- Prefix the ticket ID, separated by ` | ` — e.g. `ABC-123 | Add delivery status to invite list`.
+- Prefix the ticket ID, separated by `|` — e.g. `ABC-123 | Add delivery status to invite list`.
 - Look for the ID in the branch name first, then in the commit messages. If neither has one and the repo's recent PR titles use IDs, ask the user for it. Otherwise skip the prefix.
 
 ## Example
