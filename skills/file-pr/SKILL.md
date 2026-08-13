@@ -1,5 +1,5 @@
 ---
-name: pr
+name: file-pr
 description: >
   Opens pull requests with a consistent description format and assignment. Use when the user asks to open, create, or draft a PR or pull request, push a branch for review, or write a PR description.
 
