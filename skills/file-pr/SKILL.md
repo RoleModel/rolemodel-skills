@@ -26,11 +26,11 @@ git diff origin/HEAD...HEAD
 gh pr list --head "$(git branch --show-current)" --state open --json number,url,title
 ```
 
-Run these as one batch. Note `origin/HEAD...HEAD` — three dots. Two dots diffs against the current tip of the default branch and misdescribes the PR.
+Run these as one batch. Note `origin/HEAD...HEAD` — three dots. Two dots compares against the current tip of the default branch and misdescribes the PR.
 
 The `gh pr list` result decides which path you are on. An open PR means updating the existing one — `gh pr create` fails outright on a branch that already has a PR.
 
-Empty `git log` output means the work is not committed yet. Describe the PR from `git status` and the working-tree diff instead.
+Empty `git log` output means no commits ahead of the default branch — the work may be uncommitted, or you may still be on the default branch. When `git status` shows changes, describe the PR from the working-tree diff instead.
 
 Never commit on the default branch. When `git status` reports `main` or `master`, create a branch with `git switch -c <branch>` first and tell the user the name you picked. Only ever create a new branch — switching to an existing one changes which work the PR describes.
 
