@@ -17,6 +17,9 @@ The classification file is exactly what Step 1 produces:
 its `replacement` (empty string means delete the hunk, main's old text means
 restore it); `none` files are left alone.
 
+Every `path` must be repo-relative and inside the repository; absolute paths,
+`..` escapes, and symlinks are refused. Run from anywhere in the work tree.
+
 Every replacement must match exactly once. A snippet that is missing or
 ambiguous aborts the whole run before anything is written — a half-split commit
 is the failure mode this exists to prevent.
@@ -24,7 +27,34 @@ is the failure mode this exists to prevent.
 
 import json
 import pathlib
+import subprocess
 import sys
+
+
+def repo_root():
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        sys.exit("not inside a git repository")
+    return pathlib.Path(result.stdout.strip()).resolve()
+
+
+def resolve(root, raw):
+    """Resolve a classification path, refusing anything outside the repo.
+
+    Paths come from a diff read, so a wrong one is an ordinary mistake — and
+    this script deletes files. Confine every edit to the repo before planning.
+    """
+    path = pathlib.Path(raw)
+    if path.is_absolute():
+        raise ValueError("absolute paths are not allowed")
+    resolved = (root / path).resolve()
+    if resolved != root and root not in resolved.parents:
+        raise ValueError("path escapes the repository")
+    if resolved.is_symlink():
+        raise ValueError("symlinks are not allowed")
+    return resolved
 
 
 def load(spec_path):
@@ -37,12 +67,18 @@ def load(spec_path):
 def plan(files):
     """Validate every edit against the real files. Returns (writes, deletes)."""
     writes, deletes, errors = {}, [], []
+    root = repo_root()
 
     for entry in files:
-        path = pathlib.Path(entry["path"])
         disposition = entry.get("disposition", "mixed")
 
         if disposition == "none":
+            continue
+
+        try:
+            path = resolve(root, entry["path"])
+        except ValueError as err:
+            errors.append(f"{entry['path']}: {err}")
             continue
 
         if not path.exists():
@@ -80,16 +116,20 @@ def main():
     dry_run = "--dry-run" in sys.argv
 
     writes, deletes = plan(load(args[0]))
+    root = repo_root()
+
+    def show(path):
+        return path.relative_to(root)
 
     for path, text in writes.items():
         if not dry_run:
             path.write_text(text)
-        print(f"{'would strip' if dry_run else 'stripped'} {path}")
+        print(f"{'would strip' if dry_run else 'stripped'} {show(path)}")
 
     for path in deletes:
         if not dry_run:
             path.unlink()
-        print(f"{'would delete' if dry_run else 'deleted'} {path}")
+        print(f"{'would delete' if dry_run else 'deleted'} {show(path)}")
 
 
 if __name__ == "__main__":
