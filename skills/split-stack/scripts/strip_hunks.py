@@ -49,11 +49,22 @@ def resolve(root, raw):
     path = pathlib.Path(raw)
     if path.is_absolute():
         raise ValueError("absolute paths are not allowed")
-    resolved = (root / path).resolve()
+
+    # Check for symlinks on the literal path, walking down from the root. A
+    # resolved path never reports as a symlink — it already points at the
+    # target — so testing after resolution would silently pass every link and
+    # then write through it.
+    walked = root
+    for part in path.parts:
+        if part == "..":
+            raise ValueError("'..' is not allowed")
+        walked = walked / part
+        if walked.is_symlink():
+            raise ValueError(f"symlinks are not allowed — {part}")
+
+    resolved = walked.resolve()
     if resolved != root and root not in resolved.parents:
         raise ValueError("path escapes the repository")
-    if resolved.is_symlink():
-        raise ValueError("symlinks are not allowed")
     return resolved
 
 
