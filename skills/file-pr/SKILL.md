@@ -2,11 +2,10 @@
 name: file-pr
 description: >
   Opens pull requests with a consistent description format and assignment. Use when the user asks to open, create, or draft a PR or pull request, push a branch for review, or write a PR description.
-
-
 metadata:
   author: Justin Wiebe
   version: "1.0"
+  triggers: "open a PR, create a PR, file a PR, draft a PR, pull request, PR description, write the PR body, update the PR description, push this for review, put this up for review, ready for review"
 allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
 ---
 
