@@ -1,7 +1,7 @@
 ---
 name: split-stack
 description: Split one PR that does too much into a stack of PRs, one per concern, without changing the combined diff. Use when asked to split, extract, carve out, or unbundle part of a PR into its own stacked PR.
-allowed-tools: Agent Read Write Bash(gh pr view:*) Bash(gh pr diff:*) Bash(gh pr edit:*) Bash(gh pr create:*) Bash(gh stack:*) Bash(gh extension install github/gh-stack) Bash(git log:*) Bash(git diff:*) Bash(git status:*) Bash(git branch:*) Bash(git checkout:*) Bash(git add:*) Bash(git commit:*) Bash(git push:*) Bash(git fetch:*) Bash(git rev-parse:*) Bash(git tag:*) Bash(python3 ~/.claude/skills/split-stack/scripts/strip_hunks.py:*) Bash(bundle exec rspec:*)
+allowed-tools: Agent Read Write Bash(gh pr view:*) Bash(gh pr diff:*) Bash(gh pr edit:*) Bash(gh pr create:*) Bash(gh stack:*) Bash(gh extension install github/gh-stack) Bash(git log:*) Bash(git diff:*) Bash(git status:*) Bash(git branch:*) Bash(git checkout:*) Bash(git add:*) Bash(git commit:*) Bash(git push:*) Bash(git fetch:*) Bash(git rev-parse:*) Bash(git tag:*) Bash(python3 ~/.claude/skills/split-stack/scripts/strip_hunks.py:*) Bash(python3 .claude/skills/split-stack/scripts/strip_hunks.py:*) Bash(python3 skills/split-stack/scripts/strip_hunks.py:*) Bash(bundle exec rspec:*)
 ---
 
 # Split Stack
@@ -94,14 +94,19 @@ anyway.
 
 Remove the `extract` hunks with **one scripted pass**, not file-by-file edits:
 
-Write the Step 1 classification to a file, then hand it to the strip script:
+Write the Step 1 classification to a file, then hand it to the strip script.
+Substitute this skill's own base directory — given at the top of these
+instructions — for `<skill-dir>`:
 
 ```bash
-python3 ~/.claude/skills/split-stack/scripts/strip_hunks.py classification.json --dry-run
-python3 ~/.claude/skills/split-stack/scripts/strip_hunks.py classification.json
+python3 <skill-dir>/scripts/strip_hunks.py classification.json --dry-run
+python3 <skill-dir>/scripts/strip_hunks.py classification.json
 ```
 
 Run `--dry-run` first — it validates every snippet without writing anything.
+
+The allowlist below covers the standard install locations. If this skill lives
+somewhere else, the call prompts for approval once instead of failing.
 
 The script checks all edits before touching a file, and aborts the whole run if
 any snippet is missing or matches more than once. A silently-missed replacement
