@@ -1,7 +1,7 @@
 ---
 name: split-stack
 description: Split one PR that does too much into a stack of PRs, one per concern, without changing the combined diff. Use when asked to split, extract, carve out, or unbundle part of a PR into its own stacked PR.
-allowed-tools: Agent Bash(gh pr view:*) Bash(gh pr diff:*) Bash(gh pr edit:*) Bash(gh pr create:*) Bash(gh stack:*) Bash(git log:*) Bash(git diff:*) Bash(git status:*) Bash(git branch:*) Bash(git checkout:*) Bash(git add:*) Bash(git commit:*) Bash(git push:*) Bash(bundle exec rspec:*)
+allowed-tools: Agent Read Write Bash(gh pr view:*) Bash(gh pr diff:*) Bash(gh pr edit:*) Bash(gh pr create:*) Bash(gh stack:*) Bash(gh extension install github/gh-stack) Bash(git log:*) Bash(git diff:*) Bash(git status:*) Bash(git branch:*) Bash(git checkout:*) Bash(git add:*) Bash(git commit:*) Bash(git push:*) Bash(git fetch:*) Bash(git rev-parse:*) Bash(git tag:*) Bash(python3 ~/.claude/skills/split-stack/scripts/strip_hunks.py:*) Bash(bundle exec rspec:*)
 ---
 
 # Split Stack
@@ -22,6 +22,7 @@ gh pr view <pr> --json number,title,body,headRefName,baseRefName,url
 git fetch origin
 git log --oneline <base>..<head>
 git diff <base>...<head> --stat
+git diff <base>...<head>
 ```
 
 If the split isn't obvious from the PR body's checklist, ask which concern to
@@ -60,11 +61,11 @@ Rules:
 """)
 ```
 
-`exact_text` and `replacement` feed Step 3's `sub()` calls directly, so the
-verbatim-and-unique requirements are load-bearing — a paraphrased snippet
-fails the `assert` there. That failure is the good outcome: it stops a
-half-split commit. Re-run the classification for that file rather than
-hand-patching the string.
+Record the classification in that JSON shape either way — Step 3 feeds the file
+straight to the strip script, so the verbatim-and-unique requirements are
+load-bearing. A paraphrased snippet aborts the strip. That failure is the good
+outcome: it stops a half-split commit. Re-run the classification for that file
+rather than hand-patching the string.
 
 Spot-check a couple of the returned snippets against the real files before
 running the strip. Delegating the read does not delegate the invariant — the
@@ -93,28 +94,23 @@ anyway.
 
 Remove the `extract` hunks with **one scripted pass**, not file-by-file edits:
 
+Write the Step 1 classification to a file, then hand it to the strip script:
+
 ```bash
-python3 - <<'PY'
-import pathlib
-def sub(path, old, new=""):
-    p = pathlib.Path(path); s = p.read_text()
-    assert old in s, (path, old[:80])
-    p.write_text(s.replace(old, new, 1))
-
-sub('app/models/foo.rb', "  def extracted_thing = ...\n")
-sub('spec/models/foo_spec.rb', """  describe '#extracted_thing' do
-    ...
-  end
-
-""")
-PY
+python3 ~/.claude/skills/split-stack/scripts/strip_hunks.py classification.json --dry-run
+python3 ~/.claude/skills/split-stack/scripts/strip_hunks.py classification.json
 ```
 
-The `assert` is the point: a silently-missed replacement is the main failure
-mode, and it fails loudly instead of producing a half-split commit.
+Run `--dry-run` first — it validates every snippet without writing anything.
 
-When a hunk *modified* an existing method, restore main's version rather than
-deleting — paste the pre-PR text as the replacement.
+The script checks all edits before touching a file, and aborts the whole run if
+any snippet is missing or matches more than once. A silently-missed replacement
+is the main failure mode, and this fails loudly instead of producing a
+half-split commit. Fix the classification and re-run; don't hand-patch.
+
+When a hunk *modified* an existing method, set `replacement` to main's version
+rather than leaving it empty — that restores the old text instead of deleting
+the method.
 
 Verify the strip landed where you meant:
 

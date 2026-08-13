@@ -7,7 +7,7 @@ description: >
 metadata:
   author: Justin Wiebe
   version: "1.0"
-allowed-tools: Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
+allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
 ---
 
 # Opening a Pull Request
@@ -18,6 +18,7 @@ Gather context before writing anything:
 
 ```bash
 git status
+git fetch origin
 git log --oneline origin/HEAD..HEAD
 git diff origin/HEAD...HEAD --stat
 git diff origin/HEAD...HEAD
