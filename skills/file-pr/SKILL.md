@@ -3,6 +3,7 @@ name: file-pr
 description: >
   Opens pull requests with a consistent description format and assignment. Use when the user asks to open, create, or draft a PR or pull request, push a branch for review, or write a PR description.
 
+
 metadata:
   author: rolemodelsoftware
   version: "1.0"
@@ -25,50 +26,25 @@ git diff origin/HEAD...HEAD
 gh pr list --head "$(git branch --show-current)" --state open --json number,url,title
 ```
 
-That last command decides which path you are on. An open PR means updating the existing one — `gh pr create` fails outright on a branch that already has a PR.
+Run these as one batch. Note `origin/HEAD...HEAD` — three dots. Two dots compares against the current tip of the default branch and misdescribes the PR.
 
-Never commit on the default branch. Check first:
+The `gh pr list` result decides which path you are on. An open PR means updating the existing one — `gh pr create` fails outright on a branch that already has a PR.
 
-```bash
-git branch --show-current
-```
+Empty `git log` output means no commits ahead of the default branch — the work may be uncommitted, or you may still be on the default branch. When `git status` shows changes, describe the PR from the working-tree diff instead.
 
-If that returns `main` or `master`, move to a new branch before committing anything, and tell the user the name you picked:
+Never commit on the default branch. When `git status` reports `main` or `master`, create a branch with `git switch -c <branch>` first and tell the user the name you picked. Only ever create a new branch — switching to an existing one changes which work the PR describes.
 
-```bash
-git switch -c <branch>
-```
+Commit uncommitted work before pushing, but say what you are about to commit and wait for the user to agree first. Stage named paths, never `git add -A`, which sweeps unrelated changes into the PR. Review `git status` after staging; if anything unexpected appears, stop and ask.
 
-Only ever use `git switch -c` to create a new branch. Do not switch to an existing branch — that changes which work the PR describes.
-
-If `git status` shows uncommitted work, commit it before pushing — but say what you are about to commit and wait for the user to agree first. Never sweep unrelated changes into the PR.
-
-```bash
-git add <specific paths>
-git commit -m "<message>"
-```
-
-Stage named paths, not `git add -A`. Review `git status` after staging; if anything unexpected appears, stop and ask.
-
-Push the branch if it has no upstream:
-
-```bash
-git push -u origin HEAD
-```
-
-Write the description to a file, then open the PR:
+Push with `git push -u origin HEAD`, then write the description to a file and open the PR:
 
 ```bash
 gh pr create --title "<title>" --body-file <path> --assignee @me
 ```
 
-Use the scratchpad directory for the body file. Always use `--body-file`, never `--body` — the shell eats backticks and `$` in a long inline string.
+Add `--draft` when the work is unfinished. Use the scratchpad directory for the body file. Always use `--body-file`, never `--body` — the shell eats backticks and `$` in a long inline string.
 
-Open as a draft when the work is unfinished:
-
-```bash
-gh pr create --draft --title "<title>" --body-file <path> --assignee @me
-```
+Assign the person opening the PR every time, whoever authored the commits. `--assignee @me` resolves to the account `gh` is authenticated as, so it needs no configuration; if it fails, pass the login from `gh api user --jq .login` instead. Add reviewers only when the user names them.
 
 After creating, print the PR URL.
 
@@ -86,21 +62,13 @@ Write the full replacement description to a file and edit in place. Never assign
 gh pr edit <pr> --title "<title>" --body-file <path>
 ```
 
-`--body-file` replaces the whole body, so the file must carry all three headings, not just the changed part. Preserve whatever the user wrote under **Screenshots** — that content is theirs, and a careless edit drops it.
+`--body-file` replaces the whole body, so the file must carry every heading, not just the changed part. Preserve whatever the user wrote under **Screenshots** — that content is theirs, and a careless edit drops it.
 
 Print the PR URL when done.
 
-## Assignment
-
-Always assign the person opening the PR. `--assignee @me` resolves to the account `gh` is authenticated as, so it needs no configuration.
-
-This is not optional and does not depend on who authored the commits. If `@me` fails — an old `gh`, or a token without user scope — get the login from `gh api user --jq .login` and pass that instead.
-
-Add reviewers only when the user names them.
-
 ## Description format
 
-Use these three headings, in this order, always all three:
+Use these headings, in this order. **Why**, **What Changed**, and **Screenshots** are always present; **Post-merge** appears only when the PR needs it.
 
 ```markdown
 ## Why
@@ -110,10 +78,16 @@ Use these three headings, in this order, always all three:
 - [x] ...
 - [x] ...
 
+## Post-merge
+
+- [ ] ...
+
 ## Screenshots
 ```
 
-Every box ships checked. Each line is work that is already done, so an unchecked box would read as unfinished.
+Every box under **What Changed** ships checked. Each line is work that is already done, so an unchecked box would read as unfinished.
+
+**Post-merge** lists work someone has to do after the merge — a data backfill, a re-import, a config change, a manual migration step. Every box ships unchecked: it is a list to work through once the PR lands. One line per item, saying what to run and what stays broken until it runs. Omit the heading entirely when there is none.
 
 Leave **Screenshots** empty — the user fills it in. When the PR changes nothing visible, keep the heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
 
@@ -125,19 +99,18 @@ Leave **Screenshots** empty — the user fills it in. When the PR changes nothin
 - If the PR covers more than one feature, give each its own short paragraph.
 - When possible, explain the user-facing problem and how the change solves it.
 - Explain anything unexpected — an odd workaround, a surprising dependency, a choice a reviewer would question — one sentence each. These do not count against the two-sentence cap; put them in their own paragraph after the feature paragraphs.
+- State facts, not narrative. Cut stock phrases ("all along", "it turns out"), rhetorical contrasts between how things were and how they are now, and anything implying fault for the state of the code.
+- Every clause must carry a fact a reviewer can act on. Cut clauses that exist for rhythm or that call back to a phrase used earlier, and claim no more than the change does — describe what it fixes, not the class of problem it gestures at.
 - Use inline-code syntax sparingly. If you need it more than twice then you are probably including too much detail.
 - When editing an existing PR, don't copy its prose as-is — read each sentence fresh and rewrite anything awkward, same as if you'd drafted it yourself.
 
 **What Changed**
 
 - A checkbox list, one line per change, every box checked.
-- Five lines at most. A longer list stops being scannable, which defeats the point.
-- High level. Say what the change does, not how it is built.
-- To get under five: drop internal plumbing a reviewer will meet in the diff anyway, and fold each supporting change into the line for the change it serves.
+- Five lines at most; a longer list stops being scannable. To get under five, drop internal plumbing a reviewer will meet in the diff anyway and fold each supporting change into the line for the change it serves.
+- High level. Say what the change does, not how it is built — skip file names, class names, and method signatures unless the change is meaningless without them.
 - Keep each line short enough to scan in one glance — roughly a dozen words.
-- One clause per line. No "so that", "because", "rather than", "which" — reasons and contrasts belong in **Why**, or nowhere.
-- Cut any clause a reviewer would skip. A comma is fine when it folds related work into one line, but not when it smuggles in a reason.
-- Skip file names, class names, and method signatures unless the change is only meaningful with them.
+- One clause per line. No "so that", "because", "rather than", "which" — reasons and contrasts belong in **Why**, or nowhere. A comma is fine when it folds related work into one line, not when it smuggles in a reason.
 - Never restate a point already made in **Why**.
 - Skip test changes — tests are assumed.
 - A new or removed dependency always gets its own line.
@@ -164,6 +137,11 @@ Delivery status comes from the mail provider's webhook rather than our own send 
 - [x] Record provider webhook events against the invite
 - [x] Backfill status for invites sent in the last 30 days
 - [x] Add the mail provider's webhook gem
+
+## Post-merge
+
+- [ ] Run `rake invites:backfill_status` — existing invites show no status until it runs.
+- [ ] Point the provider's webhook at `/webhooks/mail` in the provider dashboard; no new events record until then.
 
 ## Screenshots
 ```
