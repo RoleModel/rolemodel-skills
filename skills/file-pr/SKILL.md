@@ -3,6 +3,7 @@ name: file-pr
 description: >
   Opens pull requests with a consistent description format and assignment. Use when the user asks to open, create, or draft a PR or pull request, push a branch for review, or write a PR description.
 
+
 metadata:
   author: rolemodelsoftware
   version: "1.0"
@@ -86,7 +87,7 @@ Write the full replacement description to a file and edit in place. Never assign
 gh pr edit <pr> --title "<title>" --body-file <path>
 ```
 
-`--body-file` replaces the whole body, so the file must carry all three headings, not just the changed part. Preserve whatever the user wrote under **Screenshots** — that content is theirs, and a careless edit drops it.
+`--body-file` replaces the whole body, so the file must carry every heading, not just the changed part. Preserve whatever the user wrote under **Screenshots** — that content is theirs, and a careless edit drops it.
 
 Print the PR URL when done.
 
@@ -100,7 +101,7 @@ Add reviewers only when the user names them.
 
 ## Description format
 
-Use these three headings, in this order, always all three:
+Use these headings, in this order. **Why**, **What Changed**, and **Screenshots** are always present; **Post-merge** appears only when the PR needs it.
 
 ```markdown
 ## Why
@@ -110,10 +111,14 @@ Use these three headings, in this order, always all three:
 - [x] ...
 - [x] ...
 
+## Post-merge
+
 ## Screenshots
 ```
 
 Every box ships checked. Each line is work that is already done, so an unchecked box would read as unfinished.
+
+**Post-merge** checklist for work someone has to do after the merge — a data backfill, a re-import, a config change, a manual migration step. One line per item: what to run, and what stays broken until it runs. Omit the heading entirely when there is none.
 
 Leave **Screenshots** empty — the user fills it in. When the PR changes nothing visible, keep the heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
 
@@ -125,6 +130,10 @@ Leave **Screenshots** empty — the user fills it in. When the PR changes nothin
 - If the PR covers more than one feature, give each its own short paragraph.
 - When possible, explain the user-facing problem and how the change solves it.
 - Explain anything unexpected — an odd workaround, a surprising dependency, a choice a reviewer would question — one sentence each. These do not count against the two-sentence cap; put them in their own paragraph after the feature paragraphs.
+- State facts, not narrative. Cut stock phrases ("all along", "it turns out", "as it happens") and rhetorical contrasts between how things were and how they are now.
+- Every clause must carry a fact a reviewer can act on. Cut clauses that exist for rhythm or to round out a sentence, including callbacks to a phrase used earlier.
+- Do not overstate what the change does. Describe what it fixes, not the class of problem it gestures at solving.
+- Never imply fault for the state of the code. Describe what exists and what the change does, not how it came to be that way.
 - Use inline-code syntax sparingly. If you need it more than twice then you are probably including too much detail.
 - When editing an existing PR, don't copy its prose as-is — read each sentence fresh and rewrite anything awkward, same as if you'd drafted it yourself.
 
@@ -164,6 +173,11 @@ Delivery status comes from the mail provider's webhook rather than our own send 
 - [x] Record provider webhook events against the invite
 - [x] Backfill status for invites sent in the last 30 days
 - [x] Add the mail provider's webhook gem
+
+## Post-merge
+
+- Run `rake invites:backfill_status` — existing invites show no status until it runs.
+- Point the provider's webhook at `/webhooks/mail` in the provider dashboard; no new events record until then.
 
 ## Screenshots
 ```
