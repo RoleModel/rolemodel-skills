@@ -8,7 +8,7 @@ metadata:
   author: rolemodelsoftware
   version: "1.0"
   triggers: "open a PR, create a PR, file a PR, draft a PR, pull request, PR description, write the PR body, update the PR description, push this for review, put this up for review, ready for review"
-allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
+allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(ls:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
 ---
 
 # Opening a Pull Request
@@ -24,6 +24,7 @@ git log --oneline origin/HEAD..HEAD
 git diff origin/HEAD...HEAD --stat
 git diff origin/HEAD...HEAD
 gh pr list --head "$(git branch --show-current)" --state open --json number,url,title
+ls .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE.md .github/PULL_REQUEST_TEMPLATE/ docs/pull_request_template.md pull_request_template.md 2>/dev/null
 ```
 
 Run these as one batch. Note `origin/HEAD...HEAD` — three dots. Two dots compares against the current tip of the default branch and misdescribes the PR.
@@ -90,6 +91,14 @@ Every box under **What Changed** ships checked. Each line is work that is alread
 **Post-merge** lists work someone has to do after the merge — a data backfill, a re-import, a config change, a manual migration step. Every box ships unchecked: it is a list to work through once the PR lands. One line per item, saying what to run and what stays broken until it runs. Omit the heading entirely when there is none.
 
 Leave **Screenshots** empty — the user fills it in. When the PR changes nothing visible, keep the heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
+
+## The project's PR template
+
+If the `ls` above found a template, read it before writing the body. `--body-file` replaces the template outright, so anything the repo expects and you don't write is simply gone.
+
+Treat it as a hint, not a blueprint. The headings above still govern the shape of the description — a template asking for **Summary** instead of **Why** doesn't change what you write or what you call it.
+
+What the template is good for is the section you would never have thought to include: a deploy or migration checklist, an accessibility or security sign-off, etc. Carry over the ones this PR actually needs and fill them in. Drop the rest. When a template section asks for something only the user can answer, add the heading, leave it for them, and say so when you print the URL.
 
 ## Description rules
 
