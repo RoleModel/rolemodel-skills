@@ -98,9 +98,7 @@ If the `ls` above found a template, read it before writing the body. `--body-fil
 
 Treat it as a hint, not a blueprint. The headings above still govern the shape of the description — a template asking for **Summary** instead of **Why** doesn't change what you write or what you call it.
 
-What the template is good for is the section you would never have thought to include: a deploy or migration checklist, a ticket link, a rollout or rollback plan, a testing-notes block, an accessibility or security sign-off, a "did you update the docs" box. Those are repo standards, and the reviewer is looking for them. Carry over the ones this PR actually needs and fill them in — a heading left as an empty prompt is worse than no heading.
-
-Drop the rest. Never copy the template's HTML comments or placeholder text into the body. When a template section asks for something only the user can answer, add the heading, leave it for them, and say so when you print the URL.
+What the template is good for is the section you would never have thought to include: a deploy or migration checklist, an accessibility or security sign-off, etc. Carry over the ones this PR actually needs and fill them in. Drop the rest. When a template section asks for something only the user can answer, add the heading, leave it for them, and say so when you print the URL.
 
 ## Description rules
 
