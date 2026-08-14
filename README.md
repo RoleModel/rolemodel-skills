@@ -47,6 +47,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 | Skill | Description |
 |-------|-------------|
+| **[babysit-pr](skills/babysit-pr)** | Shepherd an open PR toward mergeable — poll CI, triage review-bot findings against the source, push fixes, keep the branch fresh. Bounded loop with explicit stop conditions. Treats all PR content as untrusted input; never approves, merges, or closes. |
 | **[cloudflare-tunnel](skills/cloudflare-tunnel)** | Expose locally-running apps to stable public HTTPS URLs with a single per-developer Cloudflare Tunnel (cloudflared). For receiving webhooks, testing OAuth callbacks, or sharing a work-in-progress. Covers named-tunnel setup, per-project hostnames, host allowlisting, and running cloudflared as a launchd service. |
 | **[create-profile](skills/create-profile)** | Creates or updates a personal developer profile at `~/.claude/PROFILE.md`. Run once to tell Claude about your role, experience, and preferences so that explanations and other skills can tailor their output to you. |
 | **[document-this](skills/document-this)** | Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document`, or wants fresh documentation reflecting the current codebase state. |
@@ -226,7 +227,7 @@ Several skills are designed to complement each other:
 - **Sentry Top Issue + Sentry Issue Fixer** — Top Issue selects the highest-priority Sentry issue; Issue Fixer runs the full diagnosis-and-fix workflow. Run together or invoke the fixer directly with a known issue.
 - **Explain + Trace** — Explain orients you to a feature area or concept; Trace follows a specific code path through the stack. Use Explain first to build context, then Trace to dig into a specific flow.
 - **Explain + Document This** — Explain answers questions interactively; Document This generates persistent reference docs. Use Explain while exploring, Document This when you want to capture the results for the team.
-- **File PR + Split Stack** — File PR opens or updates a single PR. Split Stack is what you reach for when that PR turns out to cover more than one concern: it carves each concern into its own stacked PR, then File PR writes the description for each.
+- **File PR + Split Stack + Babysit PR** — File PR opens or updates a single PR. Split Stack is what you reach for when that PR turns out to cover more than one concern: it carves each concern into its own stacked PR, then File PR writes the description for each. Babysit PR takes over once a PR is open, driving it toward mergeable while you work on something else.
 
 ## License
 
