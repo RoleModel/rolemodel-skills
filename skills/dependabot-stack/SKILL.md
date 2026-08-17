@@ -16,17 +16,24 @@ Requires the `gh-stack` extension (`gh extension install github/gh-stack` if
 
 ## Step 0 — Establish repo and starting point
 
-Run from the repository the PRs belong to. Take `REPO` from `$ARGUMENTS` if the
-user named one, otherwise from the current checkout:
+The target repo defaults to the current checkout. Only when `$ARGUMENTS` names a
+repo (`owner/name`) does that win:
 
 ```bash
-REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+REPO="${ARGUMENTS:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
+DEFAULT_BRANCH=$(gh repo view "$REPO" --json defaultBranchRef --jq .defaultBranchRef.name)
 ROOT=$(git rev-parse --show-toplevel)
 ORIGINAL_BRANCH=$(git branch --show-current)
 ```
 
-Also note the repository's default branch — `main` below stands for whatever
-`gh repo view --json defaultBranchRef --jq .defaultBranchRef.name` reports.
+`gh repo view` with no argument reads the current directory's `origin` remote,
+so this fails outside a git checkout — if it does, ask the user which repo to
+stack rather than guessing.
+
+Steps 3 and 4 rebase and push locally, so they need a checkout of `$REPO`. When
+the user named a different repo than the current directory, clone it to a temp
+directory first and run those steps there. `main` below stands for
+`$DEFAULT_BRANCH`.
 
 ## Step 1 — List the open Dependabot PRs
 
