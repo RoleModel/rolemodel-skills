@@ -1,7 +1,7 @@
 ---
 name: dependabot-stack
 description: Group all open Dependabot PRs on a repository into a single ordered stack using gh-stack. Run weekly, after Dependabot's batch of grouped-update PRs lands. Use when asked to stack, organize, or clean up Dependabot PRs.
-allowed-tools: Bash(gh pr list:*) Bash(gh pr diff:*) Bash(gh repo view:*) Bash(gh extension list:*) Bash(gh extension install github/gh-stack:*) Bash(gh stack:*) Bash(git worktree add:*) Bash(git worktree remove:*) Bash(git fetch origin:*) Bash(git checkout:*) Bash(git rebase:*) Bash(git push origin:*) Bash(git rev-parse:*) Bash(git branch:*) Bash(mktemp:*) Bash(cd:*)
+allowed-tools: Bash(gh pr list:*) Bash(gh pr diff:*) Bash(gh repo view:*) Bash(gh extension list:*) Bash(gh extension install github/gh-stack:*) Bash(gh stack:*) Bash(git worktree:*) Bash(git fetch:*) Bash(git checkout:*) Bash(git rebase:*) Bash(git push:*) Bash(git rev-parse:*) Bash(git branch:*) Bash(mktemp:*)
 ---
 
 # Dependabot Stack
@@ -30,10 +30,10 @@ ORIGINAL_BRANCH=$(git branch --show-current)
 so this fails outside a git checkout — if it does, ask the user which repo to
 stack rather than guessing.
 
-Steps 3 and 4 rebase and push locally, so they need a checkout of `$REPO`. When
-the user named a different repo than the current directory, clone it to a temp
-directory first and run those steps there. `main` below stands for
-`$DEFAULT_BRANCH`.
+Steps 3 and 4 rebase and push locally, so run this skill from a checkout of
+`$REPO`. If `$ARGUMENTS` names a repo the current directory isn't a checkout of,
+stop and ask the user to run it from there. `$DEFAULT_BRANCH` stands in for
+`main` on repos that use another name.
 
 ## Step 1 — List the open Dependabot PRs
 
@@ -95,18 +95,24 @@ branch and working tree are never touched:
 
 ```bash
 WT=$(mktemp -d)/stack-wt
-git worktree add "$WT" main
+git worktree add "$WT" "$DEFAULT_BRANCH"
 cd "$WT"
 git fetch origin <branch-1> <branch-2> ... <branch-N>
+git checkout -q -B <branch-1> origin/<branch-1>
 ```
 
-Then, walking the ordered list from Step 2 pairwise (skip the first branch —
-it's already based on the default branch and needs no rebase):
+The bottom branch is already based on the default branch and needs no rebase,
+but it must exist as a local branch for the next one to rebase onto. Then walk
+the ordered list from Step 2 pairwise:
 
 ```bash
-git checkout -q <branch-N>
-git rebase <branch-N-minus-1>   # use origin/<branch> if no local branch exists yet
+git checkout -q -B <branch-N> origin/<branch-N>
+git rebase <branch-N-minus-1>
 ```
+
+Rebase onto the local `<branch-N-minus-1>`, never `origin/<branch-N-minus-1>` —
+the local one carries the rebase from the previous pair, which hasn't been
+pushed yet.
 
 Rebase strictly in stack order, one pair at a time, top of stack last. If any
 rebase conflicts, stop and resolve the conflict manually (typically a lockfile
