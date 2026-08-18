@@ -1,7 +1,7 @@
 ---
 name: dependabot-stack
 description: Group all open Dependabot PRs on a repository into a single ordered stack using gh-stack. Run weekly, after Dependabot's batch of grouped-update PRs lands. Use when asked to stack, organize, or clean up Dependabot PRs.
-allowed-tools: Bash(gh pr list:*) Bash(gh pr diff:*) Bash(gh repo view:*) Bash(gh extension list:*) Bash(gh extension install github/gh-stack:*) Bash(gh stack:*) Bash(git worktree:*) Bash(git fetch:*) Bash(git checkout:*) Bash(git rebase:*) Bash(git push:*) Bash(git rev-parse:*) Bash(git branch:*) Bash(mktemp:*)
+allowed-tools: Bash(gh pr list:*) Bash(gh pr diff:*) Bash(gh repo view:*) Bash(gh extension list:*) Bash(gh extension install github/gh-stack:*) Bash(gh stack:*) Bash(git worktree:*) Bash(git fetch:*) Bash(git checkout:*) Bash(git rebase:*) Bash(git add:*) Bash(git push:*) Bash(bundle lock:*) Bash(yarn install:*) Bash(git rev-parse:*) Bash(git branch:*) Bash(mktemp:*)
 ---
 
 # Dependabot Stack
