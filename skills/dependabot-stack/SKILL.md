@@ -42,7 +42,8 @@ gh pr list --repo "$REPO" --author app/dependabot --state open \
   --json number,title,headRefName,baseRefName
 ```
 
-If there are 0 or 1 open Dependabot PRs, stop — there's nothing to stack.
+Drop any `*-major-updates` PRs from the list before counting; they never enter
+the stack. If 0 or 1 PRs remain, stop — there's nothing to stack.
 
 ## Step 2 — Determine ordering
 
@@ -70,6 +71,11 @@ most likely-to-conflict first):
 2. `production-minor-updates` (bundler before npm/yarn if both present)
 3. `development-minor-updates` (bundler before npm/yarn if both present)
 4. Anything else touching the same lockfile family
+
+`*-major-updates` PRs are left out of the stack on purpose. A major bump can
+carry breaking changes, so each one needs its own review and its own test run —
+stacking it would bury that behind the rest of the stack. Leave them open and
+tell the user which ones you skipped.
 
 PRs with no file overlap with any other open PR (typically
 `github-actions-updates`, since it only touches `.github/workflows/*.yml`) go
@@ -115,9 +121,21 @@ the local one carries the rebase from the previous pair, which hasn't been
 pushed yet.
 
 Rebase strictly in stack order, one pair at a time, top of stack last. If any
-rebase conflicts, stop and resolve the conflict manually (typically a lockfile
-conflict — regenerate it with `bundle lock` / `yarn install` after resolving
-the `Gemfile`/`package.json` diff by hand) before continuing to the next pair.
+rebase conflicts, stop and resolve it manually before continuing to the next
+pair. Resolve the manifest diff (`Gemfile`, `package.json`) by hand, then
+regenerate the lockfile:
+
+```bash
+bundle lock
+yarn install --mode=update-lockfile
+```
+
+`--mode=update-lockfile` rewrites `yarn.lock` without installing `node_modules`,
+which the scratch worktree does not need.
+
+`yarn.lock` can conflict on its own even when `package.json` merges cleanly —
+its dependency-metadata block is a conflict site in its own right. Regenerating
+the lockfile settles it; do not hand-edit the block.
 
 ## Step 4 — Push the rebased branches
 
