@@ -47,6 +47,8 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 | Skill | Description |
 |-------|-------------|
+| **[agentation](skills/agentation)** | Add the Agentation visual feedback toolbar to a project so you can point at UI problems in the browser and hand them to an agent. Covers React/Next.js hosts and non-React hosts (Rails, Django, Laravel, plain webpack/Vite) by adding React as a development-only dependency, with a verified production boundary. |
+| **[agentation-self-driving](skills/agentation-self-driving)** | Autonomous design critique: the agent drives a visible headed browser, clicks through the page, and leaves 5-8 actionable design annotations via the Agentation toolbar. Includes the two-session workflow where a second agent watches annotations over MCP and fixes each one in code. |
 | **[cloudflare-tunnel](skills/cloudflare-tunnel)** | Expose locally-running apps to stable public HTTPS URLs with a single per-developer Cloudflare Tunnel (cloudflared). For receiving webhooks, testing OAuth callbacks, or sharing a work-in-progress. Covers named-tunnel setup, per-project hostnames, host allowlisting, and running cloudflared as a launchd service. |
 | **[create-profile](skills/create-profile)** | Creates or updates a personal developer profile at `~/.claude/PROFILE.md`. Run once to tell Claude about your role, experience, and preferences so that explanations and other skills can tailor their output to you. |
 | **[dependabot-stack](skills/dependabot-stack)** | Group all open Dependabot PRs on a repository into one ordered stack with `gh-stack`, so the week's dependency updates land as a single reviewable chain instead of N PRs that conflict on shared lockfiles. Orders by lockfile overlap, rebases in a scratch worktree, and registers the stack on GitHub. |
@@ -227,6 +229,7 @@ Several skills are designed to complement each other:
 - **Sentry Top Issue + Sentry Issue Fixer** — Top Issue selects the highest-priority Sentry issue; Issue Fixer runs the full diagnosis-and-fix workflow. Run together or invoke the fixer directly with a known issue.
 - **Explain + Trace** — Explain orients you to a feature area or concept; Trace follows a specific code path through the stack. Use Explain first to build context, then Trace to dig into a specific flow.
 - **Explain + Document This** — Explain answers questions interactively; Document This generates persistent reference docs. Use Explain while exploring, Document This when you want to capture the results for the team.
+- **Agentation + Agentation Self-Driving** — Agentation mounts the toolbar on the page; Self-Driving is what drives it. Run `/agentation` once per project, then `/agentation-self-driving` whenever you want an autonomous critique pass. Pair the critique vocabulary with `laws-of-ux` and `usability-heuristics` so annotations name a principle instead of a preference.
 - **File PR + Split Stack** — File PR opens or updates a single PR. Split Stack is what you reach for when that PR turns out to cover more than one concern: it carves each concern into its own stacked PR, then File PR writes the description for each.
 
 ## License

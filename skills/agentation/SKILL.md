@@ -1,0 +1,176 @@
+---
+name: agentation
+description: Add Agentation visual feedback toolbar to a project. Handles React/Next.js hosts and non-React hosts (Rails, Django, Laravel, plain webpack/Vite) by adding React as a development-only dependency.
+---
+
+# Agentation Setup
+
+Set up the Agentation annotation toolbar in this project.
+
+Agentation ships a single React component. React is therefore required — but it is
+required **only in development**, and it must never reach the production bundle.
+In a project that already uses React that is automatic. In a project that does not,
+add React as a development-only dependency rather than declining to install.
+
+## Steps
+
+1. **Check if already installed**
+   - Look for `agentation` in package.json `dependencies` or `devDependencies`
+   - If not found, install it as a **dev dependency**: `npm install -D agentation`
+     (or `yarn add -D` / `pnpm add -D` based on the lockfile)
+
+2. **Check if already configured**
+   - Search for `<Agentation` or `from "agentation"` / `from 'agentation'` across the
+     project's source directories (`src/`, `app/`, `pages/`, `assets/`, `frontend/`)
+   - If found, report that Agentation is already set up and exit
+
+3. **Check for React — add it as a dev dependency if absent**
+   - Look for `react` and `react-dom` in package.json `dependencies` **or**
+     `devDependencies`
+   - If either is already present anywhere, leave it alone — never move an existing
+     runtime dependency into devDependencies, and never change its version range
+   - If absent, install the latest React as dev dependencies — do not pin an older
+     major:
+     ```bash
+     npm install -D react react-dom
+     ```
+     Agentation's peer range is `>=18`, so whatever `latest` resolves to satisfies
+     it. Nothing is being shipped to users here, so there is no reason to hold back
+     to an older major.
+
+4. **Detect the host**
+
+   | Host | Signal |
+   | ---- | ------ |
+   | Next.js App Router | `app/layout.tsx` or `app/layout.js` |
+   | Next.js Pages Router | `pages/_app.tsx` or `pages/_app.js` |
+   | Other React app | `react` was already a dependency before step 3 |
+   | Non-React host | React was added in step 3 — a server-rendered app (Rails, Django, Laravel, Phoenix) or a plain bundler setup |
+
+   For a non-React host, also identify the bundler (`webpack.config.js`,
+   `vite.config.*`, `rollup.config.*`) and the server-rendered layout template that
+   emits `<script>` tags. You need both.
+
+5. **Add the component**
+
+   **Next.js App Router** — add to the root layout, inside the body after `children`:
+   ```tsx
+   import { Agentation } from "agentation";
+
+   {process.env.NODE_ENV === "development" && <Agentation />}
+   ```
+
+   **Next.js Pages Router** — add to `_app`, after `Component`:
+   ```tsx
+   import { Agentation } from "agentation";
+
+   {process.env.NODE_ENV === "development" && <Agentation />}
+   ```
+
+   **Other React app** — render `<Agentation />` once near the root of the tree,
+   behind the same `NODE_ENV` check.
+
+   **Non-React host** — do NOT add React to the app's existing entry point. Create a
+   separate, dev-only bundle entry so the main bundle is untouched:
+
+   a. Write a standalone entry (e.g. `app/javascript/agentation.js`). Use
+      `createElement` rather than JSX so the project needs no JSX toolchain config:
+
+   ```js
+   // Development-only entry: mounts the Agentation feedback toolbar.
+   import { createElement } from 'react'
+   import { createRoot } from 'react-dom/client'
+   import { Agentation } from 'agentation'
+
+   const CONTAINER_ID = 'agentation-root'
+   const ENDPOINT = 'http://localhost:4747' // agentation-mcp HTTP server
+
+   let root = null
+
+   function mount() {
+     if (document.getElementById(CONTAINER_ID)) return
+
+     root?.unmount()
+
+     const container = document.createElement('div')
+     container.id = CONTAINER_ID
+     document.body.appendChild(container)
+
+     root = createRoot(container)
+     root.render(createElement(Agentation, { endpoint: ENDPOINT }))
+   }
+
+   // Re-mount after client-side navigation that swaps <body>.
+   document.addEventListener('turbo:load', mount)   // Turbo / Hotwire
+   document.addEventListener('turbo:morph', mount)
+   mount()
+   ```
+
+   b. Register the entry **only in the bundler's development mode**. This is the real
+      production guarantee — the dev dependency alone is not enough. webpack:
+
+   ```js
+   const isDevelopment = mode === 'development'
+
+   entry: {
+     application: './app/javascript/application.js',
+     ...(isDevelopment && { agentation: './app/javascript/agentation.js' })
+   }
+   ```
+
+   c. Emit the script from the server-rendered layout, gated on the server's
+      development environment. Rails/Slim:
+
+   ```slim
+   - if Rails.env.development?
+     = javascript_include_tag 'agentation', defer: true
+   ```
+
+   Do not add cache-busting/asset-tracking attributes (e.g. Turbo's
+   `data-turbo-track: 'reload'`) to this tag — rebuilding the dev bundle would then
+   force full page reloads.
+
+6. **Confirm and verify**
+   - Tell the user the Agentation toolbar component is configured
+   - For a non-React host, verify the production boundary before reporting success:
+     ```bash
+     # build the way production builds, then confirm nothing leaked
+     RAILS_ENV=production npm run build      # or NODE_ENV=production, per project
+     ls dist/agentation.js                   # expect: no such file
+     grep -c "react-dom" dist/application.js # expect: 0
+     ```
+     Restore the development build afterward.
+
+7. **Recommend MCP server setup**
+   - Explain that for real-time annotation syncing with AI agents, they should also set up the MCP server
+   - Recommend one of the following approaches:
+     - **Universal (supports 9+ agents including Claude Code, Cursor, Codex, Windsurf, etc.):**
+       See [add-mcp](https://github.com/neondatabase/add-mcp) — run `npx add-mcp` and follow the prompts to add `agentation-mcp` as an MCP server
+     - **Claude Code only (interactive wizard):**
+       Run `agentation-mcp init` after installing the package
+   - Tell user to restart their coding agent after MCP setup to load the server
+   - Explain that once configured, annotations will sync to the agent automatically
+
+## Notes
+
+- The `NODE_ENV` / bundler-mode / server-env checks ensure Agentation only loads in
+  development. In a non-React host, layer all three — the bundler-mode check is the
+  one that actually keeps React out of the production bundle.
+- Agentation's peer range is `>=18`, so installing React at `latest` is always
+  compatible. It declares those peers as **optional**, so a package manager will not
+  warn when they are absent — check package.json yourself rather than relying on
+  install output.
+- `Agentation` renders as a **React portal into `document.body`** and injects its
+  `<style>` tags into `<head>`. The styles survive navigation; the portal does not.
+  Any host that swaps `document.body` on navigation — Turbo/Hotwire, htmx boosting,
+  Astro view transitions — needs the re-mount listeners shown above, or the toolbar
+  silently disappears after the first link click.
+- Without an `endpoint` prop the toolbar is localStorage + clipboard only. Pass
+  `endpoint: "http://localhost:4747"` to sync with `agentation-mcp`. If that server
+  is not running, expect a console fetch error on send; annotations still persist
+  locally.
+- Agentation is licensed PolyForm Shield 1.0.0 — fine for an internal dev tool, but
+  worth mentioning in a client codebase.
+- The MCP server runs on port 4747 by default for the HTTP server
+- MCP server exposes tools like `agentation_get_all_pending`, `agentation_resolve`, and `agentation_watch_annotations`
+- Run `agentation-mcp doctor` to verify setup after installing
