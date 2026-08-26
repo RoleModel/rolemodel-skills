@@ -68,7 +68,7 @@ end
 exit 0 if matched.empty?
 
 # Surface each convention at most once per session.
-session_id = input['session_id'].to_s
+session_id = input['session_id'].to_s.gsub(/[^\w-]/, '')
 session_id = 'default' if session_id.empty?
 marker_dir = File.join(Dir.tmpdir, "claude-conventions-#{session_id}")
 FileUtils.mkdir_p(marker_dir)

@@ -67,7 +67,7 @@ only discovers `.claude/skills/`. Bridge them once and commit the symlink — gi
 stores it as a link, so every checkout works:
 
 ```sh
-mkdir -p .agents/skills
+mkdir -p .agents/skills .claude
 ln -s ../.agents/skills .claude/skills
 ```
 
@@ -89,9 +89,9 @@ session-end skill, leave it and report the conflict.
 ## 5. The hook
 
 Hooks have no tool-neutral home, so they stay under `.claude/`. Copy
-`assets/surface_conventions.rb` to `.claude/hooks/`, make it executable, and
-register it in `.claude/settings.json` — merging into any existing `hooks`
-object:
+`assets/surface_conventions.rb` into `.claude/hooks/` (creating the directory),
+make it executable, and register it in `.claude/settings.json` — merging into
+any existing `hooks` object:
 
 ```json
 {
