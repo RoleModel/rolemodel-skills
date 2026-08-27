@@ -2,8 +2,13 @@
 # frozen_string_literal: true
 
 # PreToolUse hook (Edit|Write): points Claude at the docs/conventions/*.md that
-# govern the file being edited. Always exits 0 and emits only additionalContext,
-# never a permissionDecision, so the permission flow is untouched.
+# govern the file being edited. Emits only additionalContext, never a
+# permissionDecision, so it can inform an edit but never block one.
+#
+# Errors are rescued where one is expected — malformed stdin, a swept marker dir
+# — and nowhere else. Anything unforeseen raises and gets seen: a PreToolUse
+# failure doesn't stop the edit, and a hook that dies loudly gets fixed, where
+# one that exits 0 on every path just stops surfacing conventions forever.
 #
 # Hooks run in a non-login shell that usually has no LANG, making
 # Encoding.default_external US-ASCII. Every string crossing into this script —
@@ -128,35 +133,21 @@ def emit(context)
   )
 end
 
-def surface_conventions
-  payload = hook_payload
-  edited_file = payload.dig('tool_input', 'file_path').to_s
-  return if edited_file.empty?
+payload = hook_payload
+edited_file = payload.dig('tool_input', 'file_path').to_s
+exit 0 if edited_file.empty?
 
-  root = root_containing(edited_file, payload)
-  return unless root
+root = root_containing(edited_file, payload)
+exit 0 unless root
 
-  relative_path = edited_file.delete_prefix("#{root}/")
-  applicable = ConventionIndex.load(root).select { |convention| convention.applies_to?(relative_path) }
-  return if applicable.empty?
+relative_path = edited_file.delete_prefix("#{root}/")
+applicable = ConventionIndex.load(root).select { |convention| convention.applies_to?(relative_path) }
+exit 0 if applicable.empty?
 
-  fresh = SurfacedOnce.new(payload['session_id']).claim(applicable)
-  return if fresh.empty?
+fresh = SurfacedOnce.new(payload['session_id']).claim(applicable)
+exit 0 if fresh.empty?
 
-  emit(<<~CONTEXT.chomp)
-    📐 Convention docs that apply to `#{relative_path}`. Read the relevant one(s) before editing:
-    #{fresh.map(&:pointer).join("\n")}
-  CONTEXT
-end
-
-begin
-  surface_conventions
-rescue StandardError => e
-  # An unreadable index, a full disk, a tmpdir this user can't write — none of
-  # that is worth interrupting an edit over. One stderr line, no backtrace: the
-  # exit stays 0, and a hook that's silently broken is still findable in
-  # `claude --debug`.
-  warn "surface_conventions: #{e.class}: #{e.message}"
-end
-
-exit 0
+emit(<<~CONTEXT.chomp)
+  📐 Convention docs that apply to `#{relative_path}`. Read the relevant one(s) before editing:
+  #{fresh.map(&:pointer).join("\n")}
+CONTEXT
