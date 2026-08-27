@@ -4,15 +4,12 @@ description: >
   Install the RoleModel agent-documentation structure in a project: a minimal
   AGENTS.md, a docs/ tree with CONVENTIONS.md and INDEX.md, a path-scoped
   Copilot instructions file, the surface_conventions PreToolUse hook, and the
-  wrap-up skill. Trigger when someone wants to bootstrap agent docs, set up
-  AGENTS.md, add conventions structure, point Copilot or Copilot code review at
-  a repo's conventions, port the docs setup from another repo, standardize a
-  project's agent instructions, or trim a bloated AGENTS.md down to size.
+  wrap-up skill.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 metadata:
   author: rolemodel
   version: "1.0"
-  triggers: "scaffold docs, set up AGENTS.md, bootstrap docs structure, add conventions structure, trim AGENTS.md, standardize agent instructions"
+  triggers: "scaffold docs, set up AGENTS.md, bootstrap agent docs, bootstrap docs structure, add conventions structure, point Copilot at a repo's conventions, port the docs setup from another repo, trim AGENTS.md, standardize agent instructions"
 ---
 
 # Scaffold Docs

@@ -1,12 +1,12 @@
 ---
 name: wrap-up
-description: End-of-session skill that captures learnings into the right doc layer and updates project instructions. Use when finishing a work session or when the user says they're done, want to wrap up, close out, save progress, end the session, or "that's it for today."
+description: End-of-session skill that captures learnings into the right doc layer and updates project instructions.
 allowed-tools: Read, Write, Edit, Glob
 compatibility: Designed for Claude Code (or similar products)
 metadata:
   author: rolemodel
   version: "3.1"
-  triggers: "WRAP UP, wrap this up, finish this session, wrap, end session, close out, save progress, that's it for this session"
+  triggers: "WRAP UP, wrap this up, finish this session, wrap, end session, close out, save progress, done for the day, that's it for today, that's it for this session"
 ---
 
 # Wrap Up Session
