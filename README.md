@@ -55,6 +55,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | **[file-pr](skills/file-pr)** | Open a pull request with a consistent description format — **Why**, **What Changed**, an optional **Post-merge** checklist, and **Screenshots** — and assign the author. Updates the existing PR in place when the branch already has one. Refuses to commit on the default branch and stages named paths only, never `git add -A`. |
 | **[split-stack](skills/split-stack)** | Split one PR that does too much into a stack of PRs, one per concern, without changing the combined diff. The top of the stack must stay byte-identical to the original commit — verified, not assumed. Includes `scripts/strip_hunks.py` for carving hunks out of a diff. |
 | **[trace](skills/trace)** | Trace code through the stack — upward to entry points, downward to data, laterally across callbacks and side effects. Outputs a stack diagram with clickable file references. |
+| **[walk-pr](skills/walk-pr)** | Produce a reviewer's guide to a pull request — a reading order, the decisions the diff makes that its ticket doesn't settle, what the change can break, and what a user would notice. Emits questions for a human to answer, not defect claims, and ends with what it could not determine. |
 
 ### Process, Planning, & Observability
 
@@ -227,6 +228,7 @@ Several skills are designed to complement each other:
 - **Sentry Top Issue + Sentry Issue Fixer** — Top Issue selects the highest-priority Sentry issue; Issue Fixer runs the full diagnosis-and-fix workflow. Run together or invoke the fixer directly with a known issue.
 - **Explain + Trace** — Explain orients you to a feature area or concept; Trace follows a specific code path through the stack. Use Explain first to build context, then Trace to dig into a specific flow.
 - **Explain + Document This** — Explain answers questions interactively; Document This generates persistent reference docs. Use Explain while exploring, Document This when you want to capture the results for the team.
+- **Walk PR + Code Review** — a review tool says what is wrong; Walk PR says where to look and what to decide. They cover opposite halves: anything Walk PR raises is a question routed to a human (business rules, product intent, a rendered document someone signs), because those are exactly what an automated reviewer is told to stay out of. Run Walk PR before reading a diff you don't already know.
 - **File PR + Split Stack** — File PR opens or updates a single PR. Split Stack is what you reach for when that PR turns out to cover more than one concern: it carves each concern into its own stacked PR, then File PR writes the description for each.
 
 ## License
