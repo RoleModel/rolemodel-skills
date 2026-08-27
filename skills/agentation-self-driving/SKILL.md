@@ -1,7 +1,7 @@
 ---
 name: agentation-self-driving
 description: Autonomous design critique mode using the Agentation annotation toolbar. Use when the user asks to "critique this page," "add design annotations," "review the UI," "self-driving mode," "auto-annotate," or wants an AI agent to autonomously add design feedback annotations to a web page via the browser. Requires the Agentation toolbar to be mounted on the target page (run /agentation first — it installs React as a dev dependency when the host app is not already React) and the agent-browser skill to be available.
-allowed-tools: Bash(agent-browser:*)
+allowed-tools: Bash(agent-browser:*) Bash(command -v agent-browser:*) Read
 ---
 
 # Agentation Self-Driving Mode
@@ -18,10 +18,13 @@ The browser MUST be visible. Never run headless. The user watches you scan, hove
 command -v agent-browser >/dev/null || { echo "ERROR: agent-browser not found. Install the agent-browser skill first."; exit 1; }
 ```
 
-**Launch**: Try opening directly first. Only close an existing session if the open command fails with a stale session error — this avoids killing a browser someone else is using:
+**Launch**: Try opening directly first, and only fall back to closing if that fails — so a
+healthy session someone else is using is left alone. The fallback fires on any open failure,
+not just a stale session, so if the retry also fails treat it as a real error (bad URL,
+server not running) rather than retrying the loop:
 
 ```bash
-# Try to open. If it fails (stale session), close first then retry.
+# Try to open. If it fails, close any existing session and retry once.
 agent-browser --headed open <url> 2>&1 || { agent-browser close 2>/dev/null; agent-browser --headed open <url>; }
 ```
 

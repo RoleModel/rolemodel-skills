@@ -1,6 +1,6 @@
 ---
 name: agentation
-description: Add Agentation visual feedback toolbar to a project. Handles React/Next.js hosts and non-React hosts (Rails, Django, Laravel, plain webpack/Vite) by adding React as a development-only dependency.
+description: Add Agentation visual feedback toolbar to a project. Use when the user asks to "install Agentation", "add the Agentation toolbar", or "set up visual feedback". Handles Rails and other server-rendered hosts (Django, Laravel, Phoenix, plain webpack/Vite) by adding React as a development-only dependency, and hosts that already bundle React.
 ---
 
 # Agentation Setup
@@ -21,7 +21,7 @@ add React as a development-only dependency rather than declining to install.
 
 2. **Check if already configured**
    - Search for `<Agentation` or `from "agentation"` / `from 'agentation'` across the
-     project's source directories (`src/`, `app/`, `pages/`, `assets/`, `frontend/`)
+     project's source directories (`src/`, `app/`, `assets/`, `frontend/`)
    - If found, report that Agentation is already set up and exit
 
 3. **Check for React — add it as a dev dependency if absent**
@@ -42,35 +42,19 @@ add React as a development-only dependency rather than declining to install.
 
    | Host | Signal |
    | ---- | ------ |
-   | Next.js App Router | `app/layout.tsx` or `app/layout.js` |
-   | Next.js Pages Router | `pages/_app.tsx` or `pages/_app.js` |
-   | Other React app | `react` was already a dependency before step 3 |
-   | Non-React host | React was added in step 3 — a server-rendered app (Rails, Django, Laravel, Phoenix) or a plain bundler setup |
+   | Non-React host | React was added in step 3 — a server-rendered app (Rails, Django, Laravel, Phoenix) or a plain bundler setup. **This is the common case.** |
+   | Host that already bundles React | `react` was already a dependency before step 3 |
 
    For a non-React host, also identify the bundler (`webpack.config.js`,
-   `vite.config.*`, `rollup.config.*`) and the server-rendered layout template that
-   emits `<script>` tags. You need both.
+   `vite.config.*`, `rollup.config.*`), its **output directory** (webpack `output.path`,
+   shakapacker's `public/packs/` or `app/assets/builds/`, Vite's `build.outDir`), and the
+   server-rendered layout template that emits `<script>` tags. You need all three — step 6
+   verifies against the output directory.
 
 5. **Add the component**
 
-   **Next.js App Router** — add to the root layout, inside the body after `children`:
-   ```tsx
-   import { Agentation } from "agentation";
-
-   {process.env.NODE_ENV === "development" && <Agentation />}
-   ```
-
-   **Next.js Pages Router** — add to `_app`, after `Component`:
-   ```tsx
-   import { Agentation } from "agentation";
-
-   {process.env.NODE_ENV === "development" && <Agentation />}
-   ```
-
-   **Other React app** — render `<Agentation />` once near the root of the tree,
-   behind the same `NODE_ENV` check.
-
-   **Non-React host** — do NOT add React to the app's existing entry point. Create a
+   **Non-React host** (Rails and friends — the path below is the one you almost always
+   want) — do NOT add React to the app's existing entry point. Create a
    separate, dev-only bundle entry so the main bundle is untouched:
 
    a. Write a standalone entry (e.g. `app/javascript/agentation.js`). Use
@@ -130,15 +114,27 @@ add React as a development-only dependency rather than declining to install.
    `data-turbo-track: 'reload'`) to this tag — rebuilding the dev bundle would then
    force full page reloads.
 
+   **Host that already bundles React** — render `<Agentation />` once near the root of
+   the tree, behind a `process.env.NODE_ENV === 'development'` check. Import it through a
+   dev-only dynamic import rather than a top-level `import`: a top-level import leaves the
+   module in the production bundle unless the bundler can prove it side-effect free, and
+   the point of this skill is that it never gets there.
+
 6. **Confirm and verify**
    - Tell the user the Agentation toolbar component is configured
-   - For a non-React host, verify the production boundary before reporting success:
+   - For a non-React host, verify the production boundary before reporting success.
+     Run these against the output directory found in step 4 — `$OUT` below is that
+     directory (`public/packs`, `app/assets/builds`, `dist`, …), **not** a literal:
      ```bash
      # build the way production builds, then confirm nothing leaked
-     RAILS_ENV=production npm run build      # or NODE_ENV=production, per project
-     ls dist/agentation.js                   # expect: no such file
-     grep -c "react-dom" dist/application.js # expect: 0
+     RAILS_ENV=production npm run build       # or NODE_ENV=production, per project
+     ls "$OUT" | grep -i agentation           # expect: no matches
+     grep -rlc "react-dom" "$OUT"             # expect: no application bundle listed
      ```
+     If the bundler writes hashed filenames through a manifest
+     (`public/packs/manifest.json`, `.vite/manifest.json`), grep the manifest for an
+     `agentation` entry instead of guessing the filename. A missing file because you
+     checked the wrong path is a false pass — confirm the directory exists first.
      Restore the development build afterward.
 
 7. **Recommend MCP server setup**
