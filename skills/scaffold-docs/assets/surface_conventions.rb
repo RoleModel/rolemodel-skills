@@ -128,21 +128,35 @@ def emit(context)
   )
 end
 
-payload = hook_payload
-edited_file = payload.dig('tool_input', 'file_path').to_s
-exit 0 if edited_file.empty?
+def surface_conventions
+  payload = hook_payload
+  edited_file = payload.dig('tool_input', 'file_path').to_s
+  return if edited_file.empty?
 
-root = root_containing(edited_file, payload)
-exit 0 unless root
+  root = root_containing(edited_file, payload)
+  return unless root
 
-relative_path = edited_file.delete_prefix("#{root}/")
-applicable = ConventionIndex.load(root).select { |convention| convention.applies_to?(relative_path) }
-exit 0 if applicable.empty?
+  relative_path = edited_file.delete_prefix("#{root}/")
+  applicable = ConventionIndex.load(root).select { |convention| convention.applies_to?(relative_path) }
+  return if applicable.empty?
 
-fresh = SurfacedOnce.new(payload['session_id']).claim(applicable)
-exit 0 if fresh.empty?
+  fresh = SurfacedOnce.new(payload['session_id']).claim(applicable)
+  return if fresh.empty?
 
-emit(<<~CONTEXT.chomp)
-  📐 Convention docs that apply to `#{relative_path}`. Read the relevant one(s) before editing:
-  #{fresh.map(&:pointer).join("\n")}
-CONTEXT
+  emit(<<~CONTEXT.chomp)
+    📐 Convention docs that apply to `#{relative_path}`. Read the relevant one(s) before editing:
+    #{fresh.map(&:pointer).join("\n")}
+  CONTEXT
+end
+
+begin
+  surface_conventions
+rescue StandardError => e
+  # An unreadable index, a full disk, a tmpdir this user can't write — none of
+  # that is worth interrupting an edit over. One stderr line, no backtrace: the
+  # exit stays 0, and a hook that's silently broken is still findable in
+  # `claude --debug`.
+  warn "surface_conventions: #{e.class}: #{e.message}"
+end
+
+exit 0

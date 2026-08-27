@@ -13,7 +13,7 @@ State the rule, and the why only where the rule looks arbitrary without it. Keep
 
 **Never restate the implementation.** Signatures, argument lists, required attributes, and step-by-step walkthroughs belong in the code, which reads more easily and can't go stale. The same goes for anything a manifest, lockfile, or schema already states — version numbers above all. Name the file that holds the answer instead of copying the answer. A gotcha earns a line when it's a fact about the _world_ — how a library behaves, a database rule, an API that contradicts its own docs — that the code can't tell you on sight.
 
-Each entry may carry a `<!-- paths: glob, glob -->` comment. The `surface_conventions.rb` PreToolUse hook reads these to surface a convention when a matching file is edited, so keep them accurate.
+Each entry may carry a `<!-- paths: glob, glob -->` comment. The `surface_conventions.rb` PreToolUse hook reads these to surface a convention when a matching file is edited, so keep them accurate. Globs are matched with Ruby's `File.fnmatch?` in pathname mode against the repo-relative path: `**/` spans any number of directories including none, `{rb,erb}` alternates, and a bare `*` stops at a `/`.
 
 ## Index
 
