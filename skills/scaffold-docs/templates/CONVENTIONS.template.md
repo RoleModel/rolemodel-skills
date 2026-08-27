@@ -17,6 +17,8 @@ Each entry may carry a `<!-- paths: glob, glob -->` comment. The `surface_conven
 
 ## Index
 
-Entries take this shape — the em dash is what the hook parses. Delete this note once real ones land.
+Entries take the shape below. A real one begins with a literal `- [` at the start of the line and carries no backticks — this example is wrapped in them so the hook skips it, so write a fresh line rather than unwrapping this one. Delete the note once real entries land.
 
 `- [Title](conventions/slug.md) — what it covers. <!-- paths: app/models/**/*.rb -->`
+
+The hook reads the separator after the link — an em dash, or a hyphen — and skips any entry whose `conventions/<slug>.md` is missing, so a renamed or deleted file stops surfacing rather than surfacing wrongly.

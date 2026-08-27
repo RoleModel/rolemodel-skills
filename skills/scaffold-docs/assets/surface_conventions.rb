@@ -28,14 +28,24 @@ end
 
 module ConventionIndex
   # - [Title](conventions/<slug>.md) — <description> <!-- paths: glob, glob -->
-  ENTRY = %r{\A-\s*\[.*?\]\(conventions/([\w-]+)\.md\)\s*—\s*(.*)\z}
+  # The separator accepts an en dash or hyphen as well: the template asks for an
+  # em dash, and a hand-typed substitute should not silently stop matching.
+  ENTRY = %r{\A-\s*\[.*?\]\(conventions/([\w-]+)\.md\)\s*[—–-]\s*(.*)\z}
   PATHS_COMMENT = /<!--\s*paths:\s*(.*?)\s*-->/
 
   def self.load(project_root)
     index = File.join(project_root, 'docs', 'CONVENTIONS.md')
     return [] unless File.exist?(index)
 
-    File.readlines(index, encoding: 'UTF-8').filter_map { |line| parse(line.strip) }
+    entries = File.readlines(index, encoding: 'UTF-8').filter_map { |line| parse(line.strip) }
+    # An index entry outlives a renamed or deleted convention file. Pointing an
+    # agent at a file that isn't there is worse than surfacing nothing, so an
+    # entry that no longer resolves drops out instead.
+    entries.select { |convention| File.exist?(file_for(project_root, convention)) }
+  end
+
+  def self.file_for(project_root, convention)
+    File.join(project_root, 'docs', 'conventions', "#{convention.slug}.md")
   end
 
   def self.parse(line)
@@ -53,12 +63,16 @@ module ConventionIndex
     remainder.sub(PATHS_COMMENT, '').strip.delete_suffix('.')
   end
 
-  private_class_method :parse, :globs_in, :description_in
+  private_class_method :parse, :globs_in, :description_in, :file_for
 end
 
 class SurfacedOnce
+  MARKER_GLOB = 'claude-conventions-*'
+  STALE_AFTER = 24 * 60 * 60
+
   def initialize(session_id)
     @marker_dir = File.join(Dir.tmpdir, "claude-conventions-#{sanitize(session_id)}")
+    sweep_stale_sessions
     FileUtils.mkdir_p(@marker_dir)
   end
 
@@ -79,6 +93,17 @@ class SurfacedOnce
   def sanitize(session_id)
     cleaned = session_id.to_s.gsub(/[^\w-]/, '')
     cleaned.empty? ? 'default' : cleaned
+  end
+
+  # One marker dir per session, otherwise kept forever. A session outliving the
+  # sweep window keeps its dir: writing a marker refreshes the mtime.
+  def sweep_stale_sessions
+    cutoff = Time.now - STALE_AFTER
+    Dir.glob(File.join(Dir.tmpdir, MARKER_GLOB)).each do |dir|
+      FileUtils.rm_rf(dir) if File.mtime(dir) < cutoff
+    end
+  rescue SystemCallError
+    nil
   end
 end
 

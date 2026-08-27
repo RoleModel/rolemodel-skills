@@ -14,5 +14,9 @@ current workspace.">
 
 ## Verification
 
+<One bullet per command, exactly as it's run — every test runner and every
+linter, not one of each. Where a runner needs a prerequisite (e.g. a parallel
+suite needing its databases created first), give that its own bullet above it.>
+
 - <test command>
 - <lint command>
