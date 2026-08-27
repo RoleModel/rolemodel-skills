@@ -3,17 +3,12 @@
 
 # PreToolUse hook (Edit|Write): points Claude at the docs/conventions/*.md that
 # govern the file being edited. Emits only additionalContext, never a
-# permissionDecision, so it can inform an edit but never block one.
-#
-# Errors are rescued where one is expected — malformed stdin, a swept marker dir
-# — and nowhere else. Anything unforeseen raises and gets seen: a PreToolUse
-# failure doesn't stop the edit, and a hook that dies loudly gets fixed, where
-# one that exits 0 on every path just stops surfacing conventions forever.
+# permissionDecision.
 #
 # Hooks run in a non-login shell that usually has no LANG, making
-# Encoding.default_external US-ASCII. Every string crossing into this script —
-# stdin, the index file, paths from ENV and Dir.pwd — is pinned to UTF-8, or the
-# first em dash in the index raises Encoding::CompatibilityError.
+# Encoding.default_external US-ASCII. Every string crossing into this script is
+# pinned to UTF-8, or the first em dash in the index raises
+# Encoding::CompatibilityError.
 
 require 'json'
 require 'tmpdir'
@@ -33,8 +28,6 @@ end
 
 module ConventionIndex
   # - [Title](conventions/<slug>.md) — <description> <!-- paths: glob, glob -->
-  # The separator accepts an en dash or hyphen as well: the template asks for an
-  # em dash, and a hand-typed substitute should not silently stop matching.
   ENTRY = %r{\A-\s*\[.*?\]\(conventions/([\w-]+)\.md\)\s*[—–-]\s*(.*)\z}
   PATHS_COMMENT = /<!--\s*paths:\s*(.*?)\s*-->/
 
@@ -43,9 +36,6 @@ module ConventionIndex
     return [] unless File.exist?(index)
 
     entries = File.readlines(index, encoding: 'UTF-8').filter_map { |line| parse(line.strip) }
-    # An index entry outlives a renamed or deleted convention file. Pointing an
-    # agent at a file that isn't there is worse than surfacing nothing, so an
-    # entry that no longer resolves drops out instead.
     entries.select { |convention| File.exist?(file_for(project_root, convention)) }
   end
 
@@ -100,8 +90,8 @@ class SurfacedOnce
     cleaned.empty? ? 'default' : cleaned
   end
 
-  # One marker dir per session, otherwise kept forever. A session outliving the
-  # sweep window keeps its dir: writing a marker refreshes the mtime.
+  # A session outliving the sweep window keeps its dir: writing a marker
+  # refreshes the mtime.
   def sweep_stale_sessions
     cutoff = Time.now - STALE_AFTER
     Dir.glob(File.join(Dir.tmpdir, MARKER_GLOB)).each do |dir|
@@ -119,7 +109,7 @@ rescue JSON::ParserError, EncodingError
 end
 
 # A worktree moves the payload's `cwd` while CLAUDE_PROJECT_DIR stays on the
-# original checkout, so the root holding the file is the root holding its docs.
+# original checkout, hence `cwd` first: the root holding the file holds its docs.
 def root_containing(edited_file, payload)
   [payload['cwd'], ENV.fetch('CLAUDE_PROJECT_DIR', nil), Dir.pwd]
     .compact
