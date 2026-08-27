@@ -48,8 +48,9 @@ Copy from `templates/`, filling the `<>` placeholders:
 | `INDEX.template.md`        | `docs/INDEX.md` — verbatim, empty sections                            |
 | `ARCHITECTURE.template.md` | `docs/ARCHITECTURE.md` — stack names only, no versions, no prose tour |
 
-Create `docs/conventions/`, `docs/subsystems/`, `docs/guides/`. Where a file
-already exists, add only what's missing.
+Create `docs/conventions/`, `docs/subsystems/`, `docs/guides/`, each holding a
+`.gitkeep` — they end the run empty by design, and git won't carry an empty
+directory. Where a file already exists, add only what's missing.
 
 ## 3. AGENTS.md
 
@@ -85,8 +86,12 @@ stores it as a link, so every checkout works:
 
 ```sh
 mkdir -p .agents/skills .claude
+touch .agents/skills/.gitkeep
 ln -s ../.agents/skills .claude/skills
 ```
+
+The `.gitkeep` matters: if the submodule step below is skipped, `.agents/skills/`
+stays empty, git drops it, and `.claude/skills` dangles on a fresh checkout.
 
 If `.claude/skills/` is already a real directory, move its contents into
 `.agents/skills/` first.
@@ -115,11 +120,11 @@ any existing `hooks` object:
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|Write|MultiEdit",
+        "matcher": "^(Edit|Write)$",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/surface_conventions.rb"
+            "command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/surface_conventions.rb"
           }
         ]
       }
@@ -127,6 +132,9 @@ any existing `hooks` object:
   }
 }
 ```
+
+Matchers are unanchored regexes, so `^(Edit|Write)$` is deliberate — a bare
+`Edit` would also fire on `NotebookEdit`.
 
 The hook needs Ruby on PATH; without it, skip the hook and say so — the rest
 works, minus just-in-time surfacing.
