@@ -2,13 +2,13 @@
 name: generate-conventions
 description: >
   Interactively fill a project's docs/conventions/ — propose candidate rules
-  from taste calls and from the codebase itself, then write the ones the
-  user confirms.
+  from taste calls, from the codebase itself, and from patterns mined out of
+  past PR review comments, then write the ones the user confirms.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 metadata:
   author: rolemodel
-  version: "1.0"
-  triggers: "generate conventions, write conventions, document our conventions"
+  version: "1.1"
+  triggers: "generate conventions, write conventions, document our conventions, mine review history, what do reviewers keep flagging, audit past PR feedback, update conventions from code reviews"
 ---
 
 # Generate Conventions
@@ -53,15 +53,31 @@ That's architecture.
 - The one class every value of a kind must pass through.
 - The model that exists versus the one newcomers assume exists.
 
+**Mined from review history**
+
+Run `scripts/mine_review_comments.sh` (defaults to the last 100 merged PRs on the
+current repo) to pull every human reviewer comment, already stripped of bots and
+of the PR author's own replies. Cluster what comes back by the thing being
+flagged, not by wording, and count distinct PRs and distinct reviewers per
+cluster — a comment one reviewer made once is an opinion; the same correction
+from more than one PR or more than one reviewer is a convention nobody wrote
+down. Quote one or two comments as evidence when a cluster becomes a candidate.
+When a cluster matches an existing `docs/conventions/` file, it's evidence for
+strengthening that file, not a new one — see step 1.
+
 Then ask the user what they keep correcting in review — highest signal, and you
 can't grep it. Taste lives in one person's head while counterexamples sit in the
-repo, so weigh what they say over what most files do.
+repo, so weigh what they say over what most files do. Mined clusters make good
+follow-up questions here too: "reviewers flagged this in three PRs — does that
+match what you'd tell someone joining the team?"
 
 ## 3. Kill most of them
 
 Drop a candidate when a linter or test already fails on the violation, one file
 shows it, a manifest pins it, it restates a framework default, it's true of any
-codebase, or it happened once and nobody defends it.
+codebase, or it happened once and nobody defends it. For mined clusters, "once"
+means one PR or one reviewer — a recurring correction from a single person is
+still just their preference until someone else echoes it or the user confirms it.
 
 What survives is **how this project does something**, or **taste** — and would
 cost someone a wrong guess.
