@@ -44,6 +44,8 @@ Skills may also include a `references/` directory for supporting markdown files 
 - **json-typed-attributes**: Define typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration.
 
 ### Documentation
+- **scaffold-docs**: Installs the agent-documentation structure in a project — minimal `AGENTS.md`, a `docs/` tree with `CONVENTIONS.md` and `INDEX.md`, the `surface_conventions.rb` PreToolUse hook, and `wrap-up` symlinked out of this repo. Deliberately writes no documentation: empty indexes are correct on day one, and `wrap-up` fills them in over time. Also trims an existing `AGENTS.md` under 50 lines by routing its content down into the doc layers. Templates live in `templates/*.template.md`; the trimming rules in `references/trimming.md` load only on the branch that needs them.
+- **wrap-up**: End-of-session counterpart to `scaffold-docs`. Routes what a session taught into `docs/conventions/`, `docs/subsystems/`, `docs/guides/`, or `docs/ARCHITECTURE.md`, and prunes docs the session proved wrong. The default is to write nothing.
 - **document-this**: Generate multi-audience documentation from any codebase — workflows for non-technical readers, architecture for developers, and AI orientation for agents. Deterministic JS scripts handle structural extraction; the agent writes the prose. Use when the user asks to "document this project", runs `/document-this`, runs `/document-this <file-path>`, runs `/document-this --focus "<Feature Name>"` for a deep-dive on one subsystem in a named subfolder, or wants fresh documentation reflecting the current codebase state.
 
 ### Testing & TDD
