@@ -139,7 +139,7 @@ any existing `hooks` object:
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/surface_conventions.rb"
+            "command": "\"${CLAUDE_PROJECT_DIR}/.claude/hooks/surface_conventions.rb\""
           }
         ]
       }
