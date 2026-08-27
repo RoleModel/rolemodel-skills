@@ -2,11 +2,12 @@
 name: scaffold-docs
 description: >
   Install the RoleModel agent-documentation structure in a project: a minimal
-  AGENTS.md, a docs/ tree with CONVENTIONS.md and INDEX.md, the
-  surface_conventions PreToolUse hook, and the wrap-up skill. Trigger when
-  someone wants to bootstrap agent docs, set up AGENTS.md, add conventions
-  structure, port the docs setup from another repo, standardize a project's
-  agent instructions, or trim a bloated AGENTS.md down to size.
+  AGENTS.md, a docs/ tree with CONVENTIONS.md and INDEX.md, a path-scoped
+  Copilot instructions file, the surface_conventions PreToolUse hook, and the
+  wrap-up skill. Trigger when someone wants to bootstrap agent docs, set up
+  AGENTS.md, add conventions structure, point Copilot or Copilot code review at
+  a repo's conventions, port the docs setup from another repo, standardize a
+  project's agent instructions, or trim a bloated AGENTS.md down to size.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 metadata:
   author: rolemodel
@@ -26,6 +27,9 @@ CLAUDE.md → AGENTS.md (<50 lines, always loaded)
               ├→ docs/CONVENTIONS.md → docs/conventions/*.md  (hook surfaces these on edit)
               ├→ docs/INDEX.md       → docs/subsystems/*.md, docs/guides/*.md
               └→ docs/ARCHITECTURE.md
+
+.github/instructions/conventions.instructions.md  (Copilot's entry to the same chain)
+              └→ docs/CONVENTIONS.md
 ```
 
 Every step merges. Never clobber a file that has content.
@@ -41,10 +45,10 @@ command.
 
 Copy from `templates/`, filling the `<>` placeholders:
 
-| Template | Destination |
-|---|---|
-| `CONVENTIONS.template.md` | `docs/CONVENTIONS.md` — verbatim, empty index |
-| `INDEX.template.md` | `docs/INDEX.md` — verbatim, empty sections |
+| Template                   | Destination                                                           |
+| -------------------------- | --------------------------------------------------------------------- |
+| `CONVENTIONS.template.md`  | `docs/CONVENTIONS.md` — verbatim, empty index                         |
+| `INDEX.template.md`        | `docs/INDEX.md` — verbatim, empty sections                            |
 | `ARCHITECTURE.template.md` | `docs/ARCHITECTURE.md` — stack names only, no versions, no prose tour |
 
 Create `docs/conventions/`, `docs/subsystems/`, `docs/guides/`. Where a file
@@ -60,7 +64,23 @@ An `AGENTS.md` exists → follow `references/trimming.md`. Target under 50 lines
 Then make `CLAUDE.md` exactly `@AGENTS.md`. If it holds real content, trim that
 into `AGENTS.md` first.
 
-## 4. Skills
+## 4. Copilot instructions
+
+Copilot doesn't read `AGENTS.md`. Copy
+`templates/conventions.instructions.template.md` to
+`.github/instructions/conventions.instructions.md`, filling the `<>`
+placeholders. Set `applyTo` from directories that exist — source, test,
+migration, config — comma-separated in one quoted string.
+
+It stays a pointer to `docs/CONVENTIONS.md`; don't restate a convention in it.
+Merge if the file exists, and leave the directory's other `*.instructions.md`
+files alone.
+
+If the `linear` MCP server isn't connected yet, report that they should connect
+it and store the key as a Copilot agent secret named
+`COPILOT_MCP_LINEAR_API_KEY`. Never ask for the key.
+
+## 5. Skills
 
 Skills live in `.agents/skills/`, the tool-neutral location, but Claude Code
 only discovers `.claude/skills/`. Bridge them once and commit the symlink — git
@@ -86,7 +106,7 @@ Skip the `add` if the submodule is already there, and confirm with the user
 before running it — it writes `.gitmodules`. If the project already has a
 session-end skill, leave it and report the conflict.
 
-## 5. The hook
+## 6. The hook
 
 Hooks have no tool-neutral home, so they stay under `.claude/`. Copy
 `assets/surface_conventions.rb` into `.claude/hooks/` (creating the directory),
@@ -100,7 +120,10 @@ any existing `hooks` object:
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/surface_conventions.rb" }
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/surface_conventions.rb"
+          }
         ]
       }
     ]
@@ -111,11 +134,12 @@ any existing `hooks` object:
 The hook needs Ruby on PATH; without it, skip the hook and say so — the rest
 works, minus just-in-time surfacing.
 
-## 6. Verify and report
+## 7. Verify and report
 
 Check that every path the new files reference resolves, the skill symlinks
-resolve, `AGENTS.md` is under 50 lines, the hook is executable, and
-`settings.json` is valid JSON.
+resolve, `AGENTS.md` is under 50 lines, the hook is executable,
+`settings.json` is valid JSON, and every glob in `applyTo` matches something.
 
 Report what was created, what was merged, what left `AGENTS.md` and where it
-went, and every `TODO` you left behind.
+went, every `TODO` you left behind, and the Linear MCP setup from step 4 if it
+isn't already in place.

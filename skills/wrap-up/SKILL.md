@@ -28,17 +28,19 @@ What survives that bar is usually one of two things: **a rule this project has s
 
 ## Step 2: Route it
 
-| What you learned | Where it goes |
-|---|---|
+| What you learned                                    | Where it goes                                           |
+| --------------------------------------------------- | ------------------------------------------------------- |
 | A rule or taste call about how we build things here | `docs/conventions/` + an entry in `docs/CONVENTIONS.md` |
-| How a domain subsystem hangs together | `docs/subsystems/` + an entry in `docs/INDEX.md` |
-| How to perform an operational task | `docs/guides/` + an entry in `docs/INDEX.md` |
-| Stack, directory, or data model changes | `docs/ARCHITECTURE.md` |
-| Project-wide workflow or debugging rules | `AGENTS.md` |
+| How a domain subsystem hangs together               | `docs/subsystems/` + an entry in `docs/INDEX.md`        |
+| How to perform an operational task                  | `docs/guides/` + an entry in `docs/INDEX.md`            |
+| Stack, directory, or data model changes             | `docs/ARCHITECTURE.md`                                  |
+| Project-wide workflow or debugging rules            | `AGENTS.md`                                             |
 
 **Update an existing file rather than adding one.** A new file is justified only when no existing file covers the topic. If nothing in the table fits, ask the user — don't invent a folder.
 
 Read the "What belongs in a convention file" section of `docs/CONVENTIONS.md` before writing a convention, and keep new `docs/CONVENTIONS.md` entries to one clause with an accurate `<!-- paths: -->` glob so the hook surfaces them.
+
+If `.github/instructions/conventions.instructions.md` exists and the session changed what it asserts, update it. It points at `docs/CONVENTIONS.md`; never copy a convention into it.
 
 Subsystem and guide docs follow the same restraint: state the shape of the thing and the decisions behind it, not a method-by-method tour. A mermaid diagram of how the pieces relate is worth more than prose describing the same relationships. Never add convention detail to `AGENTS.md` — it points at `docs/CONVENTIONS.md` — and keep it under 50 lines.
 
@@ -49,6 +51,7 @@ If the session showed an existing doc to be wrong, stale, or bloated, fix or del
 ## Step 4: Report
 
 Summarize what was updated:
+
 - Which files were created or edited and why
 - What was routed where (convention vs guide vs subsystem vs AGENTS.md)
 - What was intentionally skipped and why
