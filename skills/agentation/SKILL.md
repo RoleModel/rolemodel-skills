@@ -1,9 +1,15 @@
 ---
 name: agentation
-description: Add Agentation visual feedback toolbar to a project. Use when the user asks to "install Agentation", "add the Agentation toolbar", or "set up visual feedback". Handles Rails and other server-rendered hosts (Django, Laravel, Phoenix, plain webpack/Vite) by adding React as a development-only dependency, and hosts that already bundle React.
+description: Add Agentation visual feedback toolbar to a project. Use when the user asks to "install Agentation", "add the Agentation toolbar", or "set up visual feedback". Covers Rails apps that bundle with webpack into `app/assets/builds` (the RoleModel default) by adding React as a development-only dependency, plus hosts that already bundle React. The same pattern adapts to other server-rendered hosts, but the snippets are Rails.
 ---
 
 # Agentation Setup
+
+> Adapted from [benjitaylor/agentation](https://github.com/benjitaylor/agentation)
+> `skills/agentation`, upstream commit `4a3b08f` (2026-02-18), which covers Next.js
+> only. Steps 1, 2 and 7 are upstream's; the non-React host path is RoleModel's
+> addition. Re-check against upstream when bumping the `agentation` package — the
+> toolbar's internals are not a public API.
 
 Set up the Agentation annotation toolbar in this project.
 
@@ -14,21 +20,25 @@ add React as a development-only dependency rather than declining to install.
 
 ## Steps
 
-1. **Check if already installed**
-   - Look for `agentation` in package.json `dependencies` or `devDependencies`
-   - If not found, install it as a **dev dependency**: `npm install -D agentation`
-     (or `yarn add -D` / `pnpm add -D` based on the lockfile)
-
-2. **Check if already configured**
+1. **Check if already configured** — do this before installing anything
    - Search for `<Agentation` or `from "agentation"` / `from 'agentation'` across the
      project's source directories (`src/`, `app/`, `assets/`, `frontend/`)
    - If found, report that Agentation is already set up and exit
+
+2. **Check if already installed**
+   - Look for `agentation` in package.json `dependencies` or `devDependencies`
+   - If not found, install it as a **dev dependency**: `npm install -D agentation`
+     (or `yarn add -D` / `pnpm add -D` based on the lockfile)
 
 3. **Check for React — add it as a dev dependency if absent**
    - Look for `react` and `react-dom` in package.json `dependencies` **or**
      `devDependencies`
    - If either is already present anywhere, leave it alone — never move an existing
      runtime dependency into devDependencies, and never change its version range
+   - **If React is present but below 18**, stop and tell the user. Agentation's peer
+     range is `>=18.0.0` and the mount script needs `react-dom/client`, which does not
+     exist in 17. Upgrading the host's React is a real decision, not a side effect of
+     installing a dev toolbar — do not do it here
    - If absent, install the latest React as dev dependencies — do not pin an older
      major:
      ```bash
@@ -47,9 +57,15 @@ add React as a development-only dependency rather than declining to install.
 
    For a non-React host, also identify the bundler (`webpack.config.js`,
    `vite.config.*`, `rollup.config.*`), its **output directory** (webpack `output.path`,
-   shakapacker's `public/packs/` or `app/assets/builds/`, Vite's `build.outDir`), and the
+   `app/assets/builds/` or shakapacker's `public/packs/`, Vite's `build.outDir`), and the
    server-rendered layout template that emits `<script>` tags. You need all three — step 6
    verifies against the output directory.
+
+   The snippets in step 5 are written for the RoleModel Rails default: a hand-rolled
+   `webpack.config.js` with a module-scope `mode` variable, output to
+   `app/assets/builds`, served by sprockets/propshaft. That is the shape they are known
+   to work in. Read the project's actual config before pasting — each snippet below
+   notes what to do when it differs.
 
 5. **Add the component**
 
@@ -91,7 +107,8 @@ add React as a development-only dependency rather than declining to install.
    ```
 
    b. Register the entry **only in the bundler's development mode**. This is the real
-      production guarantee — the dev dependency alone is not enough. webpack:
+      production guarantee — the dev dependency alone is not enough. webpack, reusing
+      the `mode` variable a RoleModel config already computes near the top of the file:
 
    ```js
    const isDevelopment = mode === 'development'
@@ -102,6 +119,19 @@ add React as a development-only dependency rather than declining to install.
    }
    ```
 
+   That `mode` binding comes from the app's config, not from webpack. If it is not in
+   scope — shakapacker's generated config is `generateWebpackConfig()` with no `mode`
+   variable, and a plain object export has `mode` only as a key — derive the flag
+   directly instead:
+
+   ```js
+   const isDevelopment = process.env.RAILS_ENV !== 'production'
+   ```
+
+   Shakapacker and Vite also have no top-level `entry` literal to spread into
+   (shakapacker returns a built config object; Vite uses `build.rollupOptions.input`).
+   Add the entry to whatever those configs actually expose, and keep the dev gate.
+
    c. Emit the script from the server-rendered layout, gated on the server's
       development environment. Rails/Slim:
 
@@ -109,6 +139,14 @@ add React as a development-only dependency rather than declining to install.
    - if Rails.env.development?
      = javascript_include_tag 'agentation', defer: true
    ```
+
+   `javascript_include_tag` is correct when webpack writes to `app/assets/builds` and
+   sprockets/propshaft serves it — the RoleModel default. A **shakapacker** app writing
+   to `public/packs` needs `javascript_pack_tag 'agentation'` instead;
+   `javascript_include_tag` will not resolve a pack, and the toolbar silently never
+   loads. Non-Rails hosts (Django, Laravel, Phoenix) use the same two ideas — a
+   dev-gated conditional and the framework's own script tag helper — but the helper
+   name is theirs, not this one.
 
    Do not add cache-busting/asset-tracking attributes (e.g. Turbo's
    `data-turbo-track: 'reload'`) to this tag — rebuilding the dev bundle would then
@@ -124,17 +162,25 @@ add React as a development-only dependency rather than declining to install.
    - Tell the user the Agentation toolbar component is configured
    - For a non-React host, verify the production boundary before reporting success.
      Run these against the output directory found in step 4 — `$OUT` below is that
-     directory (`public/packs`, `app/assets/builds`, `dist`, …), **not** a literal:
+     directory (`app/assets/builds`, `public/packs`, `dist`, …), **not** a literal:
      ```bash
-     # build the way production builds, then confirm nothing leaked
-     RAILS_ENV=production npm run build       # or NODE_ENV=production, per project
-     ls "$OUT" | grep -i agentation           # expect: no matches
-     grep -rlc "react-dom" "$OUT"             # expect: no application bundle listed
+     # Build into a clean directory — a leftover dev artifact in $OUT reads as a
+     # failure that isn't real, and a wrong $OUT reads as a pass that isn't real.
+     # check-ignore refuses to delete anything that isn't generated build output.
+     git check-ignore -q "$OUT" || { echo "refusing: $OUT is not gitignored"; exit 1; }
+     rm -rf "$OUT" && RAILS_ENV=production npm run build   # or NODE_ENV=production
+     ls "$OUT" | grep -i agentation                        # expect: no matches
      ```
      If the bundler writes hashed filenames through a manifest
      (`public/packs/manifest.json`, `.vite/manifest.json`), grep the manifest for an
-     `agentation` entry instead of guessing the filename. A missing file because you
-     checked the wrong path is a false pass — confirm the directory exists first.
+     `agentation` entry instead of guessing the filename.
+
+     Do **not** try to prove React's absence by grepping the output for `react-dom`.
+     Production builds are minified and that string need not survive, so "no matches"
+     is not evidence either way. If you want a second signal, compare the total output
+     size against a build from before this change — a leaked React DOM adds well over
+     100 KB.
+
      Restore the development build afterward.
 
 7. **Recommend MCP server setup**

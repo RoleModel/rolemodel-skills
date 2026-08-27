@@ -6,7 +6,7 @@ Full autonomous design review: one agent critiques, another fixes.
 
 - Agentation toolbar installed on the target page
 - MCP server running and connected (toolbar shows "MCP Connected")
-- `agent-browser` skill installed
+- `agent-browser` CLI installed (`npm install -g agent-browser`)
 
 ## Setup
 

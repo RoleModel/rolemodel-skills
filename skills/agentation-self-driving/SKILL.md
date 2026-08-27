@@ -1,10 +1,17 @@
 ---
 name: agentation-self-driving
 description: Autonomous design critique mode using the Agentation annotation toolbar. Use when the user asks to "critique this page," "add design annotations," "review the UI," "self-driving mode," "auto-annotate," or wants an AI agent to autonomously add design feedback annotations to a web page via the browser. Requires the Agentation toolbar to be mounted on the target page (run /agentation first — it installs React as a dev dependency when the host app is not already React) and the agent-browser skill to be available.
-allowed-tools: Bash(agent-browser:*) Bash(command -v agent-browser:*) Read
+allowed-tools: Bash(agent-browser:*), Bash(command -v agent-browser:*), Read
 ---
 
 # Agentation Self-Driving Mode
+
+> Adapted from [benjitaylor/agentation](https://github.com/benjitaylor/agentation)
+> `skills/agentation-self-driving`, upstream commit `4a3b08f` (2026-02-18). Almost all
+> of this file is upstream's, including the selectors and the `agent-browser` pitfalls
+> — RoleModel's changes are the non-React host notes. Re-check against upstream when
+> bumping the `agentation` package: the toolbar's class names and data attributes are
+> internals, not a public API, and nothing here will fail loudly if they change.
 
 Autonomously critique a web page by adding design annotations via the Agentation toolbar — in a visible headed browser so the user can watch the agent work in real time, like watching a self-driving car navigate.
 
@@ -12,10 +19,12 @@ Autonomously critique a web page by adding design annotations via the Agentation
 
 The browser MUST be visible. Never run headless. The user watches you scan, hover, click, and annotate.
 
-**Preflight**: Verify `agent-browser` is available before anything else:
+**Preflight**: Verify `agent-browser` is available before anything else. It is a CLI
+from [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser), not a
+skill — install it with `npm install -g agent-browser` if it is missing:
 
 ```bash
-command -v agent-browser >/dev/null || { echo "ERROR: agent-browser not found. Install the agent-browser skill first."; exit 1; }
+command -v agent-browser >/dev/null || { echo "ERROR: agent-browser not found. Install it with: npm install -g agent-browser"; exit 1; }
 ```
 
 **Launch**: Try opening directly first, and only fall back to closing if that fails — so a
@@ -159,16 +168,6 @@ Aim for 5-8 annotations per page unless told otherwise.
 Bad: "This section needs work"
 Good: "This bullet list reads like docs, not a showcase. Use a 3-column card grid with icons — similar to Stripe's guidelines pattern. Creates visual rhythm and scannability."
 
-## Install
-
-The skill must be symlinked into `~/.claude/skills/` for Claude Code to discover it:
-
-```bash
-ln -s "$(pwd)/skills/agentation-self-driving" ~/.claude/skills/agentation-self-driving
-```
-
-Restart Claude Code after installing. Verify with `/agentation-self-driving` — if it loads the skill instructions, the symlink is working.
-
 ## Troubleshooting
 
 - **"Browser not launched. Call launch first."**: Stale session from a previous run — run `agent-browser close 2>/dev/null` then retry the `--headed open` command
@@ -198,6 +197,9 @@ These will silently break the workflow if you're not aware of them:
 **Rule of thumb**: `@ref` works for interaction commands (`click`, `fill`, `type`, `hover`). For everything else (`eval`, `get`, `scrollintoview`), use CSS selectors via `querySelector` in an eval.
 
 ## Two-Session Workflow (Full Self-Driving)
+
+Read `references/two-session-workflow.md` for the full loop — terminal setup, the MCP
+handoff, and the flow diagram.
 
 With MCP connected (toolbar shows "MCP Connected"), annotations auto-send to any listening agent. This enables:
 
