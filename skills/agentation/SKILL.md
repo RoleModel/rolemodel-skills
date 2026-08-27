@@ -58,7 +58,7 @@ add React as a development-only dependency rather than declining to install.
    For a non-React host, also identify the bundler (`webpack.config.js`,
    `vite.config.*`, `rollup.config.*`), its **output directory** (webpack `output.path`,
    `app/assets/builds/` or shakapacker's `public/packs/`, Vite's `build.outDir`), and the
-   server-rendered layout template that emits `<script>` tags. You need all three — step 6
+   server-rendered layout template that emits `<script>` tags. You need all three — step 7
    verifies against the output directory.
 
    The snippets in step 5 are written for the RoleModel Rails default: a hand-rolled
@@ -158,7 +158,43 @@ add React as a development-only dependency rather than declining to install.
    module in the production bundle unless the bundler can prove it side-effect free, and
    the point of this skill is that it never gets there.
 
-6. **Confirm and verify**
+6. **Match the host's root font-size**
+
+   Agentation sizes itself in a mix of px and rem against a 16px root. Optics sets
+   `html { font-size: 62.5% }` (`1rem = 10px`), so on an Optics app every rem value in
+   the toolbar renders at 62.5% while every px value renders correctly — small text and
+   tight gaps around full-size icons. `rem` cannot be rebased for a subtree and
+   Agentation exposes no sizing custom properties, so bake the rem values to px at build
+   time. Skip this step if the host's root font-size is already 16px.
+
+   a. Add a loader:
+
+   ```js
+   // config/webpack/agentation-rem-to-px.cjs
+   module.exports = (source) =>
+     source.replace(/(\d*\.?\d+)rem\b/g, (_, v) => `${parseFloat(v) * 16}px`)
+   ```
+
+   b. Register it in the same dev-only branch as the entry, so it cannot reach a
+      production build:
+
+   ```js
+   ...(isDevelopment ? [{
+     test: /node_modules[\\/]agentation[\\/]/,
+     loader: path.resolve('config/webpack/agentation-rem-to-px.cjs')
+   }] : []),
+   ```
+
+   Rebuild, then confirm in the browser console with the annotation dialog open. Expect
+   `0`; anything else means the loader did not run:
+
+   ```js
+   [...document.querySelectorAll('style')]
+     .filter(s => s.textContent.includes('styles-module__'))
+     .reduce((n, s) => n + (s.textContent.match(/[\d.]+rem/g) || []).length, 0)
+   ```
+
+7. **Confirm and verify**
    - Tell the user the Agentation toolbar component is configured
    - For a non-React host, verify the production boundary before reporting success.
      Run these against the output directory found in step 4 — `$OUT` below is that
@@ -183,7 +219,7 @@ add React as a development-only dependency rather than declining to install.
 
      Restore the development build afterward.
 
-7. **Recommend MCP server setup**
+8. **Recommend MCP server setup**
    - Explain that for real-time annotation syncing with AI agents, they should also set up the MCP server
    - Recommend one of the following approaches:
      - **Universal (supports 9+ agents including Claude Code, Cursor, Codex, Windsurf, etc.):**
@@ -211,6 +247,12 @@ add React as a development-only dependency rather than declining to install.
   `endpoint: "http://localhost:4747"` to sync with `agentation-mcp`. If that server
   is not running, expect a console fetch error on send; annotations still persist
   locally.
+- Agentation has no style isolation — no shadow DOM, styles injected as `<style>` tags
+  into `<head>`, portal into `document.body`. Step 6 fixes its own sizing, but host
+  element selectors still reach it: a bare `button` or `textarea` rule in the app's
+  stylesheets will restyle the toolbar's controls. Find the winning rule in devtools and
+  scope it out rather than adding an ID-prefixed reset, which outranks Agentation's own
+  class rules and trades a wrong focus ring for no focus ring.
 - Agentation is licensed PolyForm Shield 1.0.0 — fine for an internal dev tool, but
   worth mentioning in a client codebase.
 - The MCP server runs on port 4747 by default for the HTTP server
