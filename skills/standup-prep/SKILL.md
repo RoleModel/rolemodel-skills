@@ -4,9 +4,11 @@ description: >
   Interview-style prep for a daily standup call. First asks which project or
   customer the standup is for and whether the person is leading that project
   today or just reporting their own work — a lead gets a second, separate
-  cross-project pass across Linear, GitHub, and Slack on top of their own
-  personal view, kept distinct rather than merged — then interviews the
-  person to produce read-aloud prose answering the four standup questions:
+  cross-project pass across Linear, GitHub, Harvest, and Slack on top of
+  their own personal view, kept distinct rather than merged. Pulls context
+  from Linear, GitHub, the local git repo, Harvest timer comments, Almanac,
+  and Slack, then interviews the person to produce read-aloud prose
+  answering the four standup questions:
   what did I do yesterday, what am I committing to today, what's blocking me
   and how do we unblock it, and what do we need to raise with the customer
   today, plus a separate project-status section for leads. Trigger on "prep
@@ -17,7 +19,7 @@ description: >
   someone wants to catch inconsistencies between their Linear cards and
   their GitHub PRs before a status meeting.
 metadata:
-  triggers: "standup, stand-up, daily standup, standup prep, prepare for standup, standup notes, what did I do yesterday, what am I doing today, blocked, blocker, customer conversation, async standup update"
+  triggers: "standup, stand-up, daily standup, standup prep, prepare for standup, standup notes, what did I do yesterday, what am I doing today, blocked, blocker, customer conversation, async standup update, timesheet, Harvest"
 allowed-tools: Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git config:*), Bash(git rev-parse:*), Bash(date:*), Bash(gh pr list:*), Bash(gh pr view:*), Bash(gh pr status:*), Bash(gh pr checks:*), Bash(gh issue list:*), Bash(gh api:*)
 ---
 
@@ -36,7 +38,7 @@ read on the call without editing it first.
 Four phases:
 
 0. **Scope** — ask which project or customer this standup is for, before touching any source.
-1. **Gather** — pull raw signal from git, GitHub, Linear, Almanac, and Slack, filtered to that project, before asking anything else.
+1. **Gather** — pull raw signal from git, GitHub, Linear, Harvest, Almanac, and Slack, filtered to that project, before asking anything else.
 2. **Interview** — one question at a time, using what you gathered to ask sharper questions and surface inconsistencies.
 3. **Produce** — a read-aloud script answering the four standup questions, plus customer talking points.
 
@@ -46,15 +48,15 @@ Four phases:
 
 ## Phase 0: Scope
 
-Before gathering anything, ask which project or customer this standup covers — a person working multiple engagements has multiple git repos, Linear teams/projects, Slack channels, and Almanac entries, and pulling from all of them at once produces a noisy, unfocused prep.
+Before gathering anything, ask which project or customer this standup covers — a person working multiple engagements has multiple git repos, Linear teams/projects, Harvest clients, Slack channels, and Almanac entries, and pulling from all of them at once produces a noisy, unfocused prep.
 
 Ask directly: "Which project or customer is this standup for?" If the person names a customer but not a Linear project/team, or a repo but not a customer, ask a follow-up to pin down the other side — you need enough to filter every source in Phase 1. If they're only tracking one active engagement right now, confirm that assumption instead of skipping the question ("Looks like you've only got one active project — [name] — is this standup for that one?").
 
-Then ask whether they're leading this project or standup today, or just reporting on their own work: "Are you leading this project today, or just giving your own update?" This decides how wide every source below needs to be cast. Someone just participating only needs their own assigned work — every query stays scoped to them, exactly as written below. Someone leading needs both: their own work, gathered exactly like a participant's, *and* a second, separate pass across the whole project — everyone's cards, everyone's PRs, the wider Slack channel. Treat these as two distinct concerns throughout, not one broadened query — a lead's personal "what did I do" still has to stand on its own, separate from the project-wide picture they also need to speak to.
+Then ask whether they're leading this project or standup today, or just reporting on their own work: "Are you leading this project today, or just giving your own update?" This decides how wide every source below needs to be cast. Someone just participating only needs their own assigned work — every query stays scoped to them, exactly as written below. Someone leading needs both: their own work, gathered exactly like a participant's, *and* a second, separate pass across the whole project — everyone's cards, everyone's PRs, a team-wide Harvest report, the wider Slack channel. Treat these as two distinct concerns throughout, not one broadened query — a lead's personal "what did I do" still has to stand on its own, separate from the project-wide picture they also need to speak to.
 
 If the current working directory's git remote doesn't obviously match the named project, ask whether to still use this repo or point you at a different local checkout.
 
-Carry the chosen project/customer and the leading-or-participant answer as filters for every step below — Linear queries scoped to that team/project (plus a second, project-wide pull for a lead), Almanac calls scoped to that project, Slack search scoped to that project's channel(s), and git/GitHub scoped to that codebase. Don't pull in other engagements' cards, PRs, or messages unless the user explicitly asks to widen scope.
+Carry the chosen project/customer and the leading-or-participant answer as filters for every step below — Linear queries scoped to that team/project (plus a second, project-wide pull for a lead), Almanac calls scoped to that project, Slack search scoped to that project's channel(s), Harvest entries scoped to that project/client, and git/GitHub scoped to that codebase. Don't pull in other engagements' cards, PRs, entries, or messages unless the user explicitly asks to widen scope.
 
 ---
 
@@ -91,6 +93,10 @@ For each open PR the user authored, check review state and CI (`gh pr checks <n>
 
 Use `mcp__claude_ai_Linear__list_issues` filtered to the user's assignee ID **and** the scoped team/project, across open states. For each issue, note status, `updatedAt`, and cycle. Pull `mcp__claude_ai_Linear__list_comments` on recently-touched cards to catch async client comments the user might not have seen. Flag any issue whose `updatedAt` is more than 2 working days old — a candidate for the blockers conversation. If they're leading, also run this a **second time** without the assignee filter, across the whole scoped team/project — the rest of the board, kept as its own list rather than folded into their personal one.
 
+### Harvest
+
+Harvest's functional tools may only appear after auth completes, same as Slack — if the only visible tool is `mcp__claude_ai_Harvest__authenticate`, run it, then use ToolSearch to pick up the time-entry and report tools it unlocks. Pull the user's own time entries for the last working day and read the timer comments on each — these are often the single best direct account of what someone worked on, especially for meetings, reviews, or customer calls that never touch git at all. Cross-reference entry notes against Linear card IDs and PR numbers where they're mentioned. If they're leading, also run a **second, separate** pull: a team time report for the scoped project/client over the same window, so you can see who logged time on what — useful for spotting real effort on a card that looks untouched in Linear.
+
 ### Almanac
 
 If reachable, pull the health report and partner pulse for the scoped project (`mcp__claude_ai_Almanac__health_report_pull`, `mcp__claude_ai_Almanac__partner_pulse`) and anything due soon (`mcp__claude_ai_Almanac__deliverable_list` or `deliverable_search`, filtered to that project). These often surface the actual thing worth raising with the customer — a red health flag, a slipping deliverable, a pulse note — even when nothing looks blocked in Linear. This data is inherently project-level, not personal, so it always belongs to the cross-project concern — treat it as required reading whenever the person is leading.
@@ -99,7 +105,7 @@ If reachable, pull the health report and partner pulse for the scoped project (`
 
 Slack's functional tools may only appear after auth completes. If the only visible tool is `mcp__claude_ai_Slack__authenticate`, run it, then use ToolSearch to pick up the search/read tools it unlocks. Search the user's DMs and the scoped project's channel(s) over the last working day for: mentions of the user, threads on cards or PRs they touched, and any customer message still waiting on a reply. If you're unsure which channel maps to the chosen project, ask rather than guessing. If they're leading, also run a **second, wider** scan of the project channel for any unresolved thread, not just ones mentioning them — kept separate from the personal search above.
 
-If a source is unreachable (no MCP access, `gh` not authenticated, Slack auth declined), say so once and move on — don't block the rest of the prep on one missing source.
+If a source is unreachable (no MCP access, `gh` not authenticated, Harvest or Slack auth declined), say so once and move on — don't block the rest of the prep on one missing source.
 
 ### Cross-reference Linear ↔ GitHub
 
@@ -121,7 +127,7 @@ Hold both lists for Phase 2 — don't resolve them yourself, ask the user.
 
 One question at a time. Reflect back what you heard before moving on.
 
-**Yesterday.** Lead with what you found ("Looks like you merged #142 and pushed 3 commits to XYZ-88 — is that the full picture, or did you also do something that wouldn't show up in git, like pairing, a design review, or an incident?"). Confirm before writing any prose.
+**Yesterday.** Lead with what you found, including any Harvest timer comments — they often name things git and Linear never see ("Looks like you merged #142, pushed 3 commits to XYZ-88, and logged 2 hours against 'client call re: onboarding flow' — is that the full picture, or did you also do something none of the sources caught?"). Confirm before writing any prose.
 
 **Today.** Ask what they're committing to — a continuation of yesterday's card, or something new? If Linear shows several open cards, ask which one is the real priority today and whether the rest are deliberately parked.
 
@@ -131,7 +137,7 @@ One question at a time. Reflect back what you heard before moving on.
 
 **Customer conversations.** Surface what Almanac and Slack turned up — a health report flag, a slipping deliverable, an unanswered customer thread, a stale card that's customer-visible. Ask what, if anything, needs to be said today, and help them phrase it as a question or a heads-up rather than a status report.
 
-**Project-wide review (leads only).** Once the personal questions above are settled, switch topics explicitly — this is a separate concern, not a continuation. Walk through the project-wide Linear/GitHub lists and mismatches from Phase 1: whose cards are stale, whose PRs are waiting on review, and any card/PR mismatch outside the user's own work. Ask the same questions Phase 2 asked about their own work, but now about the project: is each one actually blocked, on what, and what unblocks it? Keep the answers separate from the personal blockers gathered above — they'll go in their own section of the output.
+**Project-wide review (leads only).** Once the personal questions above are settled, switch topics explicitly — this is a separate concern, not a continuation. Walk through the project-wide Linear/GitHub lists and mismatches from Phase 1, plus the team Harvest report: whose cards are stale, whose PRs are waiting on review, who logged time on something that doesn't match its Linear status, and any card/PR mismatch outside the user's own work. Ask the same questions Phase 2 asked about their own work, but now about the project: is each one actually blocked, on what, and what unblocks it? Keep the answers separate from the personal blockers gathered above — they'll go in their own section of the output.
 
 ---
 
