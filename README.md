@@ -47,6 +47,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 
 | Skill | Description |
 |-------|-------------|
+| **[agentation](skills/agentation)** | Add the Agentation visual feedback toolbar to a project so you can point at UI problems in the browser and hand them to an agent. Written for Rails apps that bundle with webpack into `app/assets/builds`: adds React as a development-only dependency, with a production boundary verified against a clean build of the bundler's real output directory. Adapted from the upstream Agentation skill, which covers Next.js only. |
 | **[cloudflare-tunnel](skills/cloudflare-tunnel)** | Expose locally-running apps to stable public HTTPS URLs with a single per-developer Cloudflare Tunnel (cloudflared). For receiving webhooks, testing OAuth callbacks, or sharing a work-in-progress. Covers named-tunnel setup, per-project hostnames, host allowlisting, and running cloudflared as a launchd service. |
 | **[create-profile](skills/create-profile)** | Creates or updates a personal developer profile at `~/.claude/PROFILE.md`. Run once to tell Claude about your role, experience, and preferences so that explanations and other skills can tailor their output to you. |
 | **[dependabot-stack](skills/dependabot-stack)** | Group all open Dependabot PRs on a repository into one ordered stack with `gh-stack`, so the week's dependency updates land as a single reviewable chain instead of N PRs that conflict on shared lockfiles. Orders by lockfile overlap, rebases in a scratch worktree, and registers the stack on GitHub. |
