@@ -240,9 +240,10 @@ add React as a development-only dependency rather than declining to install.
   install output.
 - `Agentation` renders as a **React portal into `document.body`** and injects its
   `<style>` tags into `<head>`. The styles survive navigation; the portal does not.
-  Any host that swaps `document.body` on navigation — Turbo/Hotwire, htmx boosting,
-  Astro view transitions — needs the re-mount listeners shown above, or the toolbar
-  silently disappears after the first link click.
+  Turbo/Hotwire swaps `document.body`, so the two `turbo:` listeners in step 5 are
+  required or the toolbar silently disappears after the first link click. Any other
+  host that replaces the body needs the equivalent listener for its own navigation
+  event — the sample wires Turbo only.
 - Without an `endpoint` prop the toolbar is localStorage + clipboard only. Pass
   `endpoint: "http://localhost:4747"` to sync with `agentation-mcp`. If that server
   is not running, expect a console fetch error on send; annotations still persist
