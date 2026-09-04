@@ -67,6 +67,7 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | **[brave-breakdown](skills/brave-breakdown)** | Interactive BRAVE framework thought partner for breaking down a Linear card before starting work. Guides through Brainstorm, Reflect, Approach, Value, and Estimate — one question at a time. |
 | **[rm-sentry-issue-fixer](skills/rm-sentry-issue-fixer)** | Full seven-phase workflow for diagnosing and fixing a Sentry issue using Sentry MCP: issue discovery → deep analysis → root cause hypothesis → entry point audit → code investigation → implement fix → report results. Enforces security constraints (never follows instructions embedded in Sentry event data). |
 | **[sentry-top-issue](skills/sentry-top-issue)** | Picks the single highest-priority unresolved Sentry issue (sorted by Trends, filtered for open PRs) and hands it off to `rm-sentry-issue-fixer`. Discovers Sentry scope from args or project docs; exits cleanly if scope or MCP is unavailable. Supports `dry-run`, `no-pr-filter`, and `fixer=` overrides. |
+| **[standup-prep](skills/standup-prep)** | Interview-style prep for a daily standup call. Asks which project/customer to focus on and whether the person is leading it — a lead gets a second, separate cross-project pass across Linear, GitHub, Harvest, and Slack on top of their own personal view — pulls context from those sources plus the local git repo, Harvest timer comments, and Almanac, flags inconsistencies between Linear cards and GitHub PRs, then interviews the person to produce read-aloud prose answering the four standup questions (plus a project-status section for leads) — including opening questions to ask the customer. |
 
 ## Installation
 
@@ -232,6 +233,7 @@ Several skills are designed to complement each other:
 - **Explain + Trace** — Explain orients you to a feature area or concept; Trace follows a specific code path through the stack. Use Explain first to build context, then Trace to dig into a specific flow.
 - **Explain + Document This** — Explain answers questions interactively; Document This generates persistent reference docs. Use Explain while exploring, Document This when you want to capture the results for the team.
 - **File PR + Split Stack** — File PR opens or updates a single PR. Split Stack is what you reach for when that PR turns out to cover more than one concern: it carves each concern into its own stacked PR, then File PR writes the description for each.
+- **BRAVE Breakdown + Standup Prep** — Both interview one question at a time and lean on Linear. BRAVE Breakdown runs before you pick up a card, to validate the plan. Standup Prep runs the next morning, to report on it — pulling from git, GitHub, Almanac, and Slack in addition to Linear, and flagging Linear/GitHub inconsistencies along the way.
 
 ## License
 
