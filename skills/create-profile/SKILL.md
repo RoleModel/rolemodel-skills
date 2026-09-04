@@ -49,19 +49,35 @@ DO NOT USE `AskUserQuestion` options for this — let them answer in their own w
 
 DO NOT USE `AskUserQuestion` options for this — let them answer in their own words. (e.g. VS Code, Neovim, GitHub, Linear, Figma, etc.)
 
-### 5. Working style
+### 5. Learning Style
 
-**Header:** "How do you prefer explanations?"
+**Header:** "How do you learn best?"
 
 Options (allow free-form, allow multi-select):
-- Start with the big picture, then drill down
-- Jump straight to the code — I'll figure out the context
-- Use analogies and plain language — avoid jargon when possible
+- Concrete examples first — show me the code, then explain why
+- Theory first — explain the concept before showing code
+- Diagrams and visual representations help me most
+- Step-by-step walkthroughs with reasoning at each step
+- I learn by doing — keep explanations minimal, let me experiment
 - Be thorough — I'd rather have too much than miss something
 - Be concise — skip the preamble, get to the point
+- Use analogies and plain language — avoid jargon when possible
 - Other (please specify)
 
-### 6. Open-ended preferences (plain text, not AskUserQuestion)
+### 6. Working Style
+
+**Header:** "How do you prefer to work?"
+
+Options (allow free-form, allow multi-select):
+- Plan thoroughly before starting — I like to know the full approach upfront
+- Start fast and iterate — I'd rather learn by doing and adjust as I go
+- Work independently and check in at key milestones
+- Collaborate frequently — I like to talk through decisions as they come up
+- Prefer async written context over real-time discussion
+- Ask me one question at a time — don't front-load decisions
+- Other (please specify)
+
+### 7. Open-ended preferences (plain text, not AskUserQuestion)
 
 Ask as plain text: "Anything else you'd like me to know? For example: areas you're focused on, things you find confusing, topics you want me to go deeper on, or anything I should avoid."
 
@@ -88,8 +104,11 @@ After collecting answers, write `~/.claude/PROFILE.md` with this structure (adap
 ## Tools
 <their day-to-day tools, as they described them>
 
+## Learning Style
+<how they absorb and process information — rewrite as natural prose>
+
 ## Working Style
-<their stated preferences — rewrite as natural prose if they gave multiple options>
+<how they prefer to approach and structure their work — rewrite as natural prose>
 
 ## Additional Preferences
 <their open-ended answer, or omit this section entirely if they had nothing to add>
