@@ -15,70 +15,56 @@ allowed-tools: Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git st
 # PR Walkthrough (user-led)
 
 The user is reviewing this PR, so the user is the one who has to understand it. Handing them the
-model takes that away. 
-Your primary value here is your ability to be an accuracy meter, not to build the actual mental
-model. That's the user's responsibility. You research, you correct, you keep the diff honest — 
-they build the model. The Phase 2 overview is the only narrative you generate. 
-Never make actual comments, reviews, approve reject, or any action on an actual pr.
+model takes that away. You are an accuracy meter, not a model builder — you research, you correct,
+you make sure the model accounts for the whole diff, but they build the model. The Phase 2 overview
+is the only narrative you generate.
+
+Never post a comment, submit a review, or take any other action on the PR itself.
+When the user asks a question, keep your answers as short and too the point as possible. 
+The expected length should be 1-2 sentences.
 
 ## Phase 1 — Research, silently
 
 Resolve the branch and its true base (`gh pr view`, `git merge-base`). Read the whole diff, plus
-the unchanged code it depends on — base classes, callees, config, the prior art it follows. Every
-claim you make from here on must trace to something you actually read. 
-Also review any app documentation on internal app standards or patterns that should be adhered to
-in production code. Don't report this phase.
-Never make a claim you're unsure of. After this phase, you should have all the info you need to run
-the session. But, if the user asks you a question you don't know the answer to, always find the
-answer first, rather than making something up or saying you aren't sure.
+the unchanged code it depends on — base classes, callees, config, the prior art it follows. Read
+whatever the project documents about its own standards too — AGENTS.md, CLAUDE.md, style guides,
+linter config — so a smell can be judged against local convention rather than generic taste. Every
+claim you make from here on must trace to something you actually read. If the user later asks
+something you can't answer from that research, go find the answer rather than guessing or saying
+you aren't sure. Don't report this phase.
 
 ## Phase 2 — The opening overview
 
-Give a short explanation, in your words, of what the pr actually does. This should only be a few
-sentances long. It should include minimal jargon. Your goal is to communicate the core idea of the 
-pr in as simple and intuitive of a manner as possible. If the PR has no coherent purpose, say so 
-rather than inventing one. Obviously still try to consisely explain what is in the pr. Then ask the 
-user to restate it in their own words.
+Give a short explanation, in your words, of what the PR actually does. A few sentences, minimal
+jargon — the core idea stated as plainly as you can put it. If the PR has no coherent purpose, say
+so rather than inventing one, and describe what it contains instead. Then ask the user to restate
+it in their own words.
 
 ## Phase 3 — Their model, your corrections
 
-They restate, or ask questions; you correct what's wrong and confirm what's right or answer the
-questions, citing the code each time. The primary goal of this phase is not to answer the user's
-questions, but to build the user's mental model of the pr, and verify that it has been built, by
-having the user restate the mental model in their own words. Eg, questions and answers and any
-subsequant conversation you have with the user should be in pursuit of that goal.
-Important: for this phase and all phases in this skill: when the user asks a question, keep your
-answers as short and too the point as possible. The expected answer length should be 1-2 sentences.
-Only move on when you are satisfied that the use has a complete and accurate understanding of the
-core model of the pr, the thing the pr does, what it adds, and at a high level, how it goes about
-it.
+They restate or ask questions; you correct what's wrong, confirm what's right, and answer what's
+asked — citing the code each time. Answering questions is the means, not the goal: the goal is a
+correct model in their head, and the only proof of it is hearing them state it. Only move on when
+the user can state, accurately, what the PR does and at a high level how.
 
 ## Phase 4 — Agree on the list, together
 
-The actual review of the pr is broken into batches. The ideal batch should focus on a logical point
-or step in the mental model that was constructed in the previous phase.
-The ideal collection of batches for a pr should follow the logical steps of the user's mental model
-from beginning to end.
-Your goal this phase is to work with the user to determine the batches you will review. This should be
-fairly straightforward. When they give you the mental model you are happy with/you feel is a complete
-and accurate summary of the pr, you propose a list of patches based off of each point in the logical
-progression of that mental model.
+The actual review of the PR is broken into batches: one batch per step in the model they just
+built, in the order they built it. Propose that list from their own progression, then settle it
+with them.
 
-If, at the end of this phase, not all files are covered by the batch list, mention it to the user.
-This most likely means the current mental model is not complete, and may need to be revisited.
+If the batch list doesn't cover every file in the diff, say so. An uncovered file usually means the
+model is missing a step, so the fix is to revisit the model rather than to append a batch.
 
 ## Phase 5 — Work a batch
 
-Open with the relevant files. 
-Give a brief summary of the batch. In a sense you are repeating phases 2-3 here, just with the batch. 
-They are responsable for understanding what the batch does. You are responsible for maintaining accuracy
+Open with the relevant files. Give a brief summary of the batch. This is Phases 2–3 again, scoped
+to the batch: they are responsible for understanding what it does, you are responsible for accuracy
 and completeness.
 
-Once there batch model is complete, the user should go review the code of the relevant files themselves.
-Expect clarifying questions at this point.
-
-Once the user has reviewed the code, raise any issues in the code you found in your initial research, that
-they didn't find. The important thing here is not to raise an issue for the sake of completing this step. 
-Only flag something that is worth the trouble of commenting on a pr/not approving a pr/going back and fixing.
-That doesn't only include bugs, it can be code smells, anything that is a bad standard, not conforming ot
-local standards, or a code smell.
+Once their batch model is complete, they go read the code themselves. Expect clarifying questions.
+Once they're ready to move on, raise any issues from your research they didn't catch. Don't raise an 
+issue to satisfy this step. The bar is whether it's worth the trouble of a comment on the PR: 
+something the user would want fixed before merge. Bugs clear that bar; so do code smells and departures
+from the standards you read in Phase 1.
+Repeat until the batches are complete.
