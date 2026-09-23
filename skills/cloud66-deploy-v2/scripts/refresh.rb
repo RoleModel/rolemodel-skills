@@ -13,6 +13,7 @@ require "net/http"
 require "uri"
 require "fileutils"
 require "set"
+require "tmpdir"
 
 SITEMAP = URI("https://help.cloud66.com/sitemap.xml")
 PREFIX = "https://help.cloud66.com/deploy/2/"
@@ -62,7 +63,7 @@ def page_urls
     .uniq
 end
 
-def download(urls)
+def download(urls, references_dir)
   queue = Queue.new
   urls.each { |url| queue << url }
   failures = Queue.new
@@ -71,7 +72,7 @@ def download(urls)
     Thread.new do
       while (url = queue.pop(true) rescue nil)
         begin
-          write_page(url, get("#{url}.md"))
+          write_page(url, get("#{url}.md"), references_dir)
         rescue StandardError => e
           failures << "#{url}: #{e.message}"
         end
@@ -82,8 +83,8 @@ def download(urls)
   Array.new(failures.size) { failures.pop }
 end
 
-def write_page(url, body)
-  path = File.join(REFERENCES, "#{url.delete_prefix(PREFIX)}.md")
+def write_page(url, body, references_dir)
+  path = File.join(references_dir, "#{url.delete_prefix(PREFIX)}.md")
   FileUtils.mkdir_p(File.dirname(path))
   File.write(path, body)
 end
@@ -91,10 +92,10 @@ end
 # Every page lives at references/<section>/<page>.md, so a link to another
 # mirrored page is always one directory up. Pages the v2 sitemap does not list
 # (cross-product and unlisted pages) keep their canonical URL instead.
-def rewrite_links(urls)
+def rewrite_links(urls, references_dir)
   mirrored = urls.map { |url| url.delete_prefix(PREFIX) }.to_set
 
-  Dir.glob(File.join(REFERENCES, "**", "*.md")).each do |path|
+  Dir.glob(File.join(references_dir, "**", "*.md")).each do |path|
     body = File.read(path, encoding: Encoding::UTF_8)
     File.write(path, body.gsub(LINK_TEMPLATE) {
       page, suffix = $1, $2
@@ -103,7 +104,7 @@ def rewrite_links(urls)
   end
 end
 
-def build_index(urls)
+def build_index(urls, references_dir, index_path)
   sections = urls.group_by { |url| url.delete_prefix(PREFIX).split("/").first }
 
   index = +<<~HEAD
@@ -121,26 +122,35 @@ def build_index(urls)
     index << "## #{SECTION_TITLES.fetch(section) { section.tr("-", " ").capitalize }}\n\n"
     section_urls.each do |url|
       relative = "#{url.delete_prefix(PREFIX)}.md"
-      index << "- [#{title_of(relative)}](references/#{relative}) — <#{url}>\n"
+      index << "- [#{title_of(relative, references_dir)}](references/#{relative}) — <#{url}>\n"
     end
     index << "\n"
   end
 
-  File.write(File.join(SKILL_ROOT, "INDEX.md"), index)
+  File.write(index_path, index)
 end
 
-def title_of(relative)
-  body = File.read(File.join(REFERENCES, relative), encoding: Encoding::UTF_8)
+def title_of(relative, references_dir)
+  body = File.read(File.join(references_dir, relative), encoding: Encoding::UTF_8)
   body[/^#\s+(.+)$/, 1]&.strip || File.basename(relative, ".md").tr("-", " ")
 end
 
 urls = page_urls
 abort "No Deploy v2 pages found in the sitemap — has the URL scheme changed?" if urls.empty?
 
-FileUtils.rm_rf(REFERENCES)
-failures = download(urls)
-abort "Failed to download #{failures.size} page(s):\n#{failures.join("\n")}" if failures.any?
+Dir.mktmpdir("cloud66-deploy-v2-", SKILL_ROOT) do |tmp_root|
+  staged_references = File.join(tmp_root, "references")
+  staged_index = File.join(tmp_root, "INDEX.md")
 
-rewrite_links(urls)
-build_index(urls)
+  failures = download(urls, staged_references)
+  abort "Failed to download #{failures.size} page(s):\n#{failures.join("\n")}" if failures.any?
+
+  rewrite_links(urls, staged_references)
+  build_index(urls, staged_references, staged_index)
+
+  FileUtils.rm_rf(REFERENCES)
+  FileUtils.mv(staged_references, REFERENCES)
+  FileUtils.mv(staged_index, File.join(SKILL_ROOT, "INDEX.md"))
+end
+
 puts "Downloaded #{urls.size} pages into #{REFERENCES} and rebuilt INDEX.md"
