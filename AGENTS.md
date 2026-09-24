@@ -32,7 +32,8 @@ Skills may also include a `references/` directory for supporting markdown files 
 - **usability-heuristics**: Audit UIs against Nielsen's 10 Usability Heuristics. Produces a structured issue log with severity ratings, heuristic mappings, and remediation guidance. Designed to complement `laws-of-ux` with a formal evaluation methodology.
 - **frontend-patterns**: Frontend patterns for Rails applications using Slim templates, Stimulus, and CSS with Optics utilities.
 - **stimulus-controllers**: Create and register Stimulus controllers for interactive JavaScript features.
-- **turbo-fetch**: Implement dynamic form updates using Turbo Streams and Stimulus (cascading dropdowns, conditional fields, dynamic option lists).
+- **turbo-fetch**: Implement dynamic form updates using Turbo Streams and Stimulus (cascading dropdowns, conditional fields, dynamic option lists). Matches the `turbo-form` controller and `expect_turbo_form_request` helper installed by `rolemodel_rails`' `rolemodel:turbo:form` generator; older apps may register the same controller as `turbo-fetch`.
+- **turbo-modals**: RoleModel's Turbo Frame modal/panel pattern, installed by `rolemodel_rails`' `rolemodel:turbo:modals` generator. Key rules: `render layout: 'modal'`, 422 on validation errors, redirect on success, footer submit buttons need `form:`, and never use the `layout` class method.
 - **form-auto-save**: Automatic form submission with debounce for seamless auto-save experiences.
 - **dynamic-nested-attributes**: Rails nested attributes with dynamic add/remove functionality using Turbo Streams and Simple Form.
 
@@ -41,6 +42,7 @@ Skills may also include a `references/` directory for supporting markdown files 
 - **routing-patterns**: Review, generate, and update Rails routes with RESTful resource routing, route concerns, and shallow nesting strategies.
 - **polymorphic-parent-resources**: Serve a child resource that hangs off many different parents (comments, reports, duplications, attachments) from a single controller, instead of one namespaced controller per parent. Pairs a route concern passing `commentable_type: parent_resource.name.classify` with `resource_for` from the `rolemodel_rails` gem (>= 2.4.0). Documents the shallow-nesting trap where member routes inherit the first-drawn parent's `*_type` default. `references/retrofit.md` covers auditing and consolidating existing per-parent controllers.
 - **action-cable**: Setup and use ActionCable for real-time features using WebSockets, broadcasting, and Turbo Streams over cable.
+- **soft-destroyable**: The `SoftDestroyable` concern installed by `rolemodel_rails`' `rolemodel:soft_destroyable` generator. Default scopes are forbidden (the concern raises); use `kept`/`only_deleted`, `soft_destroy!`, `cascade_soft_destroy`, and the `a soft destroyable` shared example.
 - **json-typed-attributes**: Define typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration.
 
 ### Documentation

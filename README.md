@@ -31,13 +31,15 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | **[form-auto-save](skills/form-auto-save)** | Automatic form submission with debounce for seamless auto-save experiences. |
 | **[frontend-patterns](skills/frontend-patterns)** | Frontend patterns for Rails apps using Slim templates, Stimulus, and CSS with Optics utilities. |
 | **[stimulus-controllers](skills/stimulus-controllers)** | Create and register Stimulus controllers for interactive JavaScript features. |
-| **[turbo-fetch](skills/turbo-fetch)** | Dynamic form updates using Turbo Streams and Stimulus (cascading dropdowns, conditional fields, dynamic option lists). |
+| **[turbo-fetch](skills/turbo-fetch)** | Dynamic form updates using Turbo Streams and the `turbo-form` Stimulus controller from `rolemodel_rails` (cascading dropdowns, conditional fields, dynamic option lists). |
+| **[turbo-modals](skills/turbo-modals)** | RoleModel's Turbo Frame modal and panel pattern from `rolemodel_rails`: `modal_link_to`, `render layout: 'modal'`, 422 on errors, redirect on success, and never the `layout` class method. |
 
 ### Rails Backend
 
 | Skill | Description |
 |-------|-------------|
 | **[controller-patterns](skills/controller-patterns)** | Rails controllers following RESTful conventions, authorization patterns, and proper error handling. |
+| **[soft-destroyable](skills/soft-destroyable)** | Soft-delete models with the `SoftDestroyable` concern from `rolemodel_rails` — `kept`/`only_deleted` instead of a default scope, cascading soft destroy and timestamp-matched restore, and the shared example. |
 | **[json-typed-attributes](skills/json-typed-attributes)** | Typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration. |
 | **[polymorphic-parent-resources](skills/polymorphic-parent-resources)** | Serve a child resource that hangs off many different parents (comments, reports, duplications, attachments) from a single controller, using a route concern plus `resource_for` from `rolemodel_rails`. Includes a retrofit guide for consolidating existing per-parent controllers. |
 | **[routing-patterns](skills/routing-patterns)** | RESTful resource routing, route concerns, and shallow nesting strategies. |

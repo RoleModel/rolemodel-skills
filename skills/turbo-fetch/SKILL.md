@@ -91,9 +91,9 @@ Create `app/views/[resource]/turbo_fetch.turbo_stream.slim`:
 Add the Stimulus controller to your form:
 
 ```slim
-= simple_form_for resource, data: { controller: 'turbo-fetch', turbo_fetch_url_value: turbo_fetch_materials_url } do |f|
+= simple_form_for resource, data: { controller: 'turbo-form', turbo_form_url_value: turbo_fetch_materials_url } do |f|
   .form-row
-    = f.input :type, input_html: { data: { action: "turbo-fetch#perform" } }
+    = f.input :type, input_html: { data: { action: "turbo-form#perform" } }
 
   #substance-field.flexible
     = f.input :substance, collection: f.object.substances
@@ -103,30 +103,26 @@ Add the Stimulus controller to your form:
 ```
 
 **Key attributes:**
-- `data-controller="turbo-fetch"` - Activates the Stimulus controller
-- `data-turbo-fetch-url-value` - The URL to PATCH (defaults to form action + /turbo_fetch)
-- `data-action="turbo-fetch#perform"` - Triggers the fetch on field change
+- `data-controller="turbo-form"` - Activates the Stimulus controller
+- `data-turbo-form-url-value` - The URL to PATCH. There is no default; set it here or per trigger.
+- `data-action="turbo-form#perform"` - Triggers the fetch on field change
+- Optional per-trigger params: `data-turbo-form-url-param` overrides the URL, and `data-turbo-form-query-param` (a JSON object) appends extra keys to the submitted form data
 
 ### 5. Verify Stimulus Controller Exists
 
-The `turbo_fetch_controller.js` should exist at `app/javascript/controllers/turbo_fetch_controller.js`:
+The controller is installed by the rolemodel_rails generator. Don't hand-write it. Look for `app/javascript/controllers/turbo_form_controller.js`, registered as `turbo-form`. If it's missing, run `bin/rails g rolemodel:turbo:form`.
 
-```javascript
-import { Controller } from '@hotwired/stimulus'
-import { patch } from '@rails/request.js'
+Older apps may have the same controller saved as `turbo_fetch_controller.js` and registered as `turbo-fetch`. Use whichever identifier the app's `app/javascript/controllers/index.js` registers.
 
-export default class extends Controller {
-  static values = { url: String, count: Number }
+### 6. System Specs
 
-  async perform({ params: { url: urlParam, query: queryParams } }) {
-    const body = new FormData(this.element)
+The generator also installs `spec/support/helpers/turbo_form_helper.rb`. It waits for the request to complete by watching the controller's `count` value. If `spec/support/helpers.rb` doesn't already have `c.include TurboFormHelper, type: :system`, add it.
 
-    if (queryParams) Object.keys(queryParams).forEach(key => body.append(key, queryParams[key]))
-
-    const response = await patch(urlParam || this.urlValue, { body, responseKind: 'turbo-stream' })
-    if (response.ok) this.countValue += 1
-  }
-}
+```ruby
+expect_turbo_form_request do
+  select 'Steel', from: 'Type'
+end
+expect(page).to have_select('Substance', with_options: ['A36'])
 ```
 
 ## Examples from Codebase
@@ -155,8 +151,8 @@ end
 
 **Form:**
 ```slim
-= simple_form_for resource, data: { controller: 'turbo-fetch', turbo_fetch_url_value: turbo_fetch_materials_url } do |f|
-  = f.input :type, input_html: { data: { action: "turbo-fetch#perform" } }
+= simple_form_for resource, data: { controller: 'turbo-form', turbo_form_url_value: turbo_fetch_materials_url } do |f|
+  = f.input :type, input_html: { data: { action: "turbo-form#perform" } }
 
   #substance-field.flexible
     = f.input :substance, collection: f.object.substances
@@ -169,7 +165,7 @@ end
 
 ### Pattern 1: Dependent Dropdown
 When selecting a type, update available options in another field:
-- Trigger field has `data-action="turbo-fetch#perform"`
+- Trigger field has `data-action="turbo-form#perform"`
 - Target field has unique ID (e.g., `#substance-field`)
 - Turbo stream updates the target with new collection
 
