@@ -128,7 +128,7 @@ What the template is good for is the section you would never have thought to inc
 **Title**
 
 - One line, imperative mood, no trailing period.
-- Prefix the ticket ID, separated by `|` — e.g. `ABC-123 | Add delivery status to invite list`.
+- Prefix the ticket ID in square brackets — e.g. `[ABC-123] Add delivery status to invite list`.
 - Look for the ID in the branch name first, then in the commit messages. If neither has one and the repo's recent PR titles use IDs, ask the user for it. Otherwise skip the prefix.
 
 ## Example
