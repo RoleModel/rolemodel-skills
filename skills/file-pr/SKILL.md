@@ -63,13 +63,13 @@ Write the full replacement description to a file and edit in place. Never assign
 gh pr edit <pr> --title "<title>" --body-file <path>
 ```
 
-`--body-file` replaces the whole body, so the file must carry every heading, not just the changed part. Preserve whatever the user wrote under **Screenshots** — that content is theirs, and a careless edit drops it.
+`--body-file` replaces the whole body, so the file must carry every heading, not just the changed part. Preserve whatever the user wrote under **Screenshots** and any checklist boxes they ticked — that content is theirs, and a careless edit drops it.
 
 Print the PR URL when done.
 
 ## Description format
 
-Use these headings, in this order. **Why**, **What Changed**, and **Screenshots** are always present; **Post-merge** appears only when the PR needs it.
+When the repo has a PR template, it sets the shape — see the next section. Otherwise use these headings, in this order. **Why**, **What Changed**, and **Screenshots** are always present; **Post-merge** appears only when the PR needs it.
 
 ```markdown
 ## Why
@@ -94,11 +94,13 @@ Leave **Screenshots** empty — the user fills it in. When the PR changes nothin
 
 ## The project's PR template
 
-If the `ls` above found a template, read it before writing the body. `--body-file` replaces the template outright, so anything the repo expects and you don't write is simply gone.
+If the `ls` above found a template, read it before writing the body. `--body-file` replaces the template outright, so any section you don't write is gone.
 
-Treat it as a hint, not a blueprint. The headings above still govern the shape of the description — a template asking for **Summary** instead of **Why** doesn't change what you write or what you call it.
+The template is the repo's expectation, and the place the team goes to change it. Keep its headings, their exact wording, and their order. Don't add headings it lacks. Replace each placeholder with content, and follow any instruction the template gives for a section, such as deleting it when it doesn't apply.
 
-What the template is good for is the section you would never have thought to include: a deploy or migration checklist, an accessibility or security sign-off, etc. Carry over the ones this PR actually needs and fill them in. Drop the rest. When a template section asks for something only the user can answer, add the heading, leave it for them, and say so when you print the URL.
+The rules below say how to fill a section, not which sections exist. Apply the **Why** rules to the template's equivalent (**Why?**, **Summary**, **Motivation**), and the **What Changed** rules to its list of changes.
+
+For a checklist, check each item this PR did. Check and strike through each item that doesn't apply: `- [x] ~~Updated relevant READMEs~~`. Leave an item unchecked only when it applies but isn't done. When a section asks for something only the user can answer, leave it for them. Say so for both when you print the URL, and mention any post-merge work the template has no place for.
 
 ## Description rules
 
