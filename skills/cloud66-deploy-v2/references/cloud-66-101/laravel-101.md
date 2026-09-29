@@ -1,0 +1,232 @@
+# Deploy your Laravel app
+
+
+This guide walks you through deploying a Laravel application to your cloud using Cloud 66, from start to finish, including all the components a modern Laravel application is likely to use. This guide will cover
+
+- Deploy your first  app in just minutes
+- Explore features that support your application
+- Quickly and easily configure common components
+- Advanced configurations
+
+### Dashboard vs Toolbelt
+
+Throughout this guide we will (wherever possible) offer you two methods for managing your application:
+
+- The web Dashboard
+- Toolbelt - our command line tool
+
+If you’re planning to use Toolbelt (we recommend it!), you will need to install it via your terminal. 
+
+## Get going
+
+We’ve made deploying an app as quick and easy as possible, so you should have your Laravel app deployed in just a few minutes. Just follow the steps below. We have a separate, standalone getting started guide which has more detail if you need it.
+
+This guide assumes:
+
+- You’ve created a Cloud 66 account (we have a free tier)
+- You have an Laravel app ready to go in any Git repo (but Github works best) - we have a [fully functional sample app](https://github.com/alistairfairweather/maestro-sample) if you’d like to use that to try us out.
+- An account with your favorite cloud provider
+
+You can have your application set up in 4 simple steps.
+
+1. **Connect your Git(hub) repo**. We ask for read-only access our integration makes connecting quick and easy.
+2. **We’ll analyze your app.** We’ll scan your app and suggest an optimal configuration. You can adjust as needed
+3. **Add a cloud provider.** Connect us to your preferred cloud provider.
+4. **Deploy your app!**
+
+## Do I have to write a Dockerfile?
+
+No, we’ll generate a standard Dockerfile for your app based on the requirements detected during our analysis. You can see the Dockerfile by clicking on the *View dockerfile* link after initial analysis.
+
+You can also supply your own Dockerfile if you’d prefer - just add it to the root of your repo and we’ll automatically detect and use it.
+
+### Where is the “command” instruction?
+
+Cloud 66 uses the command that you define during your initial app setup via our web interface. By default this command overrides whatever is in the Dockerfile. Although you can omit this, and rely on the implicit command in the Dockerfile, we strongly recommended defining commands via our interface.
+
+## Adding databases
+
+Cloud 66 caters for a wide range of database options, including:
+
+- Managed by Cloud 66
+- Bring your own DB (including managed services like RDS)
+- Hybrid
+
+Our managed databases are convenient, feature-rich and very cost effective, and allow you to centralize your infrastructure management in one system. If you’d prefer an externally managed DB, we make it easy to integrate them into your app. They do tend to be more expensive, and having your DB on a completely different subnet and/or data centre can add some latency and friction to your configuration. 
+
+You can deploy a new database (or cluster of databases) for your application with a few clicks during initial setup (or, later on, in your Dashboard). We natively support:
+
+- MySQL
+- PostgreSQL
+- MongoDB
+- Redis
+- InfluxDB
+- ElasticSearch
+
+Databases can be deployed as standalone instances, in clusters, or hosted on the same server as the application. When we provision a new database we will automatically generate credentials and make them available to your application as environment variables.
+
+All databases managed by Cloud 66 have access to these features:
+
+- One-click replication setup
+- Managed database backups (with automated restore)
+- Multiple logical databases per database server
+
+### Connecting to a database
+
+To connect your application to a database, you need to configure the database settings in the configuration files. Laravel uses the Eloquent ORM (Object-Relational Mapping) to interact with databases, which simplifies database operations.
+
+Here are the steps to connect a Laravel app to a database:
+
+**Configure Database Connection:**
+A typical Laravel app will have a `.env` file in the root directory of the project in which database connection parameters are set. 
+
+However, instead of an `.env` file, Cloud 66 will automatically generate the relevant environment variables required by your database and make them available to your application as standard env vars. You can also add and manage environment variables for your application via your dashboard, which allows you to avoid committing sensitive information (like passwords) to your repo. 
+
+**Update the Database Configuration File:**
+Laravel's database configuration is defined in the `config/database.php` file. You can specify different database connections and their settings in this file. By default, Laravel uses the settings defined in the `.env` file, so you may need to update the names of some of your environment variables to match those generated by Cloud 66.
+
+### Running Migrations
+
+You can run database migrations during deployment by invoking the artisan command-line tool via a deploy hook ([*what are deploy hooks?*](../deploy-hooks/deploy-hooks.md)). For example:
+
+```yaml
+production: # Environment
+    after_mysql: # Hook point
+      - command: php artisan migrate -y # Hook type
+        target: mysql
+        execute: true
+				apply_during: build_only
+```
+
+## Adding environment variables
+
+Cloud 66 analyses your application code (for example your `.env` and `composer.json` files), and supporting components (like database requirements) during deployment and creates a set of environment variables to suit your requirements. You can add your own, and update the existing ones as needed. 
+
+You can do this during initial app setup by clicking the Add Environment Variables button during after your app has been analyzed. If you need to change env vars to an existing app, you can use your preferred method below:
+
+    
+        Dashboard
+        Command line
+    
+
+1. Open the application from your **[Dashboard](https://app.cloud66.com/dashboard)**
+2. Click on ⚙️ *Settings* in the left-hand nav
+3. Click on *Environment Variables* in the sub-nav
+4. Scroll down to the **Your Custom Variables** section
+5. Add the key(s) and value(s) you need (or edit existing values)
+6. Click *Save Changes*
+7. Changes to env vars are only applied to your application server(s) when you deploy. Do that now by clicking the *Deploy* button
+
+You can set an env var as follows: 
+
+```bash
+$ cx env-vars set -s mystack FIRST_VAR=123
+```
+
+This will either create or update the variable.
+
+You can fetch a list of env vars using `cx` including the history of recent changes to that variable. For example:
+
+```bash
+$ cx env-vars list -s my-app NODE_ENV ANOTHER_VARIABLE --history
+```
+
+You can also upload sets of env vars in file format (`dotenv` or `json`). For example:
+
+```bash
+$ cx env-vars upload -s my_other_app --file new_env_vars_json --file-type json
+```
+
+For more commands, see our [Toolbelt guide](../toolbelt/_env-vars-list.md).
+
+## Broadcasting and Real-Time Events
+
+Broadcasting in Laravel is a feature that allows you to create real-time web applications by broadcasting events to multiple clients (usually web browsers) in real-time. This is achieved using technologies like WebSockets or alternative broadcasting drivers like Pusher, Redis, or more recently, Laravel's own WebSocket package called Laravel Echo Server.
+
+Cloud 66 automatically provisions your servers for use with WebSockets. We open ports **8080** and **8443** (for TLS) by default on your servers to allow you to use WebSocket. To work with optimally Cloud 66, your WebSocket servers need to listen to these ports. 
+
+Follow the steps below to configure your application servers for broadcasting.
+
+### Configure a WebSocket Server
+
+You need a WebSocket server to handle WebSocket connections and broadcasting. Laravel Echo Server, Ratchet, and Socket.io are popular choices. In this example, we'll use Laravel Echo Server.
+
+Install Laravel Echo Server during build and deployment via a deploy hook ([*what are deploy hooks?*](https://help.cloud66.com/docs/deploy-hooks/deploy-hooks)). For example:
+
+```yaml
+production: # Environment
+    first_thing: # Hook point
+      - command: npm install -g laravel-echo-server # Hook type
+        target: any
+        execute: true
+				apply_during: build_only
+```
+
+Laravel Echo requires three environment variables in order to be initialised:
+
+- APP_ID
+- APP_KEY
+- APP_SECRET
+
+You can set all of these during your initial application config - see the section above for how to set env_vars for your app. It may be useful to use the [Auto Generate](../build-and-config/env-vars.md#using-auto-generate) feature for either the app key or the secret (or both)
+
+Finally, in order to initialise the Echo server you need to run another shell command. You can do this via another simple deploy hook ([*what are deploy hooks?*](../deploy-hooks/deploy-hooks.md))
+
+```yaml
+production:
+    last_thing:
+      - command: laravel-echo-server init
+        target: any
+        execute: true
+				apply_during: all
+```
+
+You can follow a simmilar pattern for other Websocket interfaces for Laravel like Ratchet, and Socket.io.
+
+## Persistent storage
+
+Laravel-based applications run inside containers on Cloud 66, which means they are mortal and ephemeral (in other words they can disappear and be replaced by new copies). To store files persistently, you can mount volumes from your container to the host server(s). 
+
+You can set up simple persistent storage when you first set up your application. After analysis, under the Services tab, you can click the Configure Storage  link to define as many storage volumes as you require. These will be mapped from your containers to the underlying host server.
+
+You can also mount folders with a single line in your `service.yml` file (*What is service.yml?*) with the following form: **`HOST_FOLDER:CONTAINER_FOLDER`**.
+
+For example:
+
+```yaml
+services:
+  my-web-app:
+    volumes: ["/tmp/host/foo:/tmp/container/foo"]
+```
+
+### Persistent storage for single-server apps
+
+If your application doesn’t require multiple servers, you can use the following method. When Cloud 66 deploys your app, we automatically create folders that persist between deployments. If you need to persist files for a single server you can simply store them under `$STACK_BASE/shared` (you can add sub-directories as needed). 
+
+If your Laravel app requires that users with different roles have access to a shared file system, then the best directory to use is **`$STACK_BASE/shared/frontend-backend-share`**. This directory is preconfigured to allow secure access from both front and backend Linux users. This also allows application users to, for example, upload files via your app.
+
+### Persistent storage for multi-server apps
+
+If your application runs across multiple application servers and requires persistent storage, one option is to use an object storage service like [Amazon S3](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/s3-example-creating-buckets.html) or Google Cloud Storage. All of the major cloud storage services have PHP SDKs that make integrating them into your code quite simple. This isn’t a perfect replacement for a disk mounted at server level, but it is a viable solution for a wide variety of use cases. 
+
+## Allowing users to write to disk
+
+When Cloud 66 configures your servers, we create two Linux users:
+
+- **`nginx`** which handles the front-end
+- **`cloud66-user`** which handles the backend
+
+In order to bridge the (intentional) gap between these users, we place them both in the same Linux group called **`app_writers`** - this allows for use cases where a feature needs access to both frontend and backend processes
+
+In order to make a directory writable:
+
+- Set the directory owner group to **`app_writers`**
+- Set file permissions **`0660`**
+- Set directory permissions to **`0770`**
+- The process writing to the directory should run as the **`nginx`** user
+
+## Configuring other components
+
+Modern Laravel applications rely on a range of components to perform at scale. **Cloud 66 supports every Laravel and PHP component your application needs**, either natively or via our powerful Deploy Hooks feature. If it can run on Ubuntu, we support it. 
+
+This guide covers the most common components, but we support many, many more. If you’re not sure, feel free to ask our support team.
