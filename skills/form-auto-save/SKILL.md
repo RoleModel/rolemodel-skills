@@ -26,7 +26,7 @@ The pattern uses a Stimulus controller (`form-auto-save`) that handles the auto-
 - Listens to both `change` and `lexxy:change` events (for custom components)
 - Uses passive event listeners for better performance
 - Provides `cancel()` and `submit()` methods for programmatic control
-- Counts successful saves in `saveCountValue`, which system specs wait on
+- Counts successful saves in `countValue`, which system specs wait on
 
 **Controller Code Pattern:**
 ```javascript
@@ -34,12 +34,12 @@ import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
   static DEBOUNCE_TIME = 8000
-  static values = { saveCount: Number }
+  static values = { count: Number }
 
   connect() {
     this.element.addEventListener('change', this.#debounceSubmit.bind(this), { passive: true })
     this.element.addEventListener('lexxy:change', this.#debounceSubmit.bind(this), { passive: true })
-    this.element.addEventListener('turbo:submit-end', ({ detail }) => { if (detail.success) this.saveCountValue++ })
+    this.element.addEventListener('turbo:submit-end', ({ detail }) => { if (detail.success) this.countValue++ })
   }
 
   cancel() {
@@ -99,7 +99,7 @@ Attach the controller to the form element using Stimulus data attributes.
 
 ## Testing
 
-Wait on the controller's `saveCountValue`, not on sleep timers. It goes up when Turbo reports a successful submission, so it covers the debounce and the round trip. `turbo_permanent: true` keeps the form, and its count, when the response redirects.
+Wait on the controller's `countValue`, not on sleep timers. It goes up when Turbo reports a successful submission, so it covers the debounce and the round trip. `turbo_permanent: true` keeps the form, and its count, when the response redirects.
 
 ### Auto Save Helper
 **File:** `spec/support/helpers/form_auto_save_helper.rb`
@@ -107,9 +107,9 @@ Wait on the controller's `saveCountValue`, not on sleep timers. It goes up when 
 module FormAutoSaveHelper
   def expect_auto_save
     form = find("[data-controller~='form-auto-save']")
-    count = form['data-form-auto-save-save-count-value'].to_i
+    count = form['data-form-auto-save-count-value'].to_i
     yield
-    expect(page).to have_css("[data-form-auto-save-save-count-value='#{count + 1}']", wait: 10)
+    expect(page).to have_css("[data-form-auto-save-count-value='#{count + 1}']", wait: 10)
   end
 end
 ```
