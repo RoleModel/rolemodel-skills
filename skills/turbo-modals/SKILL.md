@@ -7,16 +7,17 @@ metadata:
 
 # Turbo Modals
 
-A modal (or panel) is an ordinary controller action rendered with the `modal` (or `panel`) layout into a `turbo_frame_tag 'modal'` that lives in the application layout. There is no modal-specific JavaScript to write.
+A modal (or panel) is an ordinary controller action rendered with the `modal` (or `panel`) layout into the matching `turbo_frame_tag 'modal'` (or `'panel'`) that lives in the application layout. There is no modal-specific JavaScript to write.
 
 Check the app has the pattern installed before using it: `app/views/layouts/modal.html.slim` and `app/helpers/turbo_frame_link_helper.rb` exist. Panels also need `app/views/layouts/panel.html.slim`. If they're missing, run `bin/rails g rolemodel:turbo:modals` (add `--panels` for panels).
 
 ## Opening one
 
 ```slim
+/ link_to_top breaks out of the frame
 = modal_link_to 'New Widget', new_widget_path
 = panel_link_to 'Details', widget_path(widget)
-= link_to_top 'Leave the modal', widgets_path   / breaks out of the frame
+= link_to_top 'Leave the modal', widgets_path
 ```
 
 These are `link_to` with `data: { turbo_frame: 'modal' | 'panel' | '_top' }`.
