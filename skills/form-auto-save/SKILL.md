@@ -26,6 +26,7 @@ The pattern uses a Stimulus controller (`form-auto-save`) that handles the auto-
 - Listens to both `change` and `lexxy:change` events (for custom components)
 - Uses passive event listeners for better performance
 - Provides `cancel()` and `submit()` methods for programmatic control
+- Counts successful saves in `saveCountValue`, which system specs wait on
 
 **Controller Code Pattern:**
 ```javascript
@@ -33,10 +34,12 @@ import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
   static DEBOUNCE_TIME = 8000
+  static values = { saveCount: Number }
 
   connect() {
     this.element.addEventListener('change', this.#debounceSubmit.bind(this), { passive: true })
     this.element.addEventListener('lexxy:change', this.#debounceSubmit.bind(this), { passive: true })
+    this.element.addEventListener('turbo:submit-end', ({ detail }) => { if (detail.success) this.saveCountValue++ })
   }
 
   cancel() {
@@ -96,58 +99,22 @@ Attach the controller to the form element using Stimulus data attributes.
 
 ## Testing
 
-For testing auto-save functionality, use the `turbo-fetch` controller alongside `form-auto-save` to track request completion without relying on sleep timers.
+Wait on the controller's `saveCountValue`, not on sleep timers. It goes up when Turbo reports a successful submission, so it covers the debounce and the round trip. `turbo_permanent: true` keeps the form, and its count, when the response redirects.
 
-### Turbo Fetch Controller
-Add this controller to your JavaScript controllers:
-
-**File:** `app/javascript/controllers/turbo_fetch_controller.js`
-```javascript
-import { Controller } from '@hotwired/stimulus'
-import { patch } from '@rails/request.js'
-
-export default class extends Controller {
-  static values = {
-    url: String,
-    count: Number,
-    isRunning: { type: Boolean, default: false }
-  }
-
-  async perform({ params: { url: urlParam, query: queryParams } }) {
-    this.isRunningValue = true
-    const body = new FormData(this.element)
-
-    if (queryParams) Object.keys(queryParams).forEach(key => body.append(key, queryParams[key]))
-
-    const response = await patch(urlParam || this.urlValue, { body, responseKind: 'turbo-stream' })
-    this.isRunningValue = false
-    if (response.ok) this.countValue += 1
-  }
-}
-```
-
-### Turbo Fetch Helper
-Add this helper to your RSpec support files:
-
-**File:** `spec/support/helpers/turbo_fetch_helper.rb`
+### Auto Save Helper
+**File:** `spec/support/helpers/form_auto_save_helper.rb`
 ```ruby
-module TurboFetchHelper
-  def expect_turbo_fetch_request
-    count_value = find("[data-controller='turbo-fetch']")['data-turbo-fetch-count-value'] || 0
+module FormAutoSaveHelper
+  def expect_auto_save
+    form = find("[data-controller~='form-auto-save']")
+    count = form['data-form-auto-save-save-count-value'].to_i
     yield
-    expect(page).to have_selector("[data-turbo-fetch-count-value='#{count_value.to_i + 1}']")
+    expect(page).to have_css("[data-form-auto-save-save-count-value='#{count + 1}']", wait: 10)
   end
 end
 ```
 
-### View Integration for Testing
-Add the `turbo-fetch` controller alongside `form-auto-save`:
-
-```slim
-= simple_form_for resource, html: { data: { controller: 'form-auto-save turbo-fetch', turbo_permanent: true } } do |f|
-  = f.input :field_name
-  = f.rich_text_area :content
-```
+Include it for system specs in `spec/support/helpers.rb` with `c.include FormAutoSaveHelper, type: :system`. The `wait:` must be longer than `DEBOUNCE_TIME`.
 
 ### System Spec Example
 ```ruby
@@ -158,7 +125,7 @@ RSpec.describe 'Form Auto Save', :js do
     resource = create(:resource)
     visit edit_resource_path(resource)
 
-    expect_turbo_fetch_request do
+    expect_auto_save do
       fill_in 'Field name', with: 'Updated value'
     end
 
@@ -169,7 +136,7 @@ RSpec.describe 'Form Auto Save', :js do
     resource = create(:resource)
     visit edit_resource_path(resource)
 
-    expect_turbo_fetch_request do
+    expect_auto_save do
       fill_in 'Field name', with: 'First'
       fill_in 'Field name', with: 'Second'
       fill_in 'Field name', with: 'Final'
@@ -202,7 +169,7 @@ end
 - Consider adding "unsaved changes" warning
 
 ## Related Patterns
-- **Turbo Streams:** For more complex form updates and partial page replacements
+- **Dynamic Forms:** Fields that change as the form is filled in belong to the `dynamic-forms` skill (the turbo_form gem)
 - **Stimulus Values:** If you need per-instance debounce times
 - **Form Validation:** Consider inline validation with auto-save
 
