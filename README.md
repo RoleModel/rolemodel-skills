@@ -27,11 +27,11 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard and work 
 | Skill | Description |
 |-------|-------------|
 | **[action-cable](skills/action-cable)** | ActionCable for real-time features using WebSockets, broadcasting, and Turbo Streams over cable. |
+| **[dynamic-forms](skills/dynamic-forms)** | Forms that change as they are filled in (dependent dropdowns, conditional fields, dynamic option lists) with the `turbo_form` gem — RoleModel's mechanism for dynamic form interaction. Supersedes hand-wired `turbo_fetch`. |
 | **[dynamic-nested-attributes](skills/dynamic-nested-attributes)** | Rails nested attributes with dynamic add/remove using Turbo Streams and Simple Form. |
 | **[form-auto-save](skills/form-auto-save)** | Automatic form submission with debounce for seamless auto-save experiences. |
 | **[frontend-patterns](skills/frontend-patterns)** | Frontend patterns for Rails apps using Slim templates, Stimulus, and CSS with Optics utilities. |
 | **[stimulus-controllers](skills/stimulus-controllers)** | Create and register Stimulus controllers for interactive JavaScript features. |
-| **[turbo-fetch](skills/turbo-fetch)** | Dynamic form updates using Turbo Streams and Stimulus (cascading dropdowns, conditional fields, dynamic option lists). |
 
 ### Rails Backend
 
@@ -226,7 +226,7 @@ Several skills are designed to complement each other:
 
 - **BEM + Optics** — BEM provides CSS structure; Optics provides design tokens and components. Use both when writing or reviewing stylesheets.
 - **Laws of UX + Usability Heuristics + AI UX Enhancements** — Laws of UX provides theoretical principles; Usability Heuristics provides a structured audit methodology; AI UX Enhancements adds automatable review rules. Use together for comprehensive UI reviews.
-- **Frontend Patterns + Stimulus + Turbo Fetch + Action Cable** — These cover the full Rails frontend stack using Hotwire and real-time features.
+- **Frontend Patterns + Stimulus + Dynamic Forms + Action Cable** — These cover the full Rails frontend stack using Hotwire and real-time features.
 - **Routing Patterns + Controller Patterns + Polymorphic Parent Resources** — Routing Patterns covers the route concern that passes the parent type; Controller Patterns covers the controller conventions; Polymorphic Parent Resources joins the two for child resources that hang off many parents. Reach for it at the second parent, when a nested controller would otherwise be copied.
 - **Sentry Top Issue + Sentry Issue Fixer** — Top Issue selects the highest-priority Sentry issue; Issue Fixer runs the full diagnosis-and-fix workflow. Run together or invoke the fixer directly with a known issue.
 - **Explain + Trace** — Explain orients you to a feature area or concept; Trace follows a specific code path through the stack. Use Explain first to build context, then Trace to dig into a specific flow.

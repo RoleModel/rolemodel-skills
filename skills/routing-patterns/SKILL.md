@@ -40,12 +40,7 @@ concern :duplicatable do
 end
 ```
 
-**Example: Dynamic Form Updates (Turbo/AJAX)**
-```ruby
-concern :turbo_fetch do
-  patch :turbo_fetch, on: :collection
-end
-```
+**Dynamic forms** use the `:turbo_form` concern, which the `turbo_form` gem's engine defines. Apply it; never define it. See the `dynamic-forms` skill.
 
 **Key Points:**
 - Concerns extract common nested resource patterns into reusable modules
@@ -61,8 +56,8 @@ end
 Apply concerns using the `concerns:` option with an array of symbols:
 
 ```ruby
-resources :products, concerns: %i[duplicatable turbo_fetch]
-resources :articles, concerns: %i[commentable duplicatable turbo_fetch]
+resources :products, concerns: %i[duplicatable turbo_form]
+resources :articles, concerns: %i[commentable duplicatable turbo_form]
 ```
 
 **Benefits:**
@@ -123,7 +118,6 @@ Always be explicit about which actions a resource provides. This improves securi
 
 ```ruby
 # Only specific actions
-resources :webhooks, only: [], concerns: %i[turbo_fetch]  # No standard REST actions, only custom
 resources :duplications, only: %i[create]                 # Only create action needed
 resources :previews, only: %i[show update]                # Only show and update
 
