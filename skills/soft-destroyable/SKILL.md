@@ -29,7 +29,7 @@ end
 - **Call `soft_destroy!`, not `destroy`.** `destroy` still hard-deletes. `soft_destroy!` raises `ActiveModel::ValidationError` if the update fails. `soft_destroy` returns falsy instead.
 - **Restores match on timestamp.** `restore!` clears `deleted_at` and restores cascaded children *soft-destroyed at the same moment*. Children deleted earlier on their own stay deleted. Restore failures only surface at the top level.
 - `soft_destroyed?` reports the state. The class-level `soft_destroy` / `restore(timestamp)` act on relations.
-- If assigned attributes include `_soft_destroy`, every other attribute is dropped. The model needs a `_soft_destroy=` writer for that key to do anything.
+- If assigned attributes include `_soft_destroy`, every other attribute is dropped and only `_soft_destroy` is assigned. The model must define a `_soft_destroy=` writer, or that assignment raises `ActiveModel::UnknownAttributeError`.
 
 ## Testing
 
