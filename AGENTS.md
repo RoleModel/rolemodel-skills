@@ -32,7 +32,7 @@ Skills may also include a `references/` directory for supporting markdown files 
 - **usability-heuristics**: Audit UIs against Nielsen's 10 Usability Heuristics. Produces a structured issue log with severity ratings, heuristic mappings, and remediation guidance. Designed to complement `laws-of-ux` with a formal evaluation methodology.
 - **frontend-patterns**: Frontend patterns for Rails applications using Slim templates, Stimulus, and CSS with Optics utilities.
 - **stimulus-controllers**: Create and register Stimulus controllers for interactive JavaScript features.
-- **turbo-fetch**: Implement dynamic form updates using Turbo Streams and Stimulus (cascading dropdowns, conditional fields, dynamic option lists).
+- **dynamic-forms**: Forms that change as they are filled in (dependent dropdowns, conditional fields, dynamic option lists) with the `turbo_form` gem, RoleModel's mechanism for dynamic form interaction. Points at the gem's GitHub README for the API. Existing `turbo_fetch` routes, actions, and `turbo-form`/`turbo-fetch` Stimulus wiring are superseded and converted when touched.
 - **form-auto-save**: Automatic form submission with debounce for seamless auto-save experiences.
 - **dynamic-nested-attributes**: Rails nested attributes with dynamic add/remove functionality using Turbo Streams and Simple Form.
 

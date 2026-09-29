@@ -204,5 +204,5 @@ end
 
 ## Related Skills
 - [frontend-patterns](../frontend-patterns/SKILL.md) - HTML and CSS patterns
-- [turbo-fetch](../turbo-fetch/SKILL.md) - Dynamic form updates
+- [dynamic-forms](../dynamic-forms/SKILL.md) - Dynamic form updates, no Stimulus controller needed
 - [testing-patterns](../testing-patterns/SKILL.md) - Testing JavaScript features
