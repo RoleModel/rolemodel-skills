@@ -90,7 +90,17 @@ Every box under **What Changed** ships checked. Each line is work that is alread
 
 **Post-merge** lists work someone has to do after the merge — a data backfill, a re-import, a config change, a manual migration step. Every box ships unchecked: it is a list to work through once the PR lands. One line per item, saying what to run and what stays broken until it runs. Omit the heading entirely when there is none.
 
-Leave **Screenshots** empty — the user fills it in. When the PR changes nothing visible, keep the heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
+When the PR changes nothing visible, keep the **Screenshots** heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
+
+When it changes the UI and you can capture the screen — a browser tool, a simulator, a running dev server — take screenshots without being asked. Save them to the scratchpad and keep credentials and customer data out of frame. Otherwise attach files the user gives you, or leave the section empty.
+
+Reference each file under **Screenshots** and pass the same path to `--attach`:
+
+```markdown
+![Invite list showing delivery status](<scratchpad>/invite-status.png)
+```
+
+`gh` uploads each file and rewrites the reference; unreferenced files land at the bottom of the body. If an upload fails, the PR still opens — tell the user which files are missing. Needs `gh` 2.99.0 or later.
 
 ## The project's PR template
 
