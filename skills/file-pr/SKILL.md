@@ -92,6 +92,20 @@ Every box under **What Changed** ships checked. Each line is work that is alread
 
 Leave **Screenshots** empty — the user fills it in. When the PR changes nothing visible, keep the heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
 
+When the user gives you image or video files, attach them instead of leaving the section empty. Reference each one under **Screenshots** in the body file, then pass the same path to `--attach` on `gh pr create` or `gh pr edit`:
+
+```markdown
+## Screenshots
+
+![Invite list showing delivery status](./tmp/invite-status.png)
+```
+
+```bash
+gh pr create --title "<title>" --body-file <path> --assignee @me --attach ./tmp/invite-status.png
+```
+
+`gh` uploads the file and rewrites the matching reference to the uploaded URL. A file the body doesn't reference is appended to the end of the body, below every other section, so always write the reference. Alt text comes from the reference; for a file with no reference, put it after `#`: `--attach './login.png#The login error state'`. Video has no alt text. If some uploads fail, `gh` still opens or updates the PR, exits non-zero, and prints the URL — tell the user which files are missing. `--attach` needs `gh` 2.101.0 or later; on an older version, leave the section for the user.
+
 ## The project's PR template
 
 If the `ls` above found a template, read it before writing the body. `--body-file` replaces the template outright, so any section you don't write is gone.
