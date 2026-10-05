@@ -92,7 +92,7 @@ Reference each file under **Screenshots** in the body, and pass the same path to
 gh pr create --title "<title>" --body-file <path> --assignee @me --attach <scratchpad>/invite-status.png
 ```
 
-`gh` uploads the file and rewrites the reference to the uploaded URL. An unreferenced file is appended below every other section, so always write the reference. If some uploads fail, `gh` still opens the PR, exits non-zero, and prints the URL — tell the user which files are missing. `--attach` needs `gh` 2.101.0 or later; on an older version, leave the section for the user.
+`gh` uploads the file and rewrites the reference to the uploaded URL. An unreferenced file is appended below every other section, so always write the reference. If some uploads fail, `gh` still opens the PR, exits non-zero, and prints the URL — tell the user which files are missing. `--attach` needs `gh` 2.99.0 or later; on an older version, leave the section for the user.
 
 ## The project's PR template
 
