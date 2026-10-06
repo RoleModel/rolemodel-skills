@@ -149,9 +149,9 @@ For a checklist, check each item this PR did. Check and strike through each item
 
 **Title**
 
-- One line, imperative mood, no trailing period.
+- One line, under 70 characters including the prefix, imperative mood, no trailing period.
 - Prefix the ticket ID in square brackets — e.g. `[ABC-123] Add delivery status to invite list`.
-- Look for the ID in the branch name first, then in the commit messages. If neither has one and the repo's recent PR titles use IDs, ask the user for it. Otherwise skip the prefix.
+- Look for the ID in the branch name first, then in the ticket itself — a tracker tool can find the issue linked to this branch — then in the commit messages. If none has one and the repo's recent PR titles use IDs, ask the user for it. Otherwise skip the prefix.
 
 **Signature**
 
