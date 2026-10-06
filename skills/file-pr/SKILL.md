@@ -92,7 +92,7 @@ Every box under **What Changed** ships checked. Each line is work that is alread
 
 When the PR changes nothing visible, keep the **Screenshots** heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
 
-When it changes the UI and you can capture the screen — a browser tool, a simulator, a running dev server — take screenshots without being asked. Record the screen too when the change is motion or a multi-step flow a still can't show. Save them to the scratchpad and keep credentials and customer data out of frame. Otherwise attach files the user gives you, or leave the section empty.
+When it changes the UI and you can capture the screen — a browser tool, a simulator, a running dev server — take screenshots without being asked. Record the screen too when the change is motion or a multi-step flow a still can't show, and make sure the cursor shows in it. Save them to the scratchpad and keep credentials and customer data out of frame. Otherwise attach files the user gives you, or leave the section empty.
 
 Reference each file under **Screenshots** and pass the same path to `--attach`:
 
