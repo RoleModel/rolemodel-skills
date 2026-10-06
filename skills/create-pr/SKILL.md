@@ -129,7 +129,9 @@ For a checklist, check each item this PR did. Check and strike through each item
 - High level. Maximum two sentences per feature, preferably one sentence.
 - If the PR covers more than one feature, give each its own short paragraph.
 - When possible, explain the user-facing problem and how the change solves it.
-- Explain anything unexpected — an odd workaround, a surprising dependency, a choice a reviewer would question — one sentence each. These do not count against the two-sentence cap; put them in their own paragraph after the feature paragraphs.
+- Explain anything unexpected — an odd workaround, a surprising dependency, a choice a reviewer would question — one sentence each, two sentences at most across the PR. These do not count against the per-feature cap; put them in their own paragraph after the feature paragraphs.
+- Write each paragraph on a single line. GitHub renders a newline in a PR body as a line break, so hard-wrapped prose shows up broken.
+- No ticket IDs or links — the title carries the ID.
 - State facts, not narrative. Cut stock phrases ("all along", "it turns out"), rhetorical contrasts between how things were and how they are now, and anything implying fault for the state of the code.
 - Every clause must carry a fact a reviewer can act on. Cut clauses that exist for rhythm or that call back to a phrase used earlier, and claim no more than the change does — describe what it fixes, not the class of problem it gestures at.
 - Use inline-code syntax sparingly. If you need it more than twice then you are probably including too much detail.
