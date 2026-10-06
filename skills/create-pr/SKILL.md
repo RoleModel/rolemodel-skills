@@ -8,7 +8,7 @@ metadata:
   author: rolemodelsoftware
   version: "2.0"
   triggers: "open a PR, create a PR, file a PR, draft a PR, pull request, PR description, write the PR body, update the PR description, push this for review, put this up for review, ready for review"
-allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(ls:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
+allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git merge-base:*), Bash(git rev-parse:*), Bash(git rev-list:*), Bash(git remote set-head:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(ls:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
 ---
 
 # Creating a Pull Request
@@ -20,28 +20,44 @@ Gather context before writing anything:
 ```bash
 git status
 git fetch origin
-git log --oneline origin/HEAD..HEAD
-git diff origin/HEAD...HEAD --stat
-git diff origin/HEAD...HEAD
-gh pr list --head "$(git branch --show-current)" --state open --json number,url,title
+gh pr list --head "$(git branch --show-current)" --state open --json number,url,title,baseRefName
 ls .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE.md .github/PULL_REQUEST_TEMPLATE/ docs/pull_request_template.md pull_request_template.md 2>/dev/null
 ```
 
-Run these as one batch. Note `origin/HEAD...HEAD` — three dots. Two dots compares against the current tip of the default branch and misdescribes the PR.
-
-The `gh pr list` result decides which path you are on. An open PR means updating the existing one — `gh pr create` fails outright on a branch that already has a PR.
-
-Read the full diff, not just the stat — the description must come from what the code now does, not from file names or commit messages, which track the sequence of work rather than its result.
-
-Empty `git log` output means no commits ahead of the default branch — the work may be uncommitted, or you may still be on the default branch. When `git status` shows changes, describe the PR from the working-tree diff instead.
-
-When the branch name or commits carry a ticket ID and a tool for the team's tracker is available (Linear, Jira), read the ticket — it is the best source for **Why**. Without one, proceed from the diff.
+Run these as one batch. The `gh pr list` result decides which path you are on. An open PR means updating the existing one — `gh pr create` fails outright on a branch that already has a PR.
 
 Never commit on the default branch. When `git status` reports `main` or `master`, create a branch with `git switch -c <branch>` first and tell the user the name you picked. Only ever create a new branch — switching to an existing one changes which work the PR describes.
 
+### Find the base
+
+The PR targets the branch this one was cut from, which is often another open PR's branch or an epic branch rather than the default. An existing PR already has one: use its `baseRefName`. Otherwise pick the closest fork point among the default branch and every open PR's head — the first line of:
+
+```bash
+current=$(git branch --show-current)
+for b in $(git rev-parse --abbrev-ref origin/HEAD) $(gh pr list --state open --limit 200 --json headRefName --jq ".[].headRefName | select(. != \"$current\") | \"origin/\" + ."); do
+  mb=$(git merge-base "$b" HEAD 2>/dev/null) && [ "$mb" != "$(git rev-parse HEAD)" ] && echo "$(git rev-list --count "$mb"..HEAD) $b"
+done | sort -n -s
+```
+
+If `origin/HEAD` is missing — common when the remote was added rather than cloned — run `git remote set-head origin --auto` first. The user can always name a different base. Then read the work against it:
+
+```bash
+git log --oneline <base>..HEAD
+git diff <base>...HEAD --stat
+git diff <base>...HEAD
+```
+
+Note `<base>...HEAD` — three dots. Two dots compares against the current tip of the base and misdescribes the PR.
+
+Read the full diff, not just the stat — the description must come from what the code now does, not from file names or commit messages, which track the sequence of work rather than its result.
+
+Empty `git log` output means no commits ahead of the base — the work may still be uncommitted. When `git status` shows changes, describe the PR from the working-tree diff instead.
+
+When the branch name or commits carry a ticket ID and a tool for the team's tracker is available (Linear, Jira), read the ticket — it is the best source for **Why**. Without one, proceed from the diff.
+
 ## Confirm before acting
 
-Before committing, pushing, creating, or editing anything, show the user the title and body as plain text in your reply, along with anything you would commit or push. Wait for approval; if they want changes, revise and ask again. Some developers commit and push themselves — when the user says so, hand them the commands instead of running them.
+Before committing, pushing, creating, or editing anything, show the user the base branch, title, and body as plain text in your reply, along with anything you would commit or push. Wait for approval; if they want changes, revise and ask again. Some developers commit and push themselves — when the user says so, hand them the commands instead of running them.
 
 Commit uncommitted work only once approved. Stage named paths, never `git add -A`, which sweeps unrelated changes into the PR. Review `git status` after staging; if anything unexpected appears, stop and ask.
 
@@ -50,8 +66,10 @@ Commit uncommitted work only once approved. Stage named paths, never `git add -A
 Push with `git push -u origin HEAD`, then write the description to a file and open the PR:
 
 ```bash
-gh pr create --title "<title>" --body-file <path> --assignee @me
+gh pr create --base <base> --title "<title>" --body-file <path> --assignee @me
 ```
+
+Pass the base without its `origin/` prefix.
 
 Add `--draft` when the work is unfinished. Use the scratchpad directory for the body file. Always use `--body-file`, never `--body` — the shell eats backticks and `$` in a long inline string.
 
@@ -79,7 +97,7 @@ Print the PR URL when done.
 
 ## Description format
 
-When the repo has a PR template, it sets the shape — see the next section. Otherwise use these headings, in this order. **Why**, **What Changed**, and **Screenshots** are always present; **Post-merge** appears only when the PR needs it.
+When the repo has a PR template, it sets the shape — see the next section. Otherwise use these headings, in this order. **Why** and **What Changed** are always present; **Post-merge** and **Screenshots** appear only when the PR needs them.
 
 ```markdown
 ## Why
@@ -100,9 +118,13 @@ Every box under **What Changed** ships checked. Each line is work that is alread
 
 **Post-merge** lists work someone has to do after the merge — a data backfill, a re-import, a config change, a manual migration step. Every box ships unchecked: it is a list to work through once the PR lands. One line per item, saying what to run and what stays broken until it runs. Omit the heading entirely when there is none.
 
-When the PR changes nothing visible, keep the **Screenshots** heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
+**Screenshots** depends on who provides them. When the diff changes the UI, ask the user which of these applies:
 
-When it changes the UI and you can capture the screen — a browser tool, a simulator, a running dev server — take screenshots without being asked. Save them to the scratchpad and keep credentials and customer data out of frame. View each image before attaching it — one that looks wrong is a bug to fix, not a shot to retake. Otherwise attach files the user gives you, or leave the section empty.
+1. **You take them.** Follow the repo's documented way to capture screens if its docs describe one; otherwise use what you have — a browser tool, a simulator, a running dev server. Save them to the scratchpad and keep credentials and customer data out of frame. View each image before attaching it — one that looks wrong is a bug to fix, not a shot to retake.
+2. **They take them.** Keep the heading and any subheadings empty for them to fill, and say so when you print the URL.
+3. **None.** Omit the section entirely.
+
+When the diff changes nothing visible, omit the section without asking. Either way, a template instruction to keep the heading wins — write `N/A — no UI changes` under it instead.
 
 Reference each file under **Screenshots** and pass the same path to `--attach`:
 
@@ -116,7 +138,7 @@ Reference each file under **Screenshots** and pass the same path to `--attach`:
 
 If the `ls` above found a template, read it before writing the body. `--body-file` replaces the template outright, so any section you don't write is gone.
 
-The template is the repo's expectation, and the place the team goes to change it. Keep its headings, their exact wording, and their order. Don't add headings it lacks. Replace each placeholder with content, and follow any instruction the template gives for a section, such as deleting it when it doesn't apply.
+The template is the repo's expectation, and the place the team goes to change it. Keep its headings, their exact wording, and their order — except **Screenshots**, which follows the rules above. Don't add headings it lacks. Replace each placeholder with content, and follow any instruction the template gives for a section, such as deleting it when it doesn't apply.
 
 The rules below say how to fill a section, not which sections exist. Apply the **Why** rules to the template's equivalent (**Why?**, **Summary**, **Motivation**), and the **What Changed** rules to its list of changes.
 
@@ -151,8 +173,9 @@ For a checklist, check each item this PR did. Check and strike through each item
 
 **Title**
 
-- One line, under 70 characters including the prefix, imperative mood, no trailing period.
-- Prefix the ticket ID in square brackets — e.g. `[ABC-123] Add delivery status to invite list`.
+- One line, under 70 characters including the prefix, no trailing period.
+- Match the style of the repo's recent PR titles — mood and casing (`gh pr list --state all --limit 15 --json title`). With no history to follow, use imperative mood.
+- Prefix the ticket ID in square brackets, uppercased — e.g. `[ABC-123] Add delivery status to invite list`, even from a branch named `abc-123-…`.
 - Look for the ID in the branch name first, then in the ticket itself — a tracker tool can find the issue linked to this branch — then in the commit messages. If none has one and the repo's recent PR titles use IDs, ask the user for it. Otherwise skip the prefix.
 
 **Signature**
@@ -195,4 +218,6 @@ Delivery status comes from the mail provider's webhook rather than our own send 
 - [ ] Point the provider's webhook at `/webhooks/mail` in the provider dashboard; no new events record until then.
 
 ## Screenshots
+
+![Invite list showing delivery status](<scratchpad>/invite-status.png)
 ```
