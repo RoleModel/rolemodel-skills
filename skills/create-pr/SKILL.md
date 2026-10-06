@@ -26,7 +26,7 @@ An open PR means updating it — `gh pr create` fails on a branch that already h
 
 Never commit on the default branch. On `main` or `master`, create a branch with `git switch -c <branch>` and tell the user its name. Only ever create a new branch — switching to an existing one changes which work the PR describes.
 
-**Base.** An existing PR keeps its `baseRefName`. Otherwise run `scripts/find_base.sh`: it prints the branch this one was cut from — often another open PR's branch or an epic branch, not the default. The user can name a different one. Then read the work against it:
+**Base.** An existing PR keeps its `baseRefName`. Otherwise run `scripts/find_base.sh`: it prints the branch this one was cut from — often another open PR's branch or an epic branch, not the default. If it prints nothing or fails (no `gh` auth, no network), use the default branch. The user can name a different one. Then read the work against it:
 
 ```bash
 git log --oneline <base>..HEAD
