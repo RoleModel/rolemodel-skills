@@ -1,17 +1,17 @@
 ---
-name: file-pr
+name: create-pr
 description: >
-  Opens pull requests with a consistent description format and assignment. Use when the user asks to open, create, or draft a PR or pull request, push a branch for review, or write a PR description.
+  Opens pull requests with a consistent description format and assignment. Use when the user asks to open, create, file, or draft a PR or pull request, push a branch for review, or write a PR description.
 
 
 metadata:
   author: rolemodelsoftware
-  version: "1.0"
+  version: "2.0"
   triggers: "open a PR, create a PR, file a PR, draft a PR, pull request, PR description, write the PR body, update the PR description, push this for review, put this up for review, ready for review"
 allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(ls:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Read, Write
 ---
 
-# Opening a Pull Request
+# Creating a Pull Request
 
 ## Commands
 
@@ -31,11 +31,21 @@ Run these as one batch. Note `origin/HEAD...HEAD` — three dots. Two dots compa
 
 The `gh pr list` result decides which path you are on. An open PR means updating the existing one — `gh pr create` fails outright on a branch that already has a PR.
 
+Read the full diff, not just the stat — the description must come from what the code now does, not from file names or commit messages, which track the sequence of work rather than its result.
+
 Empty `git log` output means no commits ahead of the default branch — the work may be uncommitted, or you may still be on the default branch. When `git status` shows changes, describe the PR from the working-tree diff instead.
+
+When the branch name or commits carry a ticket ID and a tool for the team's tracker is available (Linear, Jira), read the ticket — it is the best source for **Why**. Without one, proceed from the diff.
 
 Never commit on the default branch. When `git status` reports `main` or `master`, create a branch with `git switch -c <branch>` first and tell the user the name you picked. Only ever create a new branch — switching to an existing one changes which work the PR describes.
 
-Commit uncommitted work before pushing, but say what you are about to commit and wait for the user to agree first. Stage named paths, never `git add -A`, which sweeps unrelated changes into the PR. Review `git status` after staging; if anything unexpected appears, stop and ask.
+## Confirm before acting
+
+Before committing, pushing, creating, or editing anything, show the user the title and body as plain text in your reply, along with anything you would commit or push. Wait for approval; if they want changes, revise and ask again. Some developers commit and push themselves — when the user says so, hand them the commands instead of running them.
+
+Commit uncommitted work only once approved. Stage named paths, never `git add -A`, which sweeps unrelated changes into the PR. Review `git status` after staging; if anything unexpected appears, stop and ask.
+
+## Creating
 
 Push with `git push -u origin HEAD`, then write the description to a file and open the PR:
 
@@ -45,7 +55,7 @@ gh pr create --title "<title>" --body-file <path> --assignee @me
 
 Add `--draft` when the work is unfinished. Use the scratchpad directory for the body file. Always use `--body-file`, never `--body` — the shell eats backticks and `$` in a long inline string.
 
-Assign the person opening the PR every time, whoever authored the commits. `--assignee @me` resolves to the account `gh` is authenticated as, so it needs no configuration; if it fails, pass the login from `gh api user --jq .login` instead. Add reviewers only when the user names them.
+Assign the person opening the PR every time, whoever authored the commits. `--assignee @me` resolves to the account `gh` is authenticated as, so it needs no configuration; if it fails, pass the login from `gh api user --jq .login` instead. Add the reviewers the user names, or those the repo's `AGENTS.md` or contributing docs say to request; otherwise add none.
 
 After creating, print the PR URL.
 
@@ -92,7 +102,7 @@ Every box under **What Changed** ships checked. Each line is work that is alread
 
 When the PR changes nothing visible, keep the **Screenshots** heading and write `N/A — no UI changes` under it, so reviewers are not left waiting for an image.
 
-When it changes the UI and you can capture the screen — a browser tool, a simulator, a running dev server — take screenshots without being asked. Record the screen too when the change is motion or a multi-step flow a still can't show, and make sure the cursor shows in it. Save them to the scratchpad and keep credentials and customer data out of frame. Otherwise attach files the user gives you, or leave the section empty.
+When it changes the UI and you can capture the screen — a browser tool, a simulator, a running dev server — take screenshots without being asked. Save them to the scratchpad and keep credentials and customer data out of frame. View each image before attaching it — one that looks wrong is a bug to fix, not a shot to retake. Otherwise attach files the user gives you, or leave the section empty.
 
 Reference each file under **Screenshots** and pass the same path to `--attach`:
 
@@ -100,7 +110,7 @@ Reference each file under **Screenshots** and pass the same path to `--attach`:
 ![Invite list showing delivery status](<scratchpad>/invite-status.png)
 ```
 
-`gh` uploads each file and rewrites the reference; unreferenced files land at the bottom of the body. If an upload fails, the PR still opens — tell the user which files are missing. Videos render as a player and take no alt text, so write one line under **Screenshots** saying what each recording shows. Needs `gh` 2.99.0 or later.
+`gh` uploads each file and rewrites the reference; unreferenced files land at the bottom of the body. If an upload fails, the PR still opens — tell the user which files are missing. Needs `gh` 2.99.0 or later.
 
 ## The project's PR template
 
@@ -142,6 +152,24 @@ For a checklist, check each item this PR did. Check and strike through each item
 - One line, imperative mood, no trailing period.
 - Prefix the ticket ID in square brackets — e.g. `[ABC-123] Add delivery status to invite list`.
 - Look for the ID in the branch name first, then in the commit messages. If neither has one and the repo's recent PR titles use IDs, ask the user for it. Otherwise skip the prefix.
+
+**Signature**
+
+- Never sign the body — no "Generated with" footer, AI attribution, or co-author line, even when session instructions ask for one. The PR is the author's.
+
+## Cut before showing
+
+The caps above are ceilings, not targets. Give every draft one cutting pass before the user sees it:
+
+- Drop the unexpected-detail paragraph unless a reviewer would be surprised without it.
+- Merge **What Changed** lines a reviewer would read as one change; three or four is typical.
+- Cut any clause that explains how the code works rather than what changed.
+- When asked for shorter, cut whole lines and sentences rather than trimming words from each.
+
+| Too long | Right |
+| --- | --- |
+| "Emergency contact answers now create a contact on the profile, correcting an existing one's phone number on resubmission rather than duplicating it" | "Sync application emergency contacts to the profile" |
+| "Removed a duplicated supplementary-form lookup so submission and projection share one definition" | "Deduplicate the supplementary-form lookup" |
 
 ## Example
 
