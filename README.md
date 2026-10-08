@@ -178,6 +178,15 @@ To pull the latest skill updates:
 git submodule update --remote .rolemodel-skills
 ```
 
+After updating, check for symlinks or `CLAUDE.md` / `copilot-instructions.md` lines that point at a skill that no longer exists (`find .claude/skills .github/skills -xtype l` lists broken symlinks). Removed skills and where their guidance went:
+
+| Removed | Use instead |
+|---------|-------------|
+| `laws-of-ux`, `usability-heuristics`, `ai-ux-enhancements` | `ux-review` |
+| `theming-context` | `optics-context` (theming is in `references/theming.md`) |
+| `controller-patterns`, `routing-patterns`, `frontend-patterns` | `rails-conventions` |
+| `dynamic-nested-attributes`, `form-auto-save`, `action-cable`, `stimulus-controllers`, `json-typed-attributes`, `trace`, `explain`, `create-profile` | Nothing; the agent handles these without a skill. `form-auto-save`'s Lexxy gotcha moved to `rails-conventions`. |
+
 ### Option 3: Install via skills.sh (community directory)
 
 [skills.sh](https://skills.sh) is a community directory and CLI for discovering and installing agent skills. If these skills are published there, you can install them with:
