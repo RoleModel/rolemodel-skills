@@ -23,7 +23,7 @@ This skill only covers what an agent got wrong without it in baseline tests. Eve
   end
   ```
 
-  The controller turns it back into the record with `resource_for` from `rolemodel_rails`. Read `polymorphic-parent-resources` before writing that controller.
+  The controller turns it back into the record with `resource_for(:commentable_type)` from `rolemodel_rails`, called only on collection actions. Read `polymorphic-parent-resources` before writing that controller.
 - **Dynamic forms** (dependent selects, conditional fields) use the `turbo_form` gem. Read `dynamic-forms`.
 
 ## Gotchas
