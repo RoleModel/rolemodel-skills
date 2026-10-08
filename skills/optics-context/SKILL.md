@@ -22,6 +22,8 @@ Optics is RoleModel's CSS design system, published as `@rolemodel/optics`. The i
 
 To change how an Optics component looks across the app, override it in `app/assets/stylesheets/components/overrides/{component}.css`. Don't fork it into a new block.
 
+Optics also ships utility classes (`.flex`, `.gap-sm`, and the rest of `dist/css/core/utilities.css`). RoleModel strongly discourages them in views: style through a BEM block or element instead.
+
 ## Tokens, not literals
 
 Every color, spacing, font, radius, border, and shadow value comes from a token.
