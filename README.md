@@ -30,22 +30,13 @@ What isn't a skill: a project's own conventions (put those in its `AGENTS.md` or
 | **[optics-context](skills/optics-context)** | RoleModel's Optics design system: components, `--op-` design tokens, and theming. Reads tokens and components from the installed `@rolemodel/optics` package; `references/theming.md` covers brand colors, color scales, fonts, and dark mode. |
 | **[ux-review](skills/ux-review)** | Review UI code against Nielsen's 10 heuristics and the Laws of UX, reported as a severity-ranked issue log with file-and-line evidence and Optics-based fixes. |
 
-### Rails Frontend
+### Rails
 
 | Skill | Description |
 |-------|-------------|
+| **[rails-conventions](skills/rails-conventions)** | RoleModel's Rails conventions where they differ from what an agent writes by default: flash wording, `:unprocessable_content`, Simple Form for every form, `parent_resource.name.classify` in route concerns, and gotchas for `params.expect` with nested attributes and Lexxy change events. |
 | **[dynamic-forms](skills/dynamic-forms)** | Forms that change as they are filled in (dependent dropdowns, conditional fields, dynamic option lists) with the `turbo_form` gem, RoleModel's mechanism for dynamic form interaction. Supersedes hand-wired `turbo_fetch`. |
-| **[dynamic-nested-attributes](skills/dynamic-nested-attributes)** | Rails nested attributes with dynamic add/remove using Turbo Streams and Simple Form. |
-| **[form-auto-save](skills/form-auto-save)** | Automatic form submission with debounce for seamless auto-save experiences. |
-| **[frontend-patterns](skills/frontend-patterns)** | RoleModel's view-layer conventions: Slim partials with keyword locals, Simple Form for every form, policy checks around actions, BEM over utility classes, and small Stimulus controllers. |
-
-### Rails Backend
-
-| Skill | Description |
-|-------|-------------|
-| **[controller-patterns](skills/controller-patterns)** | RoleModel's controller conventions: Pundit on every action, `params.expect`, `:unprocessable_content` on failed saves, flash wording, and state changes and bulk actions as namespaced RESTful controllers. |
 | **[polymorphic-parent-resources](skills/polymorphic-parent-resources)** | Serve a child resource that hangs off many different parents (comments, reports, duplications, attachments) from a single controller, using a route concern plus `resource_for` from `rolemodel_rails`. Includes a retrofit guide for consolidating existing per-parent controllers. |
-| **[routing-patterns](skills/routing-patterns)** | RoleModel's routing conventions: concerns that pass the parent type, `scope shallow: true`, explicit `only:`/`except:`, singular resources for state changes, and `resolve` for form objects. |
 | **[tdd](skills/tdd)** | Test-driven development for Rails — outside-in with RSpec, Capybara, and FactoryBot. Covers the red-green loop, spec plans, and the Prove-It pattern for bugs. |
 
 ### Developer Workflow
@@ -229,8 +220,7 @@ Markdown instructions for the AI agent...
 
 - **BEM + Optics** — BEM provides CSS structure; Optics provides design tokens and components. Use both when writing or reviewing stylesheets.
 - **UX Review + Optics + BEM** — UX Review finds the usability problems; its fixes use Optics components and tokens with BEM class names.
-- **Frontend Patterns + Dynamic Forms + Form Auto Save + Dynamic Nested Attributes** — Frontend Patterns sets the view-layer conventions; the other three cover the specific interactive form patterns.
-- **Routing Patterns + Controller Patterns + Polymorphic Parent Resources** — Routing Patterns covers the route concern that passes the parent type; Controller Patterns covers the controller conventions; Polymorphic Parent Resources joins the two for child resources that hang off many parents. Reach for it at the second parent, when a nested controller would otherwise be copied.
+- **Rails Conventions + Polymorphic Parent Resources + Dynamic Forms** — Rails Conventions holds the house rules and points to the other two: Polymorphic Parent Resources for a child resource that hangs off several parents, and Dynamic Forms for forms that change as they are filled in.
 - **Scaffold Docs + Generate Conventions + Wrap Up** — Scaffold Docs installs the doc structure; Generate Conventions fills `docs/conventions/`; Wrap Up keeps the docs current at the end of each session.
 - **Sentry Top Issue + Sentry Issue Fixer** — Top Issue selects the highest-priority Sentry issue; Issue Fixer runs the full diagnosis-and-fix workflow. Run together or invoke the fixer directly with a known issue.
 - **File PR + Split Stack + Babysit PR** — File PR opens or updates a single PR. Split Stack is what you reach for when that PR turns out to cover more than one concern: it carves each concern into its own stacked PR, then File PR writes the description for each. Babysit PR takes over once a PR is open, driving it to mergeable while you work on something else.

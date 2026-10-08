@@ -29,14 +29,10 @@ Skills may also include a `references/` directory for supporting markdown files 
 
 ### UX & Frontend
 - **ux-review**: Reviews UI code against Nielsen's 10 heuristics and the Laws of UX in one pass. Owns the procedure, stack-specific checks, severity scale, and issue-log format; does not restate the heuristics themselves.
-- **frontend-patterns**: RoleModel's view-layer conventions — Slim partials with keyword locals, Simple Form for every form, policy checks around actions, BEM over utility classes, small single-purpose Stimulus controllers.
 - **dynamic-forms**: Forms that change as they are filled in (dependent dropdowns, conditional fields, dynamic option lists) with the `turbo_form` gem, RoleModel's mechanism for dynamic form interaction. Points at the gem's GitHub README for the API. Existing `turbo_fetch` routes, actions, and `turbo-form`/`turbo-fetch` Stimulus wiring are superseded and converted when touched.
-- **form-auto-save**: Automatic form submission with debounce for seamless auto-save experiences.
-- **dynamic-nested-attributes**: Rails nested attributes with dynamic add/remove functionality using Turbo Streams and Simple Form.
 
 ### Rails Backend
-- **controller-patterns**: RoleModel's controller conventions — Pundit on every action, `params.expect`, `:unprocessable_content` on failed saves, `Successfully <Action> <Model>` flash wording, and state changes and bulk actions as namespaced RESTful controllers.
-- **routing-patterns**: RoleModel's routing conventions — route concerns passing `parent_resource.name.classify`, `scope shallow: true`, explicit `only:`/`except:`, singular nested resources for state changes, `resolve` for form objects.
+- **rails-conventions**: Only the RoleModel Rails rules an agent got wrong without a skill in baseline tests (October 2026): `Successfully <Action> <Model>` flash wording, `:unprocessable_content` for failed saves, Simple Form for every form, `parent_resource.name.classify` in route concerns, plus gotchas for `params.expect` nested attributes (`[[...]]`) and Lexxy's `lexxy:change` event. Standard Rails 8 practice the agent already follows is deliberately left out; re-run a baseline before adding rules.
 - **polymorphic-parent-resources**: Serve a child resource that hangs off many different parents (comments, reports, duplications, attachments) from a single controller, instead of one namespaced controller per parent. Pairs a route concern passing `commentable_type: parent_resource.name.classify` with `resource_for` from the `rolemodel_rails` gem (>= 2.4.0). Documents the shallow-nesting trap where member routes inherit the first-drawn parent's `*_type` default. `references/retrofit.md` covers auditing and consolidating existing per-parent controllers.
 
 ### Documentation

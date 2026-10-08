@@ -88,8 +88,6 @@ shallow do
 end
 ```
 
-See `routing-patterns` for route concerns and shallow nesting in general.
-
 ### 3. Controller
 
 One controller serves every parent. Under `shallow`, only the collection actions carry the parent id, which drives the `only:`/`except:` split.
@@ -187,6 +185,5 @@ To find and consolidate duplicated per-parent controllers already in a project, 
 
 ## Related Skills
 
-- **routing-patterns** — route concerns, shallow nesting, and resourceful routing
-- **controller-patterns** — RESTful actions, authorization, strong params, naming conventions
+- **rails-conventions** — route concern, flash, and failed-save conventions
 - **tdd** — request and system specs for the consolidated controller
