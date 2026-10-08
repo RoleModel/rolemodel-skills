@@ -12,7 +12,8 @@ This is a collection of **AI agent skills** for RoleModel Software. Skills are r
 skills/
   {skill-name}/
     SKILL.md              # Skill definition with frontmatter (name, description, triggers)
-    assets/               # Optional supporting data (JSON token/component references)
+    scripts/              # Optional deterministic helpers the agent runs
+    templates/            # Optional files the skill copies or fills in
     references/           # Optional reference docs loaded into context as needed
 ```
 
@@ -24,24 +25,15 @@ Skills may also include a `references/` directory for supporting markdown files 
 
 ### CSS & Design System
 - **bem-structure**: CSS guidance using BEM (Block Element Modifier) methodology. Defines naming conventions, nesting rules, and modifier patterns. Key rule: `&` must NOT be used to construct class names (`&--`, `&__`) — only for co-locating modifiers with explicit full class names.
-- **optics-context / optics-structure**: Guidance for using RoleModel's Optics design system. References `assets/components.json` (component definitions) and `assets/tokens.json` (design tokens with `--op-` prefix). Optics classes should be preferred over custom CSS; violations include hard-coded colors, spacing, shadows, or malformed token names.
-- **theming-context**: Using Optics for implementing design system guidelines, theming, and color scales.
+- **optics-context**: RoleModel's Optics design system. Reads tokens and components from the installed `@rolemodel/optics` package (`dist/tokens/tokens.json`, `dist/css/components/`) instead of a pinned snapshot. Theming (brand colors, color scales, fonts, dark mode) lives in `references/theming.md`. Prefer Optics classes over custom CSS; violations include hard-coded colors, spacing, shadows, or malformed token names.
 
 ### UX & Frontend
-- **laws-of-ux**: Review and guide UI implementations using the 21 Laws of UX (Fitts's Law, Hick's Law, Miller's Law, etc.). Identifies usability issues in HTML, CSS, and JS by applying cognitive, visual, and behavioral principles. Works alongside `bem-structure` and `optics-context`.
-- **usability-heuristics**: Audit UIs against Nielsen's 10 Usability Heuristics. Produces a structured issue log with severity ratings, heuristic mappings, and remediation guidance. Designed to complement `laws-of-ux` with a formal evaluation methodology.
-- **frontend-patterns**: Frontend patterns for Rails applications using Slim templates, Stimulus, and CSS with Optics utilities.
-- **stimulus-controllers**: Create and register Stimulus controllers for interactive JavaScript features.
+- **ux-review**: Reviews UI code against Nielsen's 10 heuristics and the Laws of UX in one pass. Owns the procedure, stack-specific checks, severity scale, and issue-log format; does not restate the heuristics themselves.
 - **dynamic-forms**: Forms that change as they are filled in (dependent dropdowns, conditional fields, dynamic option lists) with the `turbo_form` gem, RoleModel's mechanism for dynamic form interaction. Points at the gem's GitHub README for the API. Existing `turbo_fetch` routes, actions, and `turbo-form`/`turbo-fetch` Stimulus wiring are superseded and converted when touched.
-- **form-auto-save**: Automatic form submission with debounce for seamless auto-save experiences.
-- **dynamic-nested-attributes**: Rails nested attributes with dynamic add/remove functionality using Turbo Streams and Simple Form.
 
 ### Rails Backend
-- **controller-patterns**: Review, update, and generate Rails controllers following RESTful conventions, authorization patterns, and proper error handling.
-- **routing-patterns**: Review, generate, and update Rails routes with RESTful resource routing, route concerns, and shallow nesting strategies.
+- **rails-conventions**: Only the RoleModel Rails rules an agent got wrong without a skill in baseline tests (October 2026): `Successfully <Action> <Model>` flash wording, `:unprocessable_content` for failed saves, Simple Form for every form, `parent_resource.name.classify` in route concerns, plus gotchas for `params.expect` nested attributes (`[[...]]`) and Lexxy's `lexxy:change` event. Standard Rails 8 practice the agent already follows is deliberately left out; re-run a baseline before adding rules.
 - **polymorphic-parent-resources**: Serve a child resource that hangs off many different parents (comments, reports, duplications, attachments) from a single controller, instead of one namespaced controller per parent. Pairs a route concern passing `commentable_type: parent_resource.name.classify` with `resource_for` from the `rolemodel_rails` gem (>= 2.4.0). Documents the shallow-nesting trap where member routes inherit the first-drawn parent's `*_type` default. `references/retrofit.md` covers auditing and consolidating existing per-parent controllers.
-- **action-cable**: Setup and use ActionCable for real-time features using WebSockets, broadcasting, and Turbo Streams over cable.
-- **json-typed-attributes**: Define typed attributes backed by JSON fields in Rails models with type casting, validations, and form integration.
 
 ### Documentation
 - **scaffold-docs**: Installs the agent-documentation structure in a project — minimal `AGENTS.md`, a `docs/` tree with `CONVENTIONS.md` and `INDEX.md`, the `surface_conventions.rb` PreToolUse hook, and `wrap-up` symlinked out of this repo. Deliberately writes no documentation: empty indexes are correct on day one, and `wrap-up` fills them in over time. Also trims an existing `AGENTS.md` under 50 lines by routing its content down into the doc layers. Templates live in `templates/*.template.md`; the trimming rules in `references/trimming.md` load only on the branch that needs them.
@@ -66,19 +58,17 @@ Skills may also include a `references/` directory for supporting markdown files 
 - **agentation**: Add the Agentation visual feedback toolbar to a project. Targets Rails apps that bundle with webpack into `app/assets/builds` (the RoleModel default): adds React as a **development-only** dependency and mounts through a separate dev-only bundle entry. The pattern adapts to other server-rendered hosts, but the snippets are Rails and the skill says so — shakapacker needs `javascript_pack_tag` and its own dev gate. A host that already bundles React renders the component behind a dev-only dynamic import instead. Three layered guards keep React out of production: dev dependency, bundler-mode-gated entry, and a server-env-gated script tag — the bundler-mode check is the one that actually matters, and the skill verifies it with a production build. Notes the Turbo/htmx re-mount listeners the React portal needs, and points at `agentation-mcp` (port 4747) for syncing annotations to an agent.
 
 ### Code Quality & Auditing
+- **rails-audit**: Whole-app Rails audit against thoughtbot best practices (Ruby Science, Testing Rails). Optionally collects SimpleCov and RubyCritic metrics through subagents, then writes a markdown report grouped by category (Testing, Security, Models, Controllers, Code Design, Views) with severity levels.
 
-Use this skill when asked to perform a code audit, code review, quality assessment, or general analysis of the Rails application. It evaluates the codebase against thoughtbot best practices and produces a structured markdown report grouped by category (Testing, Security, Models, Controllers, Code Design, Views) with severity levels.
-
-To load the skill instructions:
-
-```
-read_file: skills/rails-audit/SKILL.md
-```
+### Utilities
+- **ruby-version**: Verifies which Ruby versions exist (via local ruby-build) before the agent claims one does or doesn't, and installs a specific Ruby through rbenv.
 
 ## Key Conventions
 
 - When editing skills, preserve the YAML frontmatter format at the top of SKILL.md files.
-- BEM, Optics, Laws of UX, and Usability Heuristics skills are designed to work together — BEM provides CSS structure, Optics provides design tokens and components, Laws of UX provides usability principles, and Usability Heuristics provides structured audit methodology.
+- New and changed skills must meet "What makes a good skill" in README.md: only what the model doesn't already know, one job, a model-facing description, a Gotchas section, under ~200 lines, pointers to the source of truth instead of copies, and no client data.
+- Examples use generic models (`Widget`, `Order`, `Article`), `example.com`, and placeholder handles (`jdoe`). Never client names, codenames, internal hostnames, real people's usernames, or code lifted from a client app.
+- BEM, Optics, and UX Review are designed to work together — BEM provides CSS structure, Optics provides design tokens and components, and UX Review finds usability problems whose fixes use both.
 - The `agentation` skill is a fork of the upstream skill in [benjitaylor/agentation](https://github.com/benjitaylor/agentation), pinned in a note at the top of SKILL.md. The toolbar internals it depends on are private, so re-read upstream when bumping the `agentation` package. Keep the upstream commit in that note current.
 - Optics tokens use the `--op-` CSS custom property prefix. Project-specific tokens should use a project namespace prefix (e.g., `--ya-` for "Your App").
 - Optics component overrides go in `app/assets/stylesheets/components/overrides/{component.css}` (in consuming projects).
