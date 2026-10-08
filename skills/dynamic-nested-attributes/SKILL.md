@@ -23,7 +23,7 @@ Implement Rails nested attributes with dynamic add/remove functionality using Tu
 ### 2. Main Form View
 Create a form that includes:
 - `simple_fields_for` for rendering existing nested items
-- A container element with an ID for appending new items (e.g., `#accessories`)
+- A container element with an ID for appending new items (e.g., `#items`)
 - A link to add new items that triggers a Turbo Stream request
 
 **Example:**
@@ -152,11 +152,10 @@ def item_params
     :category,
     :subcategory,
     items_attributes: %i[
+      id
       name
       quantity
-      part_id
-      optional
-      hidden
+      _destroy
     ]
   )
 end
