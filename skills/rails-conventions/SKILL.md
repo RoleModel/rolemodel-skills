@@ -25,6 +25,7 @@ This skill only covers what an agent got wrong without it in baseline tests. Eve
 
   The controller turns it back into the record with `resource_for(:commentable_type)` from `rolemodel_rails`, called only on collection actions. Read `polymorphic-parent-resources` before writing that controller.
 - **Dynamic forms** (dependent selects, conditional fields) use the `turbo_form` gem. Read `dynamic-forms`.
+- **Mounted engines that expose data or controls** (Sidekiq Web, PgHero, Blazer) go behind an admin-only route constraint, and dev-only engines (Letter Opener Web) mount only outside production. This one is a safety rule, kept even though the baseline tests didn't cover it.
 
 ## Gotchas
 
