@@ -25,11 +25,11 @@ The engine defines the concern and the controller behavior. Do not define a `:tu
 
 ```slim
 = simple_form_for @product, dynamic: true do |f|
-  = f.input :category, input_html: { dynamic_trigger: true }
-  = f.input :subcategory, collection: @product.subcategories
+  = f.association :category, input_html: { dynamic_trigger: true }
+  = f.association :subcategory, collection: @product.category&.subcategories || []
 ```
 
-The trigger re-renders the page through its own `new` or `edit` action with the submitted values assigned, so `@product.subcategories` answers for the category just picked. The options, conventions, `dynamic_action:` for custom Turbo Stream responses, and `expect_dynamic_form_request` for system tests are all in the README.
+The trigger re-renders the page through its own `new` or `edit` action with the submitted values assigned, so `@product.category` is the category just picked and its subcategories fill the second select. The options, conventions, `dynamic_action:` for custom Turbo Stream responses, and `expect_dynamic_form_request` for system tests are all in the README.
 
 ## Existing `turbo_fetch` code
 
