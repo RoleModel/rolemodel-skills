@@ -40,7 +40,7 @@ When no token fits, define a project token with the app's own prefix (`--ya-colo
 ## Gotchas
 
 - **Malformed names fail silently.** `var(--op_color_primary_base)`, `var(--color-primary-base)`, and `var(--op-primary-color-base)` all resolve to nothing and the property falls back with no error. Check the name against `tokens.json`.
-- **Plus and minus are luminosity, not emphasis.** `plus-*` is lighter and `minus-*` is darker; `plus-max` is the lightest step in the scale.
+- **Plus and minus flip in dark mode.** Each step is a `light-dark()` pair. In light mode `plus-*` is lighter and `minus-*` darker; in dark mode it reverses, so `plus-max` goes from the lightest step to the darkest. Pick a step by its role against the background, not by "lighter" or "darker", and check both values in `scale_color_tokens.css`.
 - **Optics has more components than you'd guess.** Besides `btn` and `card` it ships `avatar`, `badge`, `tag`, `alert`, `modal`, `table`, `tab`, `switch`, `spinner`, `sidebar`, `side-panel`, `text-pair`, `segmented-control`, and others. Look in `dist/css/components/` before writing any block, and don't hedge with "if your Optics version has it" when you can check. Writing your own block under an Optics name (a new `.avatar { … }`) doesn't create a separate component: it merges into Optics' rules and changes every avatar in the app. Use the Optics block, and put changes in `components/overrides/{component}.css` or a project modifier.
 - **Partial theme overrides break the scale.** See [references/theming.md](references/theming.md) before changing any `--op-color-*` value.
 
