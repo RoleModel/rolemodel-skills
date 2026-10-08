@@ -20,8 +20,6 @@ A skill earns its place when an agent does the job worse without it. Before addi
 
 What isn't a skill: a project's own conventions (put those in its `AGENTS.md` or `docs/conventions/`, via `scaffold-docs` and `generate-conventions`), textbook knowledge, one-off fixes, and rules a linter can enforce.
 
-Sources: Anthropic's [skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices), [Lessons from building Claude Code: How we use skills](https://claude.com/blog/lessons-from-building-claude-code-how-we-use-skills), and the [`writing-skills`](https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md) skill from obra/superpowers.
-
 ## Skills
 
 ### CSS, Design System, & UX
@@ -240,3 +238,12 @@ Markdown instructions for the AI agent...
 ## License
 
 [MIT](LICENSE)
+
+## Sources
+
+The guidance in "What makes a good skill" draws on:
+
+- Anthropic, [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
+- Thariq Shihipar, Anthropic, [Lessons from building Claude Code: How we use skills](https://claude.com/blog/lessons-from-building-claude-code-how-we-use-skills)
+- Barry Zhang and Mahesh Murag, Anthropic, [Don't Build Agents, Build Skills Instead](https://www.ai.engineer/talks/CEvIs9y1uog-agent-skills)
+- Jesse Vincent, [`writing-skills`](https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md) from obra/superpowers
