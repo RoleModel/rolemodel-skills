@@ -67,13 +67,13 @@ A repo PR template sets the shape. Otherwise use **Why**, **What Changed**, **Po
 - **What Changed**: every box checked — each line is done work.
 - **Post-merge**: work someone must do after merging (a backfill, a config change). Boxes unchecked; one line each saying what to run and what stays broken until it runs.
 - **Screenshots**: when the diff changes the UI, ask the user which applies:
-  1. **You take them** — the repo's documented method if its docs describe one, else a browser tool, simulator, or dev server. Save to the scratchpad, keep credentials and customer data out of frame, and view each image before attaching; one that looks wrong is a bug to fix, not a shot to retake.
+  1. **You take them** — the repo's documented method if its docs describe one, else a browser tool, simulator, or dev server. Record the screen too when the change is motion or a multi-step flow a still can't show, and make sure the cursor shows in it. Save to the scratchpad, keep credentials and customer data out of frame, and view each image before attaching; one that looks wrong is a bug to fix, not a shot to retake.
   2. **They take them** — leave the heading and subheadings empty, and say so with the URL.
   3. **None** — omit the section.
 
   No UI change means omit it without asking. A template instruction to keep the heading wins: write `N/A — no UI changes` under it.
 
-Reference each image by path (`![Invite list](<scratchpad>/invite.png)`) and pass the same path to `--attach`; `gh` (2.99.0+) uploads it and rewrites the reference. If an upload fails, the PR still opens — tell the user which are missing.
+Reference each image by path (`![Invite list](<scratchpad>/invite.png)`) and pass the same path to `--attach`; `gh` (2.99.0+) uploads it and rewrites the reference. If an upload fails, the PR still opens — tell the user which are missing. Videos render as a player and take no alt text, so write one line under **Screenshots** saying what each recording shows.
 
 ### The repo's template
 
