@@ -1,6 +1,6 @@
 ---
 name: optics-context
-description: Styles Rails views with RoleModel's Optics design system — its components, `--op-` design tokens, and theme overrides. Use when writing or reviewing CSS, styling a view or component, picking a color, spacing, font, radius, or shadow value, fixing hard-coded CSS values, adding a project token, or theming an app (brand colors, fonts, color scales, dark mode).
+description: Styles Rails views with RoleModel's Optics design system — its components, `--op-` design tokens, and theme overrides. Use when writing or reviewing CSS, styling a view or component, picking a color, spacing, font, radius, or shadow value, fixing hard-coded CSS values, adding a project token, or theming an app (brand colors, fonts, color scales, dark mode). Also use when the user says things like "style this", "make this look like the design", "what token should I use", "fix the hard-coded colors", "change the brand color", or "add dark mode".
 metadata:
   triggers: "optics, css, styling, design tokens, --op-, design system, theme, theming, brand colors, color scale, dark mode"
 ---

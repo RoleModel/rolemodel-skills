@@ -1,7 +1,7 @@
 ---
 name: rails-conventions
 description: >-
-  RoleModel's Rails conventions where they differ from what an agent writes by default: flash wording, the status for failed saves, Simple Form for every form, how route concerns pass the parent type, and two gotchas (`params.expect` with nested attributes, and Lexxy rich-text change events). Use when writing or reviewing a Rails controller, route, form, or view in a RoleModel app.
+  RoleModel's Rails conventions where they differ from what an agent writes by default: flash wording, the status for failed saves, Simple Form for every form, how route concerns pass the parent type, and two gotchas (`params.expect` with nested attributes, and Lexxy rich-text change events). Use when writing or reviewing a Rails controller, route, form, or view in a RoleModel app. Also use when the user says things like "add a controller for", "build the form for", "add routes for", "add comments to", "why isn't my nested form saving", or "review this controller".
 metadata:
   triggers: "rails controller, controller action, routes.rb, route concern, rails form, simple form, simple_form_for, flash message, params.expect, strong params, nested attributes, lexxy, rails view"
 ---
