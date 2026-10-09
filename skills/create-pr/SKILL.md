@@ -6,7 +6,7 @@ metadata:
   author: rolemodelsoftware
   version: "2.0"
   triggers: "open a PR, create a PR, file a PR, draft a PR, pull request, PR description, write the PR body, update the PR description, push this for review, put this up for review, ready for review"
-allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(ls:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Bash(scripts/find_base.sh), Read, Write
+allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(ls:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api user:*), Bash(git merge-base:*), Bash(git rev-list:*), Bash(git rev-parse:*), Read, Write
 ---
 
 # Creating a Pull Request
@@ -24,9 +24,9 @@ ls .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE.md .github/PUL
 
 An open PR means updating it — `gh pr create` fails on a branch that already has one.
 
-Never commit on the default branch. On `main` or `master`, create a branch with `git switch -c <branch>` and tell the user its name. Only ever create a new branch — switching to an existing one changes which work the PR describes.
+Never commit on the default branch. On `main` or `master`, create a branch with `git switch -c <branch>` and tell the user its name. When there is a ticket, start the name with its ID (`abc-123-add-invite-status`). Only ever create a new branch — switching to an existing one changes which work the PR describes.
 
-**Base.** An existing PR keeps its `baseRefName`. Otherwise run `scripts/find_base.sh`: it prints the branch this one was cut from — often another open PR's branch or an epic branch, not the default. If it prints nothing or fails (no `gh` auth, no network), use the default branch. The user can name a different one. Then read the work against it:
+**Base.** An existing PR keeps its `baseRefName`. Otherwise use the branch this one was cut from — often another open PR's branch or an epic branch, not the default. The candidates are the default branch and every other open PR's head (`gh pr list --state open --json headRefName`). For each, count `git rev-list --count $(git merge-base origin/<candidate> HEAD)..HEAD`; the lowest count wins, and ties go to the default. Skip a candidate cut from this branch, where the merge base is HEAD but the tip isn't. If `gh` fails, use the default branch. The user can name a different one. Then read the work against it:
 
 ```bash
 git log --oneline <base>..HEAD
@@ -43,7 +43,7 @@ When the diff changes the UI, settle **Screenshots** now (see below) so the firs
 
 Before committing, pushing, creating, or editing, show the base, title, and body as plain text in your reply, plus anything you would commit or push. Wait for approval; revise until given. When the user commits and pushes themselves, hand them the commands instead.
 
-Stage named paths, never `git add -A`. Check `git status` after staging; if anything unexpected appears, stop and ask.
+Commit uncommitted work before pushing — the PR only carries what is pushed. Stage named paths, never `git add -A`. Check `git status` after staging; if anything unexpected appears, stop and ask.
 
 ## Create or update
 
@@ -62,7 +62,7 @@ Print the PR URL when done.
 
 ## Description format
 
-A repo PR template sets the shape. Otherwise use **Why**, **What Changed**, **Post-merge**, **Screenshots**, in that order, as `##` headings; the last two only when needed. See [references/example.md](references/example.md).
+A repo PR template sets the shape. Otherwise use **Why**, **What Changed**, **Post-merge**, **Screenshots**, in that order, as `##` headings; the last two only when needed.
 
 - **What Changed**: every box checked — each line is done work.
 - **Post-merge**: work someone must do after merging (a backfill, a config change). Boxes unchecked; one line each saying what to run and what stays broken until it runs.
