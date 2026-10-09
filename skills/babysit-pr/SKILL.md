@@ -8,10 +8,10 @@ description: >-
   review comments", "get this PR green", or "wait for checks and address
   feedback". Picks up where the `create-pr` skill leaves off. Does not approve,
   merge, or close anything.
-allowed-tools: Bash(gh pr view:*) Bash(gh pr checks:*) Bash(gh pr diff:*) Bash(gh pr comment:*) Bash(gh run view:*) Bash(gh run list:*) Bash(gh run rerun:*) Bash(gh api:*) Bash(git fetch:*) Bash(git log:*) Bash(git status:*) Bash(git diff:*) Bash(git rebase:*) Bash(git add:*) Bash(git commit:*) Bash(git push:*) Bash(git config:*) Read Edit Write Grep
+allowed-tools: Bash(gh pr view:*) Bash(gh pr checks:*) Bash(gh pr diff:*) Bash(gh pr comment:*) Bash(gh pr edit:*) Bash(gh run view:*) Bash(gh run list:*) Bash(gh run rerun:*) Bash(gh api:*) Bash(git fetch:*) Bash(git log:*) Bash(git status:*) Bash(git diff:*) Bash(git rebase:*) Bash(git add:*) Bash(git commit:*) Bash(git push:*) Bash(git config:*) Read Edit Write Grep
 metadata:
   author: rolemodel
-  version: "1.1"
+  version: "1.2"
   triggers: "babysit pr, monitor pr, watch pr, shepherd pr, get this pr green, fix the ci, address review comments, handle pr feedback, wait for checks"
 license: MIT
 ---
@@ -113,6 +113,18 @@ git push --force-with-lease
 
 Only rebase for a reason: a conflict, or a fix that landed on the base. After
 pushing to an approved PR, tell the user the approval may be stale.
+
+## Keeping the description current
+
+After a push that changes what the PR does — behavior, a dependency, a
+post-merge step, or scope — rewrite only the affected lines of the current
+body with `create-pr`'s rules. Lint, test-only, and rebase pushes leave it
+alone. Describe the PR as it is now, never a log of passes, and keep the
+user's Screenshots and ticked boxes. Edit the body only:
+
+```bash
+gh pr edit "$PR" --body-file <path>
+```
 
 ## Replying
 
